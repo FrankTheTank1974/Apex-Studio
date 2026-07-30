@@ -1,0 +1,6 @@
+{
+  "name": "ApexStudio - Visual HTML & Cloud Deployment IDE",
+  "description": "WYSIWYG HTML editor with real-time preview, drag-and-drop components, Draw.io integration, multi-cloud exports (GitHub, Vercel, Netlify, GitLab), real-time team collaboration, and .tar.zst archiving.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
