@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { DeviceMode, SelectedElementInfo } from '../types';
-import { Eye, Smartphone, Tablet, Monitor, RotateCw } from 'lucide-react';
+import { DeviceMode, SelectedElementInfo, ThemeMode } from '../types';
+import { RotateCw } from 'lucide-react';
 import { extractCanvasBodyHtml } from '../utils/svgUtils';
 
 interface WYSIWYGCanvasProps {
@@ -13,6 +13,7 @@ interface WYSIWYGCanvasProps {
   onDeleteSelectedElement?: () => void;
   onOpenDrawIoWithDiagram?: (diagramId: string) => void;
   collaboratorCursors?: Record<string, { x: number; y: number; name: string; color: string }>;
+  themeMode?: ThemeMode;
 }
 
 export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
@@ -24,8 +25,10 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
   onUpdateHtmlFromCanvas,
   onDeleteSelectedElement,
   onOpenDrawIoWithDiagram,
-  collaboratorCursors = {}
+  collaboratorCursors = {},
+  themeMode = 'dark'
 }) => {
+  const isDark = themeMode === 'dark';
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -49,55 +52,80 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
     }
   };
 
-  // Inject HTML + CSS + JS into iframe and attach interactive handlers
-  useEffect(() => {
+  // Full HTML document payload for iframe srcDoc
+  const fullDoc = `<!DOCTYPE html>
+<html class="${isDark ? 'dark' : ''}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class'
+      };
+    </script>
+    <style>
+      ${cssContent}
+      .apex-hover-outline {
+        outline: 2px dashed #818cf8 !important;
+        outline-offset: 1px !important;
+        cursor: pointer !important;
+      }
+      .apex-selected-outline {
+        outline: 2px solid #6366f1 !important;
+        outline-offset: 2px !important;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25) !important;
+      }
+      .drawio-container {
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+      }
+      /* Theme adaptation overrides for Draw.io diagram blocks */
+      html:not(.dark) .drawio-container {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border-color: #e2e8f0 !important;
+        box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05) !important;
+      }
+      html:not(.dark) .diagram-viewport {
+        background-color: #f8fafc !important;
+        border-color: #e2e8f0 !important;
+      }
+      html:not(.dark) .diagram-viewport text {
+        fill: #1e293b !important;
+      }
+      html.dark .drawio-container {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+        border-color: #1e293b !important;
+      }
+      html.dark .diagram-viewport {
+        background-color: #020617 !important;
+        border-color: #1e293b !important;
+      }
+      html.dark .diagram-viewport text {
+        fill: #e2e8f0 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="apex-canvas-root">${extractCanvasBodyHtml(htmlContent)}</div>
+    <script>
+      try {
+        ${jsContent}
+      } catch(e) {
+        console.error("User JS Error:", e);
+      }
+    </script>
+  </body>
+</html>`;
+
+  // Attach interactive listeners inside iframe document safely
+  const setupIframeListeners = () => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
     const doc = iframe.contentDocument || iframe.contentWindow?.document;
-    if (!doc) return;
-
-    // Full HTML document payload
-    const fullDoc = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <script src="https://cdn.tailwindcss.com"></script>
-          <style>
-            ${cssContent}
-            .apex-hover-outline {
-              outline: 2px dashed #818cf8 !important;
-              outline-offset: 1px !important;
-              cursor: pointer !important;
-            }
-            .apex-selected-outline {
-              outline: 2px solid #6366f1 !important;
-              outline-offset: 2px !important;
-              box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25) !important;
-            }
-            .drawio-container {
-              cursor: pointer !important;
-            }
-          </style>
-        </head>
-        <body>
-          <div id="apex-canvas-root">${extractCanvasBodyHtml(htmlContent)}</div>
-          <script>
-            try {
-              ${jsContent}
-            } catch(e) {
-              console.error("User JS Error:", e);
-            }
-          </script>
-        </body>
-      </html>
-    `;
-
-    doc.open();
-    doc.write(fullDoc);
-    doc.close();
+    if (!doc || !doc.body) return;
 
     // Attach click & hover events inside iframe
     const handleMouseOver = (e: MouseEvent) => {
@@ -120,11 +148,13 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
         return;
       }
 
-      // Check if user clicked on a Draw.io diagram container
-      const drawioParent = target.closest('.drawio-container') as HTMLElement;
-      if (drawioParent && onOpenDrawIoWithDiagram) {
-        const diagramId = drawioParent.getAttribute('data-diagram-id') || 'diagram-1';
+      // Check if user explicitly clicked an "Edit Diagram" button to launch Draw.io editor
+      const openDrawIoBtn = target.closest('[data-action="open-drawio"], .open-drawio-btn') as HTMLElement;
+      if (openDrawIoBtn && onOpenDrawIoWithDiagram) {
+        const drawioParent = target.closest('.drawio-container') as HTMLElement;
+        const diagramId = drawioParent?.getAttribute('data-diagram-id') || 'diagram-1';
         onOpenDrawIoWithDiagram(diagramId);
+        return;
       }
 
       // Clear previous selection outlines
@@ -167,7 +197,6 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
         target.contentEditable = 'false';
         const root = doc.getElementById('apex-canvas-root');
         if (root) {
-          // Clean temporary classes before syncing
           const cleanHtml = getCleanHtmlFromRoot(root);
           onUpdateHtmlFromCanvas(cleanHtml);
         }
@@ -197,7 +226,6 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
       }
     };
 
-    // Attach listeners
     doc.addEventListener('mouseover', handleMouseOver);
     doc.addEventListener('mouseout', handleMouseOut);
     doc.addEventListener('click', handleClick);
@@ -211,7 +239,14 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
       doc.removeEventListener('dblclick', handleDblClick);
       doc.removeEventListener('keydown', handleKeyDown);
     };
-  }, [htmlContent, cssContent, jsContent, deviceMode, refreshKey]);
+  };
+
+  useEffect(() => {
+    const cleanup = setupIframeListeners();
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [htmlContent, cssContent, jsContent, refreshKey]);
 
   // Extract clean HTML without editor helper classes
   const getCleanHtmlFromRoot = (rootEl: HTMLElement): string => {
@@ -247,18 +282,28 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
     <div
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      className="flex-1 bg-slate-950 flex flex-col items-center justify-center relative overflow-hidden p-4 select-none"
+      className={`flex-1 flex flex-col items-center justify-center relative overflow-hidden p-4 select-none transition-colors ${
+        isDark ? 'bg-slate-950' : 'bg-slate-200/80'
+      }`}
     >
       {/* Device frame header tag & Reload Button */}
-      <div className="absolute top-3 left-4 z-10 bg-slate-900/90 backdrop-blur px-3 py-1 rounded-full border border-slate-800 text-[11px] text-slate-400 flex items-center space-x-2.5">
+      <div className={`absolute top-3 left-4 z-10 backdrop-blur px-3 py-1 rounded-full border text-[11px] flex items-center space-x-2.5 ${
+        isDark 
+          ? 'bg-slate-900/90 border-slate-800 text-slate-400'
+          : 'bg-white/90 border-slate-300 text-slate-600 shadow-sm'
+      }`}>
         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span className="font-medium">WYSIWYG Visual Canvas</span>
-        <span className="text-slate-600">|</span>
-        <span className="font-mono text-indigo-400">{deviceMode.toUpperCase()} VIEW</span>
+        <span className={isDark ? 'text-slate-600' : 'text-slate-300'}>|</span>
+        <span className="font-mono text-indigo-500 font-semibold">{deviceMode.toUpperCase()} VIEW</span>
 
         <button
           onClick={handleManualRefresh}
-          className="ml-1 flex items-center space-x-1 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-full text-[10px] font-semibold border border-slate-700 transition-all cursor-pointer"
+          className={`ml-1 flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-all cursor-pointer ${
+            isDark 
+              ? 'text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 border-slate-700'
+              : 'text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border-slate-300'
+          }`}
           title="Reload / Refresh Visual Canvas"
         >
           <RotateCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />
@@ -291,6 +336,9 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
       <div className={`transition-all duration-300 bg-white dark:bg-slate-900 ${getDeviceStyle()}`}>
         <iframe
           ref={iframeRef}
+          key={`canvas-frame-${refreshKey}`}
+          srcDoc={fullDoc}
+          onLoad={setupIframeListeners}
           title="WYSIWYG Canvas Frame"
           className="w-full h-full border-none bg-white dark:bg-slate-950"
         />

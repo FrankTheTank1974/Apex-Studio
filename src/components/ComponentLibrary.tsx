@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   COMPONENT_TEMPLATES 
 } from '../data/componentsData';
-import { ComponentCategory, ComponentTemplate } from '../types';
+import { ComponentCategory, ComponentTemplate, ThemeMode } from '../types';
 import { 
   Search, 
   Sparkles, 
@@ -22,6 +22,7 @@ import {
 interface ComponentLibraryProps {
   onInsertComponent: (html: string) => void;
   onDragStartComponent?: (e: React.DragEvent, component: ComponentTemplate) => void;
+  themeMode?: ThemeMode;
 }
 
 const CATEGORIES: { id: ComponentCategory | 'all'; label: string }[] = [
@@ -35,8 +36,10 @@ const CATEGORIES: { id: ComponentCategory | 'all'; label: string }[] = [
 
 export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({
   onInsertComponent,
-  onDragStartComponent
+  onDragStartComponent,
+  themeMode = 'dark'
 }) => {
+  const isDark = themeMode === 'dark';
   const [selectedCategory, setSelectedCategory] = useState<ComponentCategory | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -63,27 +66,39 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({
   };
 
   return (
-    <div className="w-72 bg-slate-900 border-r border-slate-800 flex flex-col h-full text-slate-300 select-none">
+    <div className={`w-72 border-r flex flex-col h-full select-none transition-colors ${
+      isDark ? 'bg-slate-900 border-slate-800 text-slate-300' : 'bg-white border-slate-200 text-slate-700'
+    }`}>
       {/* Header & Search */}
-      <div className="p-3 border-b border-slate-800">
+      <div className={`p-3 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Component Palette</span>
-          <span className="text-[10px] text-slate-500 font-medium">Drag to Canvas</span>
+          <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            Component Palette
+          </span>
+          <span className={`text-[10px] font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            Drag to Canvas
+          </span>
         </div>
         <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-500" />
+          <Search className={`w-3.5 h-3.5 absolute left-2.5 top-2.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
           <input
             type="text"
             placeholder="Search components..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+            className={`w-full pl-8 pr-3 py-1.5 border rounded-lg text-xs focus:outline-none focus:border-indigo-500 transition-colors ${
+              isDark 
+                ? 'bg-slate-950 border-slate-800 text-white placeholder-slate-500' 
+                : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+            }`}
           />
         </div>
       </div>
 
       {/* Categories Horizontal Pills */}
-      <div className="flex items-center space-x-1 p-2 overflow-x-auto border-b border-slate-800 scrollbar-none text-xs">
+      <div className={`flex items-center space-x-1 p-2 overflow-x-auto border-b scrollbar-none text-xs ${
+        isDark ? 'border-slate-800' : 'border-slate-200'
+      }`}>
         {CATEGORIES.map((cat) => (
           <button
             key={cat.id}
@@ -91,7 +106,9 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({
             className={`px-2.5 py-1 rounded-md font-medium whitespace-nowrap transition-colors ${
               selectedCategory === cat.id
                 ? 'bg-indigo-600 text-white'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                : isDark
+                  ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             {cat.label}
@@ -102,7 +119,7 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({
       {/* Component List */}
       <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
         {filteredComponents.length === 0 ? (
-          <div className="text-center py-8 text-xs text-slate-500">
+          <div className={`text-center py-8 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
             No matching components found.
           </div>
         ) : (
@@ -115,18 +132,26 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({
                 e.dataTransfer.setData('text/plain', comp.html);
                 if (onDragStartComponent) onDragStartComponent(e, comp);
               }}
-              className="group p-3 bg-slate-950 hover:bg-slate-800/80 border border-slate-800/80 hover:border-indigo-500/50 rounded-xl transition-all cursor-grab active:cursor-grabbing shadow-sm"
+              className={`group p-3 border rounded-xl transition-all cursor-grab active:cursor-grabbing shadow-sm ${
+                isDark
+                  ? 'bg-slate-950 hover:bg-slate-800/80 border-slate-800/80 hover:border-indigo-500/50'
+                  : 'bg-slate-50 hover:bg-slate-100/90 border-slate-200 hover:border-indigo-500/40'
+              }`}
             >
               <div className="flex items-start justify-between mb-1.5">
                 <div className="flex items-center space-x-2">
-                  <div className="p-1.5 bg-slate-900 rounded-lg border border-slate-800">
+                  <div className={`p-1.5 rounded-lg border ${
+                    isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+                  }`}>
                     {getIcon(comp.icon)}
                   </div>
                   <div>
-                    <h4 className="text-xs font-semibold text-slate-100 group-hover:text-indigo-300 transition-colors">
+                    <h4 className={`text-xs font-semibold transition-colors ${
+                      isDark ? 'text-slate-100 group-hover:text-indigo-300' : 'text-slate-800 group-hover:text-indigo-600'
+                    }`}>
                       {comp.name}
                     </h4>
-                    <span className="text-[10px] text-slate-500 capitalize">{comp.category}</span>
+                    <span className={`text-[10px] capitalize ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{comp.category}</span>
                   </div>
                 </div>
                 <button
@@ -138,16 +163,18 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({
                 </button>
               </div>
 
-              <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+              <p className={`text-[11px] line-clamp-2 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                 {comp.description}
               </p>
 
-              <div className="mt-2 flex items-center justify-between text-[10px] text-slate-500 pt-2 border-t border-slate-800/60">
+              <div className={`mt-2 flex items-center justify-between text-[10px] pt-2 border-t ${
+                isDark ? 'text-slate-500 border-slate-800/60' : 'text-slate-400 border-slate-200'
+              }`}>
                 <span className="flex items-center space-x-1">
-                  <GripVertical className="w-3 h-3 text-slate-600" />
+                  <GripVertical className={`w-3 h-3 ${isDark ? 'text-slate-600' : 'text-slate-400'}`} />
                   <span>Drag to canvas</span>
                 </span>
-                <span className="text-indigo-400 font-mono">Tailwind Ready</span>
+                <span className="text-indigo-500 font-mono font-medium">Tailwind Ready</span>
               </div>
             </div>
           ))

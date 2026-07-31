@@ -2,24 +2,40 @@ export function normalizeSvgContent(input: string): string {
   if (!input) return '';
   const trimmed = input.trim();
 
-  // Helper to extract or construct clean SVG XML markup from decoded text
+  // Helper to extract clean SVG XML markup from raw or decoded text
   const formatSvgText = (text: string): string | null => {
+    if (!text) return null;
     const cleanText = text.trim();
-    if (cleanText.startsWith('<svg') && cleanText.endsWith('</svg>')) {
-      return cleanText;
-    }
-    const svgMatch = cleanText.match(/<svg[\s\S]*<\/svg>/i);
+
+    // 1. Search for a complete <svg ... </svg> tag
+    const svgMatch = cleanText.match(/<svg[\s\S]*?<\/svg>/i);
     if (svgMatch) {
       return svgMatch[0];
     }
-    // If text contains SVG child nodes like <g>, <path>, <defs>, wrap in <svg>
-    if (cleanText.includes('<g') || cleanText.includes('<path') || cleanText.includes('<defs')) {
-      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" class="w-full h-auto max-w-2xl mx-auto">${cleanText}</svg>`;
+
+    // 2. Search for <svg ... tag even if closing tag was truncated or formatted differently
+    const openSvgIdx = cleanText.toLowerCase().indexOf('<svg');
+    if (openSvgIdx !== -1) {
+      const fromSvg = cleanText.substring(openSvgIdx);
+      if (fromSvg.includes('</svg>')) {
+        return fromSvg.substring(0, fromSvg.indexOf('</svg>') + 6);
+      }
+      return fromSvg;
     }
+
+    // 3. If text contains SVG elements (<g>, <path>, <defs>), strip non-HTML prefix and wrap in <svg>
+    const firstTagIdx = cleanText.indexOf('<');
+    if (firstTagIdx !== -1) {
+      const tagOnlyText = cleanText.substring(firstTagIdx);
+      if (tagOnlyText.includes('<g') || tagOnlyText.includes('<path') || tagOnlyText.includes('<defs')) {
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" class="w-full h-auto max-w-2xl mx-auto">${tagOnlyText}</svg>`;
+      }
+    }
+
     return null;
   };
 
-  // Helper to attempt base64 decode safely
+  // Safe Base64 decoding
   const tryDecodeBase64 = (b64Str: string): string | null => {
     const cleanB64 = b64Str.replace(/\s/g, '');
     try {
@@ -42,7 +58,7 @@ export function normalizeSvgContent(input: string): string {
   };
 
   // 1. If it's already raw <svg> XML markup
-  if (trimmed.startsWith('<svg') || (trimmed.startsWith('<?xml') && trimmed.includes('<svg'))) {
+  if (trimmed.toLowerCase().includes('<svg')) {
     const formatted = formatSvgText(trimmed);
     if (formatted) return formatted;
   }
@@ -69,7 +85,7 @@ export function normalizeSvgContent(input: string): string {
   const decodedFromRawB64 = tryDecodeBase64(trimmed);
   if (decodedFromRawB64) return decodedFromRawB64;
 
-  // 5. If it looks like a base64 string or data string (no HTML brackets), wrap in <img> tag so it never shows raw text
+  // 5. If it looks like base64 or data string (no HTML brackets), wrap in <img> tag so it never shows raw text
   if (!trimmed.includes('<') || /^[A-Za-z0-9+/=]+$/.test(trimmed)) {
     const dataUrl = trimmed.startsWith('data:') ? trimmed : `data:image/svg+xml;base64,${trimmed}`;
     return `<img src="${dataUrl}" alt="Draw.io Diagram" class="max-w-full h-auto mx-auto block" />`;

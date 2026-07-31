@@ -344,16 +344,19 @@ export default function App() {
     const parser = new DOMParser();
     const doc = parser.parseFromString(activeHtmlFile.content, 'text/html');
 
-    const diagramHtml = `<div class="my-8 p-6 bg-slate-900 text-white rounded-2xl border border-slate-800 text-center shadow-lg drawio-container" data-diagram-id="${diagram.id}">
-  <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+    const diagramHtml = `<div class="my-8 p-6 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl border border-slate-200 dark:border-slate-800 text-center shadow-lg drawio-container relative group" data-diagram-id="${diagram.id}">
+  <div class="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
     <div class="flex items-center space-x-2">
-      <span class="text-amber-400 font-bold">❖</span>
-      <span class="font-bold text-sm tracking-wide">${diagram.title}</span>
+      <span class="text-amber-500 font-bold">❖</span>
+      <span class="diagram-title font-bold text-sm tracking-wide">${diagram.title}</span>
     </div>
-    <span class="text-xs px-2.5 py-1 bg-amber-500/20 text-amber-300 rounded-full border border-amber-500/30">Draw.io Vector</span>
+    <div class="flex items-center space-x-2">
+      <span class="text-xs px-2.5 py-1 bg-amber-500/20 text-amber-600 dark:text-amber-300 rounded-full border border-amber-500/30 font-medium">Draw.io Vector</span>
+      <button type="button" data-action="open-drawio" class="open-drawio-btn text-xs px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium cursor-pointer">Edit Diagram</button>
+    </div>
   </div>
-  <div class="diagram-viewport p-4 bg-slate-950 rounded-xl flex items-center justify-center">
-    ${normalizedSvg || `<div class="text-amber-400 font-bold p-8">Diagram SVG updated</div>`}
+  <div data-action="open-drawio" class="diagram-viewport cursor-pointer p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800/80 flex items-center justify-center">
+    ${normalizedSvg || `<div class="text-amber-500 font-bold p-8">Diagram SVG updated</div>`}
   </div>
 </div>`;
 
@@ -449,6 +452,7 @@ export default function App() {
         {(viewMode === 'wysiwyg' || viewMode === 'split') && (
           <ComponentLibrary
             onInsertComponent={handleInsertComponentHtml}
+            themeMode={themeMode}
           />
         )}
 
@@ -466,6 +470,7 @@ export default function App() {
               onDeleteSelectedElement={handleDeleteElement}
               onOpenDrawIoWithDiagram={handleOpenDrawIoWithDiagram}
               collaboratorCursors={remoteCursors}
+              themeMode={themeMode}
             />
           )}
 
@@ -478,6 +483,7 @@ export default function App() {
               onFileContentChange={handleFileContentChange}
               onAddNewFile={handleAddNewFile}
               onDeleteFile={handleDeleteFile}
+              themeMode={themeMode}
             />
           )}
         </div>
@@ -490,6 +496,8 @@ export default function App() {
             onDuplicateElement={handleDuplicateElement}
             onDeleteElement={handleDeleteElement}
             onMoveElement={handleMoveElement}
+            onOpenDrawIoWithDiagram={handleOpenDrawIoWithDiagram}
+            themeMode={themeMode}
           />
         )}
       </div>
@@ -519,6 +527,7 @@ export default function App() {
             wsRef.current.send(JSON.stringify({ type: 'chat_message', text }));
           }
         }}
+        themeMode={themeMode}
       />
 
       {/* Cloud Deployment & Archival Hub Modal */}

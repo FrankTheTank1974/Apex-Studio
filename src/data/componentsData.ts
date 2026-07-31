@@ -221,32 +221,35 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
     category: 'drawio',
     icon: 'Workflow',
     description: 'Interactive flowchart/architecture container for Draw.io diagrams',
-    html: `<div class="my-8 p-6 bg-slate-900 text-white rounded-2xl border border-slate-800 text-center shadow-lg drawio-container" data-diagram-id="arch-1">
-  <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+    html: `<div class="my-8 p-6 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl border border-slate-200 dark:border-slate-800 text-center shadow-lg drawio-container relative group font-sans" data-diagram-id="arch-1">
+  <div class="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
     <div class="flex items-center space-x-2">
-      <span class="text-amber-400 font-bold">❖</span>
-      <span class="font-bold text-sm tracking-wide">System Architecture Diagram (Draw.io)</span>
+      <span class="text-amber-500 font-bold">❖</span>
+      <span class="diagram-title font-bold text-sm tracking-wide">System Architecture Diagram</span>
     </div>
-    <span class="text-xs px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/30">Vector SVG</span>
+    <div class="flex items-center space-x-2">
+      <span class="text-xs px-2.5 py-1 bg-amber-500/20 text-amber-600 dark:text-amber-300 rounded-full border border-amber-500/30 font-medium">Draw.io Vector</span>
+      <button type="button" data-action="open-drawio" class="open-drawio-btn text-xs px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium cursor-pointer">Edit Diagram</button>
+    </div>
   </div>
-  <div class="diagram-viewport p-4 bg-slate-950 rounded-xl flex items-center justify-center min-h-[220px]">
+  <div data-action="open-drawio" class="diagram-viewport cursor-pointer p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800/80 flex items-center justify-center min-h-[220px]">
     <svg class="w-full max-w-lg h-auto" viewBox="0 0 500 200" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="20" y="70" width="110" height="60" rx="10" fill="#3B82F6" fill-opacity="0.2" stroke="#60A5FA" stroke-width="2"/>
-      <text x="75" y="105" text-anchor="middle" fill="#93C5FD" font-size="14" font-family="sans-serif" font-weight="bold">Client App</text>
+      <text x="75" y="105" text-anchor="middle" fill="#2563EB" font-size="14" font-family="sans-serif" font-weight="bold">Client App</text>
       
-      <path d="M130 100 L200 100" stroke="#94A3B8" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+      <path d="M130 100 L200 100" stroke="#94A3B8" stroke-width="2" stroke-dasharray="4 4"/>
       
       <rect x="200" y="50" width="130" height="100" rx="12" fill="#8B5CF6" fill-opacity="0.2" stroke="#A78BFA" stroke-width="2"/>
-      <text x="265" y="95" text-anchor="middle" fill="#DDD6FE" font-size="14" font-family="sans-serif" font-weight="bold">Cloud IDE Server</text>
-      <text x="265" y="115" text-anchor="middle" fill="#A78BFA" font-size="11" font-family="sans-serif">Express + WS</text>
+      <text x="265" y="95" text-anchor="middle" fill="#7C3AED" font-size="14" font-family="sans-serif" font-weight="bold">Cloud IDE Server</text>
+      <text x="265" y="115" text-anchor="middle" fill="#8B5CF6" font-size="11" font-family="sans-serif">Express + WS</text>
       
       <path d="M330 100 L400 100" stroke="#94A3B8" stroke-width="2"/>
       
       <rect x="400" y="70" width="80" height="60" rx="10" fill="#10B981" fill-opacity="0.2" stroke="#34D399" stroke-width="2"/>
-      <text x="440" y="105" text-anchor="middle" fill="#6EE7B7" font-size="13" font-family="sans-serif" font-weight="bold">Vercel/Git</text>
+      <text x="440" y="105" text-anchor="middle" fill="#059669" font-size="13" font-family="sans-serif" font-weight="bold">Vercel/Git</text>
     </svg>
   </div>
-  <p class="text-xs text-slate-400 mt-3">Double-click or click "Edit Diagram" in toolbar to open embedded Draw.io editor.</p>
+  <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">Double-click title to edit name directly in live preview, or click "Edit Diagram" to launch editor.</p>
 </div>`
   },
 
