@@ -87,6 +87,7 @@ export interface DrawIoDiagram {
 
 export type ViewMode = 'wysiwyg' | 'code' | 'split' | 'preview' | 'drawio';
 export type DeviceMode = 'desktop' | 'tablet' | 'mobile';
+export type ThemeMode = 'dark' | 'light';
 
 export interface ProjectTemplate {
   id: string;

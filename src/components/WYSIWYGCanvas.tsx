@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { DeviceMode, SelectedElementInfo } from '../types';
 import { Eye, Smartphone, Tablet, Monitor, RotateCw } from 'lucide-react';
+import { extractCanvasBodyHtml } from '../utils/svgUtils';
 
 interface WYSIWYGCanvasProps {
   htmlContent: string;
@@ -82,7 +83,7 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
           </style>
         </head>
         <body>
-          <div id="apex-canvas-root">${htmlContent}</div>
+          <div id="apex-canvas-root">${extractCanvasBodyHtml(htmlContent)}</div>
           <script>
             try {
               ${jsContent}

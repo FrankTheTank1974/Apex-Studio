@@ -14,9 +14,11 @@ import {
   FolderArchive,
   Play,
   Share2,
-  FolderPlus
+  FolderPlus,
+  Sun,
+  Moon
 } from 'lucide-react';
-import { ViewMode, DeviceMode, ProjectFile } from '../types';
+import { ViewMode, DeviceMode, ProjectFile, ThemeMode } from '../types';
 
 interface NavbarProps {
   projectName: string;
@@ -25,6 +27,8 @@ interface NavbarProps {
   onViewModeChange: (mode: ViewMode) => void;
   deviceMode: DeviceMode;
   onDeviceModeChange: (mode: DeviceMode) => void;
+  themeMode: ThemeMode;
+  onToggleTheme: () => void;
   onOpenExport: () => void;
   onOpenAI: () => void;
   onOpenDrawIo: () => void;
@@ -42,6 +46,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onViewModeChange,
   deviceMode,
   onDeviceModeChange,
+  themeMode,
+  onToggleTheme,
   onOpenExport,
   onOpenAI,
   onOpenDrawIo,
@@ -51,35 +57,47 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleCollab,
   collaboratorCount
 }) => {
+  const isDark = themeMode === 'dark';
+
   return (
-    <nav className="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between text-slate-200 select-none z-30">
+    <nav className={`h-14 border-b px-4 flex items-center justify-between select-none z-30 transition-colors ${
+      isDark ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
+    }`}>
       {/* Brand & Project Name */}
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-bold text-white text-base shadow-md shadow-indigo-500/20">
             A
           </div>
-          <span className="font-bold tracking-tight text-white text-lg hidden sm:inline">ApexStudio</span>
+          <span className={`font-bold tracking-tight text-lg hidden sm:inline ${isDark ? 'text-white' : 'text-slate-900'}`}>ApexStudio</span>
         </div>
         
-        <span className="text-slate-700 hidden sm:inline">|</span>
+        <span className={`${isDark ? 'text-slate-700' : 'text-slate-300'} hidden sm:inline`}>|</span>
 
         <div className="flex items-center space-x-1.5">
           <input
             type="text"
             value={projectName}
             onChange={(e) => onProjectNameChange(e.target.value)}
-            className="bg-transparent hover:bg-slate-800 focus:bg-slate-800 text-white font-medium text-sm px-2 py-1 rounded border border-transparent focus:border-indigo-500 outline-none transition-colors w-32 sm:w-44"
+            className={`font-medium text-sm px-2 py-1 rounded border outline-none transition-colors w-32 sm:w-44 ${
+              isDark 
+                ? 'bg-transparent hover:bg-slate-800 focus:bg-slate-800 text-white border-transparent focus:border-indigo-500'
+                : 'bg-transparent hover:bg-slate-100 focus:bg-slate-100 text-slate-900 border-transparent focus:border-indigo-500'
+            }`}
             placeholder="Project Title"
           />
 
           {/* New Project Button */}
           <button
             onClick={onOpenNewProject}
-            className="flex items-center space-x-1 px-2.5 py-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:border-indigo-500/70 rounded-lg text-xs font-semibold transition-all shadow-sm"
+            className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all shadow-sm ${
+              isDark
+                ? 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:border-indigo-500/70'
+                : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 hover:border-indigo-300'
+            }`}
             title="Start a New Project with starter template"
           >
-            <FolderPlus className="w-3.5 h-3.5 text-indigo-400" />
+            <FolderPlus className="w-3.5 h-3.5 text-indigo-500" />
             <span className="hidden sm:inline">New</span>
           </button>
         </div>
@@ -220,6 +238,29 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <FolderArchive className="w-3.5 h-3.5 text-cyan-400" />
           <span className="hidden xl:inline">.tar.zst</span>
+        </button>
+
+        {/* Theme Mode Switcher */}
+        <button
+          onClick={onToggleTheme}
+          className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+            isDark
+              ? 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
+              : 'bg-slate-100 hover:bg-slate-200 text-amber-600 border-slate-300 shadow-sm'
+          }`}
+          title={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
+        >
+          {isDark ? (
+            <>
+              <Sun className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Light</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-3.5 h-3.5 text-indigo-600" />
+              <span className="hidden sm:inline">Dark</span>
+            </>
+          )}
         </button>
 
         {/* Cloud Deployment Hub Trigger */}

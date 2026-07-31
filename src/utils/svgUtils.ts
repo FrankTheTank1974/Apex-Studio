@@ -2,41 +2,50 @@ export function normalizeSvgContent(input: string): string {
   if (!input) return '';
   const trimmed = input.trim();
 
-  // 1. If it's already raw <svg> XML markup
-  if (trimmed.startsWith('<svg') || (trimmed.startsWith('<?xml') && trimmed.includes('<svg'))) {
-    return trimmed;
-  }
-
-  // Helper to check if decoded text is valid SVG markup
-  const extractSvgFromText = (text: string): string | null => {
+  // Helper to extract or construct clean SVG XML markup from decoded text
+  const formatSvgText = (text: string): string | null => {
     const cleanText = text.trim();
-    if (cleanText.startsWith('<svg')) return cleanText;
+    if (cleanText.startsWith('<svg') && cleanText.endsWith('</svg>')) {
+      return cleanText;
+    }
     const svgMatch = cleanText.match(/<svg[\s\S]*<\/svg>/i);
-    if (svgMatch) return svgMatch[0];
+    if (svgMatch) {
+      return svgMatch[0];
+    }
+    // If text contains SVG child nodes like <g>, <path>, <defs>, wrap in <svg>
+    if (cleanText.includes('<g') || cleanText.includes('<path') || cleanText.includes('<defs')) {
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" class="w-full h-auto max-w-2xl mx-auto">${cleanText}</svg>`;
+    }
     return null;
   };
 
-  // Helper to attempt base64 decode
-  const tryDecodeBase64 = (b64: string): string | null => {
+  // Helper to attempt base64 decode safely
+  const tryDecodeBase64 = (b64Str: string): string | null => {
+    const cleanB64 = b64Str.replace(/\s/g, '');
     try {
-      // Standard UTF-8 base64 decode
-      const decoded = decodeURIComponent(
-        Array.from(atob(b64))
+      const decodedUtf8 = decodeURIComponent(
+        Array.from(atob(cleanB64))
           .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
           .join('')
       );
-      const svg = extractSvgFromText(decoded);
+      const svg = formatSvgText(decodedUtf8);
       if (svg) return svg;
     } catch {}
 
     try {
-      const decoded = atob(b64);
-      const svg = extractSvgFromText(decoded);
+      const decodedAscii = atob(cleanB64);
+      const svg = formatSvgText(decodedAscii);
       if (svg) return svg;
     } catch {}
 
     return null;
   };
+
+  // 1. If it's already raw <svg> XML markup
+  if (trimmed.startsWith('<svg') || (trimmed.startsWith('<?xml') && trimmed.includes('<svg'))) {
+    const formatted = formatSvgText(trimmed);
+    if (formatted) return formatted;
+  }
 
   // 2. If it's a base64 Data URI: data:image/svg+xml;base64,...
   if (trimmed.startsWith('data:image/svg+xml;base64,')) {
@@ -50,21 +59,39 @@ export function normalizeSvgContent(input: string): string {
   if (trimmed.startsWith('data:image/svg+xml,')) {
     try {
       const decoded = decodeURIComponent(trimmed.substring('data:image/svg+xml,'.length));
-      const svg = extractSvgFromText(decoded);
+      const svg = formatSvgText(decoded);
       if (svg) return svg;
     } catch {}
     return `<img src="${trimmed}" alt="Draw.io Diagram" class="max-w-full h-auto mx-auto block" />`;
   }
 
-  // 4. If it's a raw Base64 string (without data: header)
+  // 4. Try decoding raw Base64 string directly
   const decodedFromRawB64 = tryDecodeBase64(trimmed);
   if (decodedFromRawB64) return decodedFromRawB64;
 
-  // 5. Fallback for raw Base64 or Data URIs -> render as <img> tag
-  if (!trimmed.includes('<') && trimmed.length > 20) {
+  // 5. If it looks like a base64 string or data string (no HTML brackets), wrap in <img> tag so it never shows raw text
+  if (!trimmed.includes('<') || /^[A-Za-z0-9+/=]+$/.test(trimmed)) {
     const dataUrl = trimmed.startsWith('data:') ? trimmed : `data:image/svg+xml;base64,${trimmed}`;
     return `<img src="${dataUrl}" alt="Draw.io Diagram" class="max-w-full h-auto mx-auto block" />`;
   }
 
   return trimmed;
+}
+
+export function serializeDocumentOrBody(doc: Document, originalContent: string): string {
+  const isFullDoc = /^\s*<!DOCTYPE|^\s*<html/i.test(originalContent);
+  if (isFullDoc) {
+    return doc.doctype ? `<!DOCTYPE html>\n${doc.documentElement.outerHTML}` : doc.documentElement.outerHTML;
+  }
+  return doc.body ? doc.body.innerHTML : doc.documentElement.innerHTML;
+}
+
+export function extractCanvasBodyHtml(rawHtml: string): string {
+  if (!rawHtml) return '';
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(rawHtml, 'text/html');
+  if (doc.body) {
+    return doc.body.innerHTML;
+  }
+  return rawHtml;
 }

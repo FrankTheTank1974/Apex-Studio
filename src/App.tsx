@@ -8,6 +8,7 @@ import {
   ProjectFile, 
   ViewMode, 
   DeviceMode, 
+  ThemeMode,
   SelectedElementInfo, 
   Collaborator, 
   ChatMessage, 
@@ -25,7 +26,7 @@ import { ExportDeployModal } from './components/ExportDeployModal';
 import { AIAssistantModal } from './components/AIAssistantModal';
 import { NewProjectModal } from './components/NewProjectModal';
 import { downloadTarZstd } from './utils/tarZstd';
-import { normalizeSvgContent } from './utils/svgUtils';
+import { normalizeSvgContent, serializeDocumentOrBody } from './utils/svgUtils';
 
 export default function App() {
   const [projectName, setProjectName] = useState('ApexStudio Project');
@@ -33,7 +34,19 @@ export default function App() {
   const [activeFileId, setActiveFileId] = useState<string>('index-html');
   const [viewMode, setViewMode] = useState<ViewMode>('split');
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem('apex_theme_mode');
+    return (saved === 'light' || saved === 'dark') ? saved : 'dark';
+  });
   const [selectedElement, setSelectedElement] = useState<SelectedElementInfo | null>(null);
+
+  const handleToggleTheme = () => {
+    setThemeMode((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('apex_theme_mode', next);
+      return next;
+    });
+  };
 
   // Modals
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -198,8 +211,8 @@ export default function App() {
       });
     }
 
-    const updatedDocHtml = doc.documentElement.outerHTML;
-    handleUpdateHtml(`<!DOCTYPE html>\n${updatedDocHtml}`);
+    const updatedHtml = serializeDocumentOrBody(doc, activeHtmlFile.content);
+    handleUpdateHtml(updatedHtml);
   };
 
   // Duplicate / Delete / Move Selected Element
@@ -220,7 +233,8 @@ export default function App() {
     if (targetEl && targetEl.parentNode) {
       const clone = targetEl.cloneNode(true);
       targetEl.parentNode.insertBefore(clone, targetEl.nextSibling);
-      handleUpdateHtml(`<!DOCTYPE html>\n${doc.documentElement.outerHTML}`);
+      const updatedHtml = serializeDocumentOrBody(doc, activeHtmlFile.content);
+      handleUpdateHtml(updatedHtml);
     }
   };
 
@@ -241,7 +255,8 @@ export default function App() {
     if (targetEl && targetEl.parentNode) {
       targetEl.parentNode.removeChild(targetEl);
       setSelectedElement(null);
-      handleUpdateHtml(`<!DOCTYPE html>\n${doc.documentElement.outerHTML}`);
+      const updatedHtml = serializeDocumentOrBody(doc, activeHtmlFile.content);
+      handleUpdateHtml(updatedHtml);
     }
   };
 
@@ -290,7 +305,8 @@ export default function App() {
       } else if (direction === 'down' && targetEl.nextElementSibling) {
         targetEl.parentNode.insertBefore(targetEl.nextElementSibling, targetEl);
       }
-      handleUpdateHtml(`<!DOCTYPE html>\n${doc.documentElement.outerHTML}`);
+      const updatedHtml = serializeDocumentOrBody(doc, activeHtmlFile.content);
+      handleUpdateHtml(updatedHtml);
     }
   };
 
@@ -353,7 +369,7 @@ export default function App() {
       if (newEl && targetContainer.parentNode) {
         targetContainer.parentNode.replaceChild(newEl, targetContainer);
       }
-      const newHtml = doc.doctype ? `<!DOCTYPE html>\n${doc.documentElement.outerHTML}` : doc.documentElement.outerHTML;
+      const newHtml = serializeDocumentOrBody(doc, activeHtmlFile.content);
       handleUpdateHtml(newHtml);
     } else {
       handleInsertComponentHtml(diagramHtml);
@@ -404,7 +420,9 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-screen bg-slate-950 flex flex-col overflow-hidden font-sans select-none">
+    <div className={`h-screen w-screen flex flex-col overflow-hidden font-sans select-none transition-colors ${
+      themeMode === 'dark' ? 'bg-slate-950 text-slate-100 dark' : 'bg-slate-100 text-slate-900'
+    }`}>
       {/* Top Navbar */}
       <Navbar
         projectName={projectName}
@@ -413,6 +431,8 @@ export default function App() {
         onViewModeChange={setViewMode}
         deviceMode={deviceMode}
         onDeviceModeChange={setDeviceMode}
+        themeMode={themeMode}
+        onToggleTheme={handleToggleTheme}
         onOpenExport={() => setIsExportOpen(true)}
         onOpenAI={() => setIsAIOpen(true)}
         onOpenDrawIo={() => setIsDrawIoOpen(true)}
