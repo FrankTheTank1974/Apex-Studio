@@ -293,11 +293,38 @@ export default function App() {
     }
   };
 
-  // Handle Save Draw.io Diagram
+  // Open Draw.io with specific diagram ID
+  const handleOpenDrawIoWithDiagram = (diagramId?: string) => {
+    if (diagramId && activeHtmlFile) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(activeHtmlFile.content, 'text/html');
+      const container = doc.querySelector(`[data-diagram-id="${diagramId}"]`) || doc.querySelector('.drawio-container');
+      if (container) {
+        const titleEl = container.querySelector('span.font-bold');
+        const title = titleEl?.textContent?.trim() || 'Architecture Diagram';
+        const svgEl = container.querySelector('svg');
+        const svg = svgEl ? svgEl.outerHTML : '';
+        
+        setActiveDiagram((prev) => ({
+          id: diagramId,
+          title,
+          xml: prev?.id === diagramId ? prev.xml : '',
+          svg,
+          updatedAt: new Date().toISOString(),
+        }));
+      }
+    }
+    setIsDrawIoOpen(true);
+  };
+
+  // Handle Save / Upgrade Draw.io Diagram
   const handleSaveDrawIoDiagram = (diagram: DrawIoDiagram) => {
     setActiveDiagram(diagram);
+    if (!activeHtmlFile) return;
 
-    // Insert or update Draw.io diagram HTML in canvas
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(activeHtmlFile.content, 'text/html');
+
     const diagramHtml = `<div class="my-8 p-6 bg-slate-900 text-white rounded-2xl border border-slate-800 text-center shadow-lg drawio-container" data-diagram-id="${diagram.id}">
   <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
     <div class="flex items-center space-x-2">
@@ -307,11 +334,27 @@ export default function App() {
     <span class="text-xs px-2.5 py-1 bg-amber-500/20 text-amber-300 rounded-full border border-amber-500/30">Draw.io Vector</span>
   </div>
   <div class="diagram-viewport p-4 bg-slate-950 rounded-xl flex items-center justify-center">
-    ${diagram.svg || `<div className="text-amber-400 font-bold p-8">Diagram SVG updated</div>`}
+    ${diagram.svg || `<div class="text-amber-400 font-bold p-8">Diagram SVG updated</div>`}
   </div>
 </div>`;
 
-    handleInsertComponentHtml(diagramHtml);
+    let targetContainer = doc.querySelector(`[data-diagram-id="${diagram.id}"]`);
+    if (!targetContainer) {
+      targetContainer = doc.querySelector('.drawio-container');
+    }
+
+    if (targetContainer) {
+      const tempDiv = doc.createElement('div');
+      tempDiv.innerHTML = diagramHtml.trim();
+      const newEl = tempDiv.firstElementChild;
+      if (newEl && targetContainer.parentNode) {
+        targetContainer.parentNode.replaceChild(newEl, targetContainer);
+      }
+      const newHtml = doc.doctype ? `<!DOCTYPE html>\n${doc.documentElement.outerHTML}` : doc.documentElement.outerHTML;
+      handleUpdateHtml(newHtml);
+    } else {
+      handleInsertComponentHtml(diagramHtml);
+    }
   };
 
   // Add Custom File to project
@@ -398,7 +441,7 @@ export default function App() {
               onSelectElement={setSelectedElement}
               onUpdateHtmlFromCanvas={handleUpdateHtml}
               onDeleteSelectedElement={handleDeleteElement}
-              onOpenDrawIoWithDiagram={() => setIsDrawIoOpen(true)}
+              onOpenDrawIoWithDiagram={handleOpenDrawIoWithDiagram}
               collaboratorCursors={remoteCursors}
             />
           )}

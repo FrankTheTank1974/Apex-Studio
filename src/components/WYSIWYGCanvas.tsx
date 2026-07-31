@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DeviceMode, SelectedElementInfo } from '../types';
-import { Eye, Smartphone, Tablet, Monitor } from 'lucide-react';
+import { Eye, Smartphone, Tablet, Monitor, RotateCw } from 'lucide-react';
 
 interface WYSIWYGCanvasProps {
   htmlContent: string;
@@ -26,6 +26,14 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
   collaboratorCursors = {}
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleManualRefresh = () => {
+    setIsRefreshing(true);
+    setRefreshKey((prev) => prev + 1);
+    setTimeout(() => setIsRefreshing(false), 800);
+  };
 
   // Helper to get device width class
   const getDeviceStyle = () => {
@@ -202,7 +210,7 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
       doc.removeEventListener('dblclick', handleDblClick);
       doc.removeEventListener('keydown', handleKeyDown);
     };
-  }, [htmlContent, cssContent, deviceMode]);
+  }, [htmlContent, cssContent, jsContent, deviceMode, refreshKey]);
 
   // Extract clean HTML without editor helper classes
   const getCleanHtmlFromRoot = (rootEl: HTMLElement): string => {
@@ -240,12 +248,21 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
       onDrop={handleDrop}
       className="flex-1 bg-slate-950 flex flex-col items-center justify-center relative overflow-hidden p-4 select-none"
     >
-      {/* Device frame header tag */}
-      <div className="absolute top-3 left-4 z-10 bg-slate-900/90 backdrop-blur px-3 py-1 rounded-full border border-slate-800 text-[11px] text-slate-400 flex items-center space-x-2">
+      {/* Device frame header tag & Reload Button */}
+      <div className="absolute top-3 left-4 z-10 bg-slate-900/90 backdrop-blur px-3 py-1 rounded-full border border-slate-800 text-[11px] text-slate-400 flex items-center space-x-2.5">
         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span className="font-medium">WYSIWYG Visual Canvas</span>
         <span className="text-slate-600">|</span>
         <span className="font-mono text-indigo-400">{deviceMode.toUpperCase()} VIEW</span>
+
+        <button
+          onClick={handleManualRefresh}
+          className="ml-1 flex items-center space-x-1 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded-full text-[10px] font-semibold border border-slate-700 transition-all cursor-pointer"
+          title="Reload / Refresh Visual Canvas"
+        >
+          <RotateCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />
+          <span>{isRefreshing ? 'Reloading...' : 'Reload Canvas'}</span>
+        </button>
       </div>
 
       {/* Remote Collaborator Cursors Overlay */}

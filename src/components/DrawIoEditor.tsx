@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Workflow, X, Save, Check, Download, ExternalLink } from 'lucide-react';
+import { Workflow, X, Save, Check, RotateCw } from 'lucide-react';
 import { DrawIoDiagram } from '../types';
 
 interface DrawIoEditorProps {
@@ -59,7 +59,7 @@ export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
           setTimeout(() => setSavedSuccess(false), 2500);
         } else if (msg.event === 'export') {
           // Received export SVG format
-          const svg = msg.data || '';
+          const svg = msg.data || msg.svg || '';
           onSaveDiagram({
             id: activeDiagram?.id || 'diagram-' + Date.now(),
             title: diagramTitle,
@@ -67,6 +67,8 @@ export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
             svg,
             updatedAt: new Date().toISOString(),
           });
+          setSavedSuccess(true);
+          setTimeout(() => setSavedSuccess(false), 2500);
         }
       } catch (err) {
         // Ignore non-JSON postMessages
@@ -84,6 +86,12 @@ export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
       JSON.stringify({ action: 'export', format: 'xmlsvg' }),
       '*'
     );
+  };
+
+  const handleReloadIframe = () => {
+    if (iframeRef.current) {
+      iframeRef.current.src = iframeRef.current.src;
+    }
   };
 
   return (
@@ -117,6 +125,15 @@ export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
               <span>Diagram Saved & Inserted into HTML!</span>
             </span>
           )}
+
+          <button
+            onClick={handleReloadIframe}
+            className="flex items-center space-x-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold border border-slate-700 transition-colors"
+            title="Reload Draw.io Editor"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Reload</span>
+          </button>
 
           <button
             onClick={handleManualSave}
