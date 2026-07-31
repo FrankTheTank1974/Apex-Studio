@@ -157,6 +157,78 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
         return;
       }
 
+      // Check if user clicked on "Upload / Replace Media" button on a Media Card
+      const uploadMediaBtn = target.closest('[data-action="upload-media"], .media-upload-btn') as HTMLElement;
+      if (uploadMediaBtn) {
+        e.preventDefault();
+        const mediaContainer = (target.closest('.media-card, .media-container') as HTMLElement) || uploadMediaBtn.parentElement;
+        
+        let fileInput = doc.getElementById('apex-dynamic-file-input') as HTMLInputElement;
+        if (!fileInput) {
+          fileInput = doc.createElement('input');
+          fileInput.id = 'apex-dynamic-file-input';
+          fileInput.type = 'file';
+          fileInput.accept = 'image/*,video/*';
+          fileInput.style.display = 'none';
+          doc.body.appendChild(fileInput);
+        }
+
+        fileInput.onchange = (evt: Event) => {
+          const input = evt.target as HTMLInputElement;
+          const file = input.files?.[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (readEvt) => {
+              const dataUrl = readEvt.target?.result as string;
+              const isVid = file.type.startsWith('video/');
+
+              let mediaEl = mediaContainer?.querySelector('img, video, .media-element') as HTMLElement;
+              if (!mediaEl && mediaContainer) {
+                mediaEl = mediaContainer;
+              }
+
+              if (isVid) {
+                const videoEl = doc.createElement('video');
+                videoEl.controls = true;
+                videoEl.src = dataUrl;
+                videoEl.className = mediaEl?.className || 'w-full h-52 object-cover media-element';
+                if (mediaEl && mediaEl.parentNode && mediaEl.parentNode !== mediaContainer) {
+                  mediaEl.parentNode.replaceChild(videoEl, mediaEl);
+                } else if (mediaContainer) {
+                  const existing = mediaContainer.querySelector('img, video');
+                  if (existing) existing.remove();
+                  mediaContainer.insertBefore(videoEl, mediaContainer.firstChild);
+                }
+              } else {
+                if (mediaEl && mediaEl.tagName.toLowerCase() === 'img') {
+                  (mediaEl as HTMLImageElement).src = dataUrl;
+                } else {
+                  const imgEl = doc.createElement('img');
+                  imgEl.src = dataUrl;
+                  imgEl.alt = 'Uploaded media';
+                  imgEl.className = mediaEl?.className || 'w-full h-48 object-cover media-element';
+                  if (mediaEl && mediaEl.parentNode && mediaEl.parentNode !== mediaContainer) {
+                    mediaEl.parentNode.replaceChild(imgEl, mediaEl);
+                  } else if (mediaContainer) {
+                    const existing = mediaContainer.querySelector('img, video');
+                    if (existing) existing.remove();
+                    mediaContainer.insertBefore(imgEl, mediaContainer.firstChild);
+                  }
+                }
+              }
+
+              const root = doc.getElementById('apex-canvas-root');
+              if (root) {
+                onUpdateHtmlFromCanvas(getCleanHtmlFromRoot(root));
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        fileInput.click();
+        return;
+      }
+
       // Clear previous selection outlines
       doc.querySelectorAll('.apex-selected-outline').forEach((el) => {
         el.classList.remove('apex-selected-outline');
@@ -226,11 +298,81 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
       }
     };
 
+    // Handle file drop directly onto iframe content/cards
+    const handleIframeDragOver = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes('Files')) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      }
+    };
+
+    const handleIframeDrop = (e: DragEvent) => {
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+          e.preventDefault();
+          e.stopPropagation();
+          const target = e.target as HTMLElement;
+          const mediaContainer = (target?.closest('.media-card, .media-container') as HTMLElement) || target;
+
+          const reader = new FileReader();
+          reader.onload = (readEvt) => {
+            const dataUrl = readEvt.target?.result as string;
+            const isVid = file.type.startsWith('video/');
+
+            let mediaEl = mediaContainer?.querySelector('img, video, .media-element') as HTMLElement;
+            if (!mediaEl && ['IMG', 'VIDEO'].includes(target.tagName)) {
+              mediaEl = target;
+            }
+
+            if (isVid) {
+              const videoEl = doc.createElement('video');
+              videoEl.controls = true;
+              videoEl.src = dataUrl;
+              videoEl.className = mediaEl?.className || 'w-full h-52 object-cover media-element';
+              if (mediaEl && mediaEl.parentNode && mediaEl.parentNode !== mediaContainer) {
+                mediaEl.parentNode.replaceChild(videoEl, mediaEl);
+              } else if (mediaContainer) {
+                const existing = mediaContainer.querySelector('img, video');
+                if (existing) existing.remove();
+                mediaContainer.insertBefore(videoEl, mediaContainer.firstChild);
+              }
+            } else {
+              if (mediaEl && mediaEl.tagName.toLowerCase() === 'img') {
+                (mediaEl as HTMLImageElement).src = dataUrl;
+              } else {
+                const imgEl = doc.createElement('img');
+                imgEl.src = dataUrl;
+                imgEl.alt = 'Uploaded media';
+                imgEl.className = mediaEl?.className || 'w-full h-48 object-cover media-element';
+                if (mediaEl && mediaEl.parentNode && mediaEl.parentNode !== mediaContainer) {
+                  mediaEl.parentNode.replaceChild(imgEl, mediaEl);
+                } else if (mediaContainer) {
+                  const existing = mediaContainer.querySelector('img, video');
+                  if (existing) existing.remove();
+                  mediaContainer.insertBefore(imgEl, mediaContainer.firstChild);
+                }
+              }
+            }
+
+            const root = doc.getElementById('apex-canvas-root');
+            if (root) {
+              onUpdateHtmlFromCanvas(getCleanHtmlFromRoot(root));
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    };
+
     doc.addEventListener('mouseover', handleMouseOver);
     doc.addEventListener('mouseout', handleMouseOut);
     doc.addEventListener('click', handleClick);
     doc.addEventListener('dblclick', handleDblClick);
     doc.addEventListener('keydown', handleKeyDown);
+    doc.addEventListener('dragover', handleIframeDragOver);
+    doc.addEventListener('drop', handleIframeDrop);
 
     return () => {
       doc.removeEventListener('mouseover', handleMouseOver);
@@ -238,6 +380,8 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
       doc.removeEventListener('click', handleClick);
       doc.removeEventListener('dblclick', handleDblClick);
       doc.removeEventListener('keydown', handleKeyDown);
+      doc.removeEventListener('dragover', handleIframeDragOver);
+      doc.removeEventListener('drop', handleIframeDrop);
     };
   };
 

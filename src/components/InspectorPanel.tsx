@@ -13,7 +13,15 @@ import {
   Sliders, 
   Sparkles,
   Check,
-  Workflow
+  Workflow,
+  Upload,
+  Image as ImageIcon,
+  Video as VideoIcon,
+  Film,
+  Play,
+  Volume2,
+  HelpCircle,
+  FileText
 } from 'lucide-react';
 
 interface InspectorPanelProps {
@@ -55,6 +63,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   const [classList, setClassList] = useState(selectedElement.classList?.join(' ') || '');
   const [newClass, setNewClass] = useState('');
   const [attributes, setAttributes] = useState<Record<string, string>>(selectedElement.attributes || {});
+  const [showFormatDocs, setShowFormatDocs] = useState(true);
 
   useEffect(() => {
     setTextContent(selectedElement.textContent || '');
@@ -174,6 +183,260 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 <span>Open Draw.io Canvas Editor</span>
               </button>
             )}
+          </div>
+        )}
+
+        {/* MEDIA & VIDEO ASSET MANAGER */}
+        {(selectedElement.tagName.toLowerCase() === 'img' ||
+          selectedElement.tagName.toLowerCase() === 'video' ||
+          selectedElement.tagName.toLowerCase() === 'audio' ||
+          selectedElement.classList?.some(c => c.includes('media') || c.includes('card')) ||
+          attributes.src !== undefined ||
+          true) && (
+          <div className={`p-3 border rounded-xl space-y-3 ${
+            isDark ? 'bg-purple-950/20 border-purple-500/30' : 'bg-purple-50/70 border-purple-200'
+          }`}>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center space-x-1.5 font-bold text-xs text-purple-600 dark:text-purple-400">
+                <Film className="w-4 h-4" />
+                <span>Media & Video Asset Manager</span>
+              </span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                selectedElement.tagName.toLowerCase() === 'video'
+                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                  : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+              }`}>
+                {selectedElement.tagName.toUpperCase()} Tag
+              </span>
+            </div>
+
+            {/* Drag and Drop / Local File Upload Zone */}
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const file = e.dataTransfer.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = (evt) => {
+                    const dataUrl = evt.target?.result as string;
+                    const isVid = file.type.startsWith('video/');
+                    const targetTag = isVid ? 'video' : (selectedElement.tagName.toLowerCase() === 'video' ? 'video' : 'img');
+                    const updatedAttrs = { ...attributes, src: dataUrl };
+                    if (isVid) updatedAttrs.controls = 'true';
+                    setAttributes(updatedAttrs);
+                    onUpdateElement({ tagName: targetTag, attributes: updatedAttrs });
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+              className={`border-2 border-dashed rounded-xl p-3 text-center transition-all cursor-pointer group ${
+                isDark 
+                  ? 'border-purple-500/40 hover:border-purple-400 bg-slate-950/60 hover:bg-slate-900/80' 
+                  : 'border-purple-300 hover:border-purple-500 bg-white hover:bg-purple-50/50'
+              }`}
+            >
+              <input
+                type="file"
+                id="media-file-input"
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                      const dataUrl = evt.target?.result as string;
+                      const isVid = file.type.startsWith('video/');
+                      const targetTag = isVid ? 'video' : (selectedElement.tagName.toLowerCase() === 'video' ? 'video' : 'img');
+                      const updatedAttrs = { ...attributes, src: dataUrl };
+                      if (isVid) updatedAttrs.controls = 'true';
+                      setAttributes(updatedAttrs);
+                      onUpdateElement({ tagName: targetTag, attributes: updatedAttrs });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              <label htmlFor="media-file-input" className="cursor-pointer block space-y-1">
+                <div className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Upload className="w-4 h-4" />
+                </div>
+                <p className={`text-xs font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                  Upload Image or Video
+                </p>
+                <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Drag & drop file here or click to browse (.mp4, .webm, .png, .jpg, .jxl)
+                </p>
+              </label>
+            </div>
+
+            {/* Media Type Switcher: Image vs Video */}
+            <div className="flex space-x-1">
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = { ...attributes };
+                  onUpdateElement({ tagName: 'img', attributes: updated });
+                }}
+                className={`flex-1 py-1 px-2 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 border transition-all cursor-pointer ${
+                  selectedElement.tagName.toLowerCase() === 'img'
+                    ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                    : isDark ? 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white' : 'bg-slate-100 text-slate-600 border-slate-200'
+                }`}
+              >
+                <ImageIcon className="w-3.5 h-3.5" />
+                <span>Image (&lt;img&gt;)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = {
+                    ...attributes,
+                    src: attributes.src || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+                    controls: 'true'
+                  };
+                  setAttributes(updated);
+                  onUpdateElement({ tagName: 'video', attributes: updated });
+                }}
+                className={`flex-1 py-1 px-2 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 border transition-all cursor-pointer ${
+                  selectedElement.tagName.toLowerCase() === 'video'
+                    ? 'bg-purple-600 text-white border-purple-500 shadow-xs'
+                    : isDark ? 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white' : 'bg-slate-100 text-slate-600 border-slate-200'
+                }`}
+              >
+                <VideoIcon className="w-3.5 h-3.5" />
+                <span>Video (&lt;video&gt;)</span>
+              </button>
+            </div>
+
+            {/* Video Playback Controls (when video tag selected) */}
+            {selectedElement.tagName.toLowerCase() === 'video' && (
+              <div className={`p-2.5 rounded-lg space-y-2 border ${
+                isDark ? 'bg-slate-950 border-purple-900/40 text-slate-300' : 'bg-white border-purple-200 text-slate-700'
+              }`}>
+                <span className="text-[11px] font-bold text-purple-400 flex items-center space-x-1">
+                  <Play className="w-3 h-3" />
+                  <span>Video Options & Controls</span>
+                </span>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <label className="flex items-center space-x-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={attributes.controls !== 'false' && attributes.controls !== undefined}
+                      onChange={(e) => handleAttributeChange('controls', e.target.checked ? 'true' : 'false')}
+                      className="rounded accent-purple-600"
+                    />
+                    <span>Player Controls</span>
+                  </label>
+
+                  <label className="flex items-center space-x-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={attributes.autoplay === 'true' || attributes.autoplay === ''}
+                      onChange={(e) => handleAttributeChange('autoplay', e.target.checked ? 'true' : 'false')}
+                      className="rounded accent-purple-600"
+                    />
+                    <span>Autoplay</span>
+                  </label>
+
+                  <label className="flex items-center space-x-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={attributes.loop === 'true' || attributes.loop === ''}
+                      onChange={(e) => handleAttributeChange('loop', e.target.checked ? 'true' : 'false')}
+                      className="rounded accent-purple-600"
+                    />
+                    <span>Loop Playback</span>
+                  </label>
+
+                  <label className="flex items-center space-x-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={attributes.muted === 'true' || attributes.muted === ''}
+                      onChange={(e) => handleAttributeChange('muted', e.target.checked ? 'true' : 'false')}
+                      className="rounded accent-purple-600"
+                    />
+                    <span>Muted Audio</span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Poster Thumbnail URL</label>
+                  <input
+                    type="text"
+                    value={attributes.poster || ''}
+                    onChange={(e) => handleAttributeChange('poster', e.target.value)}
+                    placeholder="https://images.unsplash.com/..."
+                    className={`w-full px-2 py-1 border rounded text-[11px] focus:outline-none focus:border-purple-500 ${
+                      isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                    }`}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Supported Video & Image Formats Documentation Guide */}
+            <div className={`pt-2 border-t ${isDark ? 'border-purple-900/40' : 'border-purple-200'}`}>
+              <button
+                type="button"
+                onClick={() => setShowFormatDocs(!showFormatDocs)}
+                className="w-full flex items-center justify-between text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline py-1 cursor-pointer"
+              >
+                <span className="flex items-center space-x-1.5">
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Supported Media Formats Documentation</span>
+                </span>
+                <span className="text-[10px] opacity-75">{showFormatDocs ? '▲ Hide' : '▼ View Docs'}</span>
+              </button>
+
+              {showFormatDocs && (
+                <div className={`mt-2 p-3 rounded-xl border text-[11px] space-y-2.5 transition-all ${
+                  isDark ? 'bg-slate-950/80 border-purple-900/40 text-slate-300' : 'bg-white border-purple-200 text-slate-700'
+                }`}>
+                  <div>
+                    <div className="flex items-center space-x-1 text-purple-500 font-bold mb-1">
+                      <VideoIcon className="w-3.5 h-3.5" />
+                      <span>Supported Video Formats & Codecs</span>
+                    </div>
+                    <ul className="list-disc list-inside space-y-0.5 text-[10px] text-slate-400 dark:text-slate-400 pl-1">
+                      <li><strong className="text-purple-400">MP4 (.mp4)</strong>: H.264 video + AAC audio (Universal web standard)</li>
+                      <li><strong className="text-purple-400">WebM (.webm)</strong>: VP8 / VP9 / AV1 (Optimized HTML5 web video)</li>
+                      <li><strong className="text-purple-400">Ogg (.ogg, .ogv)</strong>: Theora video + Vorbis audio</li>
+                      <li><strong className="text-purple-400">QuickTime (.mov, .m4v)</strong>: MPEG-4 container video</li>
+                      <li><strong className="text-purple-400">URLs & Data</strong>: Direct HTTP/HTTPS video links & Base64 Data URLs</li>
+                    </ul>
+                  </div>
+
+                  <div className={`pt-2 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+                    <div className="flex items-center space-x-1 text-indigo-500 font-bold mb-1">
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Supported Image Formats</span>
+                    </div>
+                    <ul className="list-disc list-inside space-y-0.5 text-[10px] text-slate-400 dark:text-slate-400 pl-1">
+                      <li><strong className="text-indigo-400">JPEG XL (.jxl)</strong>: Next-gen high efficiency & lossless image format</li>
+                      <li><strong className="text-indigo-400">PNG (.png)</strong>: High quality, full alpha transparency</li>
+                      <li><strong className="text-indigo-400">JPEG (.jpg, .jpeg)</strong>: Web photos & compressed imagery</li>
+                      <li><strong className="text-indigo-400">WebP (.webp)</strong>: Next-gen high compression format</li>
+                      <li><strong className="text-indigo-400">SVG (.svg)</strong>: Vector graphics with crisp zoom scaling</li>
+                      <li><strong className="text-indigo-400">GIF (.gif)</strong>: Animated motion graphics</li>
+                      <li><strong className="text-indigo-400">AVIF, BMP, ICO</strong>: Modern AV1 image & icon formats</li>
+                    </ul>
+                  </div>
+
+                  <div className={`pt-2 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'} text-[10px] text-slate-400`}>
+                    <p className="leading-snug">
+                      💡 <strong>How to insert:</strong> Click <strong>"📁 Upload / Drop Media"</strong> on any canvas card, drag & drop a file directly over a media element, or select file in this panel.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

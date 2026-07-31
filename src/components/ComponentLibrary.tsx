@@ -15,6 +15,7 @@ import {
   Mail, 
   Workflow, 
   Code,
+  Film,
   Plus,
   GripVertical
 } from 'lucide-react';
@@ -29,6 +30,7 @@ const CATEGORIES: { id: ComponentCategory | 'all'; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'layout', label: 'Layout' },
   { id: 'ui', label: 'UI Controls' },
+  { id: 'media', label: 'Media & Video' },
   { id: 'forms', label: 'Forms' },
   { id: 'drawio', label: 'Draw.io' },
   { id: 'custom', label: 'Code Blocks' },
@@ -61,6 +63,7 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({
       case 'Tag': return <Tag className="w-4 h-4 text-pink-400" />;
       case 'Mail': return <Mail className="w-4 h-4 text-cyan-400" />;
       case 'Workflow': return <Workflow className="w-4 h-4 text-amber-400" />;
+      case 'Film': return <Film className="w-4 h-4 text-purple-400" />;
       default: return <Code className="w-4 h-4 text-slate-400" />;
     }
   };

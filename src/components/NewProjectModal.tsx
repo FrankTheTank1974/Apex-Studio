@@ -369,24 +369,58 @@ html {
         <ul class="space-y-2 text-xs">
           <li><a href="#" class="text-slate-400 hover:text-white">REST API Reference</a></li>
           <li><a href="#" class="text-slate-400 hover:text-white">WebSockets Events</a></li>
-          <li><a href="#" class="text-slate-400 hover:text-white">Export Formats</a></li>
+          <li><a href="#media-formats" class="text-purple-400 font-medium hover:text-purple-300">Supported Media Formats</a></li>
         </ul>
       </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 p-8 max-w-3xl">
-      <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Overview</span>
-      <h1 class="text-3xl font-extrabold text-white mt-1 mb-4">ApexStudio API Overview</h1>
-      <p class="text-slate-400 text-sm leading-relaxed mb-6">
-        The ApexStudio API allows developers to programmatically create components, stream real-time code changes, and trigger cloud deployment workflows.
-      </p>
+    <main class="flex-1 p-8 max-w-3xl space-y-8">
+      <div>
+        <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Overview</span>
+        <h1 class="text-3xl font-extrabold text-white mt-1 mb-4">ApexStudio API Overview</h1>
+        <p class="text-slate-400 text-sm leading-relaxed mb-6">
+          The ApexStudio API allows developers to programmatically create components, stream real-time code changes, and trigger cloud deployment workflows.
+        </p>
 
-      <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl mb-6 font-mono text-xs text-slate-300">
-        <div class="text-slate-500 mb-2">// Sample API Authentication Request</div>
-        <div class="text-purple-400">curl <span class="text-indigo-300">-X POST https://api.apexstudio.io/v1/projects</span> \\</div>
-        <div class="text-indigo-300">  -H <span class="text-emerald-400">"Authorization: Bearer YOUR_API_KEY"</span></div>
+        <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl mb-6 font-mono text-xs text-slate-300">
+          <div class="text-slate-500 mb-2">// Sample API Authentication Request</div>
+          <div class="text-purple-400">curl <span class="text-indigo-300">-X POST https://api.apexstudio.io/v1/projects</span> \\</div>
+          <div class="text-indigo-300">  -H <span class="text-emerald-400">"Authorization: Bearer YOUR_API_KEY"</span></div>
+        </div>
       </div>
+
+      <!-- Supported Media & Video Formats Section -->
+      <section id="media-formats" class="pt-6 border-t border-slate-800">
+        <span class="text-xs font-bold text-purple-400 uppercase tracking-wider">Asset Specifications</span>
+        <h2 class="text-2xl font-bold text-white mt-1 mb-4">Supported Media & Video Formats</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+            <h3 class="font-bold text-purple-400 text-sm">🎥 Video Formats & Codecs</h3>
+            <ul class="space-y-1 list-disc list-inside text-slate-300">
+              <li><strong>MP4 (.mp4)</strong>: H.264 / AAC (Universal browser compatibility)</li>
+              <li><strong>WebM (.webm)</strong>: VP8 / VP9 / AV1 (Optimized web video)</li>
+              <li><strong>Ogg (.ogg, .ogv)</strong>: Theora video + Vorbis audio</li>
+              <li><strong>QuickTime (.mov, .m4v)</strong>: MPEG-4 container video</li>
+              <li><strong>Direct Video URLs</strong>: HTTP/HTTPS & Base64 Data URLs</li>
+            </ul>
+          </div>
+
+          <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+            <h3 class="font-bold text-indigo-400 text-sm">🖼️ Image Formats</h3>
+            <ul class="space-y-1 list-disc list-inside text-slate-300">
+              <li><strong>JPEG XL (.jxl)</strong>: Next-gen high efficiency & lossless image format</li>
+              <li><strong>PNG (.png)</strong>: Lossless quality with full transparency</li>
+              <li><strong>JPEG (.jpg, .jpeg)</strong>: Standard web photography</li>
+              <li><strong>WebP (.webp)</strong>: Next-gen compressed web images</li>
+              <li><strong>SVG (.svg)</strong>: Scalable vector graphics</li>
+              <li><strong>GIF (.gif)</strong>: Animated motion graphics</li>
+              <li><strong>AVIF, BMP, ICO</strong>: AV1 image files & icon graphics</li>
+            </ul>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 

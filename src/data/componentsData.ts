@@ -141,20 +141,92 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
   },
   {
     id: 'card-interactive',
-    name: 'Media Card',
-    category: 'ui',
+    name: 'Media Card (Image)',
+    category: 'media',
     icon: 'CreditCard',
-    description: 'Image top card with title, description, and action link',
-    html: `<div class="max-w-sm bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-  <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80" alt="Code preview" class="w-full h-48 object-cover" />
+    description: 'Image top card with upload button and support for .jxl, .png, .jpg, .webp, .svg, .gif, .avif formats',
+    html: `<div class="max-w-sm bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow media-card group relative">
+  <div class="relative overflow-hidden media-container bg-slate-100 dark:bg-slate-950">
+    <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80" alt="Code preview" class="w-full h-48 object-cover media-element" />
+    <button type="button" data-action="upload-media" class="media-upload-btn absolute top-3 right-3 opacity-90 hover:opacity-100 px-3 py-1.5 bg-slate-900/80 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold backdrop-blur border border-slate-700/60 shadow-md transition-all flex items-center space-x-1.5 cursor-pointer">
+      <span>📁 Upload / Drop Media</span>
+    </button>
+  </div>
   <div class="p-6">
-    <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Tutorial</span>
+    <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Image Media</span>
     <h3 class="text-xl font-bold text-slate-900 dark:text-white mt-1 mb-2">Building Clean UI Architectures</h3>
-    <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">Learn how to compose modular layout systems using utility classes and reusable component patterns.</p>
+    <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">Drag & drop image or video files onto this card or click Upload. Supports JXL, PNG, JPG, WebP, SVG, GIF, MP4, WebM.</p>
     <a href="#" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 flex items-center space-x-1">
       <span>Read Article</span>
       <span>→</span>
     </a>
+  </div>
+</div>`
+  },
+  {
+    id: 'card-media-video',
+    name: 'Media Card (Video Player)',
+    category: 'media',
+    icon: 'Film',
+    description: 'HTML5 Video player card supporting MP4, WebM, Ogg, MOV formats, drag & drop, and controls',
+    html: `<div class="max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow media-card group relative">
+  <div class="relative overflow-hidden media-container bg-slate-950">
+    <video controls class="w-full h-52 object-cover media-element" poster="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80">
+      <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+      Your browser does not support video playback.
+    </video>
+    <button type="button" data-action="upload-media" class="media-upload-btn absolute top-3 right-3 opacity-90 hover:opacity-100 px-3 py-1.5 bg-slate-900/80 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold backdrop-blur border border-slate-700/60 shadow-md transition-all flex items-center space-x-1.5 cursor-pointer">
+      <span>🎬 Upload / Drop Video</span>
+    </button>
+  </div>
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">HTML5 Video</span>
+      <span class="text-[10px] px-2.5 py-1 bg-purple-500/20 text-purple-600 dark:text-purple-300 rounded-full font-semibold border border-purple-500/30">MP4 / WebM / MOV</span>
+    </div>
+    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Interactive Video Card</h3>
+    <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">Supports local video upload (.mp4, .webm, .mov, .ogg), drag & drop file replacement, and customizable HTML5 video controls.</p>
+  </div>
+</div>`
+  },
+  {
+    id: 'media-docs-card',
+    name: 'Media Formats Documentation Card',
+    category: 'media',
+    icon: 'Film',
+    description: 'Complete documentation card listing all supported video and image formats and specs',
+    html: `<div class="max-w-lg bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm my-6 font-sans">
+  <div class="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+    <div class="flex items-center space-x-2 text-purple-600 dark:text-purple-400 font-bold text-base">
+      <span>🎬 Media & Video Format Specs</span>
+    </div>
+    <span class="text-xs px-2.5 py-1 bg-purple-500/20 text-purple-600 dark:text-purple-300 rounded-full font-medium border border-purple-500/30">Docs Guide</span>
+  </div>
+
+  <div class="space-y-4 text-xs text-slate-600 dark:text-slate-300">
+    <div class="p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+      <h4 class="font-bold text-purple-600 dark:text-purple-400 text-sm mb-1.5">🎥 Supported Video Formats</h4>
+      <ul class="space-y-1 list-disc list-inside text-slate-600 dark:text-slate-400">
+        <li><strong class="text-slate-900 dark:text-white">MP4 (.mp4)</strong>: H.264 Video + AAC Audio (Universal support)</li>
+        <li><strong class="text-slate-900 dark:text-white">WebM (.webm)</strong>: VP8 / VP9 / AV1 (Optimized web video)</li>
+        <li><strong class="text-slate-900 dark:text-white">Ogg (.ogg, .ogv)</strong>: Theora Video + Vorbis Audio</li>
+        <li><strong class="text-slate-900 dark:text-white">QuickTime (.mov, .m4v)</strong>: MPEG-4 container formats</li>
+        <li><strong class="text-slate-900 dark:text-white">Direct URLs & Data</strong>: Remote HTTP/HTTPS links & Base64 Data URLs</li>
+      </ul>
+    </div>
+
+    <div class="p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+      <h4 class="font-bold text-indigo-600 dark:text-indigo-400 text-sm mb-1.5">🖼️ Supported Image Formats</h4>
+      <ul class="space-y-1 list-disc list-inside text-slate-600 dark:text-slate-400">
+        <li><strong class="text-slate-900 dark:text-white">JPEG XL (.jxl)</strong>: Next-generation high efficiency & lossless image format</li>
+        <li><strong class="text-slate-900 dark:text-white">PNG (.png)</strong>: High quality with full alpha transparency</li>
+        <li><strong class="text-slate-900 dark:text-white">JPEG (.jpg, .jpeg)</strong>: Standard web imagery</li>
+        <li><strong class="text-slate-900 dark:text-white">WebP (.webp)</strong>: Next-gen compressed web format</li>
+        <li><strong class="text-slate-900 dark:text-white">SVG (.svg)</strong>: Scalable vector graphics</li>
+        <li><strong class="text-slate-900 dark:text-white">GIF (.gif)</strong>: Animated graphics</li>
+        <li><strong class="text-slate-900 dark:text-white">AVIF, BMP, ICO</strong>: AV1 image files & icon graphics</li>
+      </ul>
+    </div>
   </div>
 </div>`
   },
