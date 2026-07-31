@@ -21,7 +21,11 @@ import {
   Play,
   Volume2,
   HelpCircle,
-  FileText
+  FileText,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  MoveHorizontal
 } from 'lucide-react';
 
 interface InspectorPanelProps {
@@ -98,6 +102,32 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     const updated = { ...attributes, [key]: value };
     setAttributes(updated);
     onUpdateElement({ attributes: updated });
+  };
+
+  const handleSetPlacement = (type: 'left' | 'center' | 'right' | 'full') => {
+    const current = classList.split(' ').filter(Boolean);
+    const alignClassesToRemove = [
+      'mr-auto', 'ml-0', 'mx-auto', 'ml-auto', 'mr-0',
+      'justify-start', 'justify-center', 'justify-end',
+      'text-left', 'text-center', 'text-right',
+      'self-start', 'self-center', 'self-end',
+      'w-full', 'w-auto'
+    ];
+    const filtered = current.filter((c) => !alignClassesToRemove.includes(c));
+
+    let added: string[] = [];
+    if (type === 'left') {
+      added = ['mr-auto', 'ml-0', 'text-left'];
+    } else if (type === 'center') {
+      added = ['mx-auto', 'text-center'];
+    } else if (type === 'right') {
+      added = ['ml-auto', 'mr-0', 'text-right'];
+    } else if (type === 'full') {
+      added = ['w-full', 'text-center'];
+    }
+
+    const updated = [...filtered, ...added].join(' ');
+    handleApplyClasses(updated);
   };
 
   const buttonPresetStyle = isDark
@@ -565,6 +595,174 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
               <button onClick={() => handleAddQuickClass('rounded-xl')} className={buttonPresetStyle}>Rounded</button>
               <button onClick={() => handleAddQuickClass('rounded-full')} className={buttonPresetStyle}>Pill</button>
             </div>
+          </div>
+
+          {/* 2D Button Styling Presets */}
+          <div className="space-y-1 pt-1">
+            <span className={`text-[10px] font-semibold flex items-center justify-between ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
+              <span>🎨 2D Button Presets</span>
+              <span className="text-[9px] opacity-75">Flat & Clean</span>
+            </span>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleAddQuickClass('bg-indigo-600 hover:bg-indigo-700 text-white shadow-none rounded-xl font-semibold')}
+                className={buttonPresetStyle}
+                title="2D Flat Solid"
+              >
+                ⬛ 2D Flat Solid
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleAddQuickClass('bg-transparent border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-xl font-semibold')}
+                className={buttonPresetStyle}
+                title="2D Bordered Outline"
+              >
+                🔲 2D Outline
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleAddQuickClass('bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-xl font-medium')}
+                className={buttonPresetStyle}
+                title="2D Soft Tint / Ghost"
+              >
+                👻 2D Soft Ghost
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleAddQuickClass('border-2 border-slate-900 dark:border-white bg-amber-400 text-slate-900 font-bold rounded-none')}
+                className={buttonPresetStyle}
+                title="2D Neo-Brutalist"
+              >
+                🎨 2D Neo-Brutalist
+              </button>
+            </div>
+          </div>
+
+          {/* 3D Button Styling Presets */}
+          <div className="space-y-1 pt-1">
+            <span className={`text-[10px] font-semibold flex items-center justify-between ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+              <span>✨ 3D Button Presets</span>
+              <span className="text-[9px] opacity-75">Tactile push</span>
+            </span>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleAddQuickClass('border-b-4 border-indigo-800 active:translate-y-1 active:border-b-0 transition-all')}
+                className={`px-2 py-1.5 rounded-lg text-[10px] font-bold border-b-2 border-indigo-700 active:translate-y-0.5 transition-all cursor-pointer ${
+                  isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-500 text-white'
+                }`}
+                title="3D Tactile Push (Indigo)"
+              >
+                🎮 3D Indigo Push
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleAddQuickClass('border-b-4 border-emerald-800 active:translate-y-1 active:border-b-0 transition-all')}
+                className={`px-2 py-1.5 rounded-lg text-[10px] font-bold border-b-2 border-emerald-700 active:translate-y-0.5 transition-all cursor-pointer ${
+                  isDark ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-white'
+                }`}
+                title="3D Tactile Push (Emerald)"
+              >
+                🟩 3D Emerald Push
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleAddQuickClass('shadow-[0_6px_0_0_rgba(15,23,42,1)] active:translate-y-1 active:shadow-[0_2px_0_0_rgba(15,23,42,1)] transition-all')}
+                className={buttonPresetStyle}
+                title="3D Shadow Lift"
+              >
+                📦 3D Lift Shadow
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleAddQuickClass('border-t-2 border-l-2 border-slate-300 border-b-4 border-r-4 border-slate-900 bg-slate-200 text-slate-900 active:border-2')}
+                className={buttonPresetStyle}
+                title="Retro 3D Arcade Bevel"
+              >
+                👾 Retro 3D Arcade
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ACTION BUTTON & ELEMENT PLACEMENT (LEFT, CENTER, RIGHT, FULL) */}
+        <div className={`p-3 border rounded-xl space-y-2.5 ${
+          isDark ? 'bg-indigo-950/20 border-indigo-500/30' : 'bg-indigo-50/70 border-indigo-200'
+        }`}>
+          <div className="flex items-center justify-between">
+            <span className="flex items-center space-x-1.5 font-bold text-xs text-indigo-600 dark:text-indigo-400">
+              <MoveHorizontal className="w-4 h-4" />
+              <span>Action Button Placement</span>
+            </span>
+            <span className="text-[10px] text-indigo-400 font-medium">Left / Center / Right</span>
+          </div>
+
+          <p className={`text-[11px] leading-snug ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+            Click to instantly reposition selected button or element on the canvas:
+          </p>
+
+          <div className="grid grid-cols-4 gap-1">
+            <button
+              type="button"
+              onClick={() => handleSetPlacement('left')}
+              className={`py-1.5 px-1 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 border transition-all cursor-pointer ${
+                classList.includes('mr-auto') || classList.includes('text-left') || classList.includes('justify-start')
+                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                  : isDark ? 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+              }`}
+              title="Align Left (mr-auto ml-0 text-left)"
+            >
+              <AlignLeft className="w-3.5 h-3.5" />
+              <span>Left</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSetPlacement('center')}
+              className={`py-1.5 px-1 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 border transition-all cursor-pointer ${
+                classList.includes('mx-auto') || classList.includes('text-center') || classList.includes('justify-center')
+                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                  : isDark ? 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+              }`}
+              title="Align Center (mx-auto text-center)"
+            >
+              <AlignCenter className="w-3.5 h-3.5" />
+              <span>Center</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSetPlacement('right')}
+              className={`py-1.5 px-1 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 border transition-all cursor-pointer ${
+                classList.includes('ml-auto') || classList.includes('text-right') || classList.includes('justify-end')
+                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                  : isDark ? 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+              }`}
+              title="Align Right (ml-auto mr-0 text-right)"
+            >
+              <AlignRight className="w-3.5 h-3.5" />
+              <span>Right</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleSetPlacement('full')}
+              className={`py-1.5 px-1 rounded-lg text-[10px] font-semibold flex items-center justify-center border transition-all cursor-pointer ${
+                classList.includes('w-full')
+                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                  : isDark ? 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+              }`}
+              title="Full Width (w-full)"
+            >
+              <span>Full</span>
+            </button>
           </div>
         </div>
 

@@ -712,6 +712,362 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
   </script>
 </div>`
   },
+  {
+    id: 'action-button-placement',
+    name: 'Action Button Placement Showcase (Left, Center, Right)',
+    category: 'ui',
+    icon: 'MoveHorizontal',
+    description: 'Interactive Action Button component with live Left, Center, and Right placement switchers & responsive flex alignment',
+    html: `<div class="max-w-xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-xl font-sans text-slate-900 dark:text-white my-6 apex-action-placement-card relative overflow-hidden">
+  <!-- Header -->
+  <div class="border-b border-slate-200 dark:border-slate-800 pb-5 mb-6">
+    <div class="inline-flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 font-bold text-xs uppercase tracking-wider mb-1">
+      <span>⚡ Action Button Component</span>
+    </div>
+    <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white">Flexible Action Button Placement</h3>
+    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Easily change button alignment to Left, Center, or Right using quick controls or Tailwind classes.</p>
+  </div>
+
+  <!-- Interactive Placement Switcher Bar -->
+  <div class="mb-6 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl">
+    <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-2">Select Action Button Placement:</label>
+    <div class="grid grid-cols-3 gap-2 text-xs">
+      <button type="button" class="btn-align-toggle px-3 py-2 bg-indigo-600 text-white font-semibold rounded-xl border border-indigo-500 shadow-sm transition-all cursor-pointer flex items-center justify-center space-x-1" data-align="left">
+        <span>⬅ Align Left</span>
+      </button>
+      <button type="button" class="btn-align-toggle px-3 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-indigo-600 hover:text-white transition-all cursor-pointer flex items-center justify-center space-x-1" data-align="center">
+        <span>↔ Center</span>
+      </button>
+      <button type="button" class="btn-align-toggle px-3 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-indigo-600 hover:text-white transition-all cursor-pointer flex items-center justify-center space-x-1" data-align="right">
+        <span>Align Right ➡</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Target Action Button Container Block -->
+  <div class="p-6 bg-gradient-to-br from-indigo-50/50 via-slate-50 to-purple-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/30 border border-slate-200 dark:border-slate-800 rounded-2xl mb-6 shadow-inner">
+    <div class="text-[11px] font-mono text-slate-400 dark:text-slate-500 mb-4 flex items-center justify-between">
+      <span>Container Viewport</span>
+      <span class="active-placement-tag font-bold text-indigo-500">Class: flex justify-start</span>
+    </div>
+
+    <!-- The Action Button Container (Switches justify-start / justify-center / justify-end) -->
+    <div class="action-btn-container flex justify-start items-center transition-all duration-300">
+      <button type="button" class="apex-action-btn px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 active:scale-95 transition-all flex items-center space-x-2.5 cursor-pointer">
+        <span class="text-base">🚀</span>
+        <span>Confirm & Proceed</span>
+        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Documentation Footer -->
+  <div class="pt-4 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
+    <p>💡 <strong>Tailwind Classes for Button Placement:</strong></p>
+    <ul class="list-disc list-inside space-y-0.5 text-slate-600 dark:text-slate-300 font-mono">
+      <li><strong>Left:</strong> <code class="text-indigo-500">flex justify-start</code> or <code class="text-indigo-500">mr-auto ml-0</code></li>
+      <li><strong>Center:</strong> <code class="text-indigo-500">flex justify-center</code> or <code class="text-indigo-500">mx-auto</code></li>
+      <li><strong>Right:</strong> <code class="text-indigo-500">flex justify-end</code> or <code class="text-indigo-500">ml-auto mr-0</code></li>
+    </ul>
+  </div>
+
+  <script>
+    (function() {
+      const card = document.currentScript ? document.currentScript.closest('.apex-action-placement-card') : document.querySelector('.apex-action-placement-card');
+      if (!card) return;
+
+      const container = card.querySelector('.action-btn-container');
+      const tag = card.querySelector('.active-placement-tag');
+      const btns = card.querySelectorAll('.btn-align-toggle');
+
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const align = btn.dataset.align;
+          if (!container) return;
+
+          container.classList.remove('justify-start', 'justify-center', 'justify-end');
+
+          btns.forEach(b => {
+            b.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-500');
+            b.classList.add('bg-slate-200', 'dark:bg-slate-800', 'text-slate-800', 'dark:text-slate-200', 'border-slate-300', 'dark:border-slate-700');
+          });
+
+          btn.classList.remove('bg-slate-200', 'dark:bg-slate-800', 'text-slate-800', 'dark:text-slate-200', 'border-slate-300', 'dark:border-slate-700');
+          btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-500');
+
+          if (align === 'left') {
+            container.classList.add('justify-start');
+            if (tag) tag.textContent = 'Class: flex justify-start';
+          } else if (align === 'center') {
+            container.classList.add('justify-center');
+            if (tag) tag.textContent = 'Class: flex justify-center';
+          } else if (align === 'right') {
+            container.classList.add('justify-end');
+            if (tag) tag.textContent = 'Class: flex justify-end';
+          }
+        });
+      });
+    })();
+  </script>
+</div>`
+  },
+  {
+    id: '3d-buttons-design-suite',
+    name: '3D Action Button Suite (Tactile, Retro, Lift & Glass)',
+    category: 'ui',
+    icon: 'Timer',
+    description: 'Collection of 3D tactile push buttons, retro gaming bevels, neon shadow lift buttons, and glassmorphism 3D buttons with live placement toggles.',
+    html: `<div class="max-w-2xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-xl font-sans text-slate-900 dark:text-white my-6 apex-3d-suite-card relative overflow-hidden">
+  <div class="absolute -top-24 -right-24 w-60 h-60 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+  <!-- Header -->
+  <div class="border-b border-slate-200 dark:border-slate-800 pb-5 mb-6">
+    <div class="inline-flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 font-bold text-xs uppercase tracking-wider mb-1">
+      <span>✨ 3D Button Design Suite</span>
+    </div>
+    <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white">Interactive 3D Button Designs</h3>
+    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Tactile press depth, physical bottom edges, retro gaming bevels, and placement controls.</p>
+  </div>
+
+  <!-- Placement & Style Control Panel -->
+  <div class="mb-6 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+    <div class="flex items-center justify-between">
+      <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Action Button Placement:</span>
+      <span class="text-[10px] font-mono text-indigo-500 active-3d-placement">Left Aligned</span>
+    </div>
+    <div class="grid grid-cols-3 gap-2 text-xs">
+      <button type="button" class="btn-3d-align px-3 py-1.5 bg-indigo-600 text-white font-semibold rounded-xl transition-all cursor-pointer" data-align="start">Left</button>
+      <button type="button" class="btn-3d-align px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-xl hover:bg-indigo-600 hover:text-white transition-all cursor-pointer" data-align="center">Center</button>
+      <button type="button" class="btn-3d-align px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-xl hover:bg-indigo-600 hover:text-white transition-all cursor-pointer" data-align="end">Right</button>
+    </div>
+  </div>
+
+  <!-- 3D Button Showcase Grid -->
+  <div class="space-y-6">
+    <!-- Style 1: 3D Indigo Tactile Push -->
+    <div class="p-5 bg-slate-50/50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <div class="flex items-center justify-between mb-3 text-xs">
+        <span class="font-bold text-slate-700 dark:text-slate-300">1. 3D Tactile Push Button</span>
+        <span class="text-[10px] font-mono text-indigo-500">border-b-4 active:translate-y-1</span>
+      </div>
+      <div class="suite-btn-wrapper flex justify-start items-center transition-all duration-300">
+        <button type="button" class="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm rounded-2xl border-b-4 border-indigo-950 hover:border-indigo-900 active:border-b-0 active:translate-y-1 transition-all shadow-md flex items-center space-x-2 cursor-pointer">
+          <span>🎮 Press 3D Tactile Button</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Style 2: 3D Emerald Game Push -->
+    <div class="p-5 bg-slate-50/50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <div class="flex items-center justify-between mb-3 text-xs">
+        <span class="font-bold text-slate-700 dark:text-slate-300">2. 3D Emerald Game Action Button</span>
+        <span class="text-[10px] font-mono text-emerald-500">border-b-4 border-emerald-950</span>
+      </div>
+      <div class="suite-btn-wrapper flex justify-start items-center transition-all duration-300">
+        <button type="button" class="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm rounded-2xl border-b-4 border-emerald-900 active:border-b-0 active:translate-y-1 transition-all shadow-md flex items-center space-x-2 cursor-pointer">
+          <span>⚡ Launch Action</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Style 3: 3D Retro Gaming Arcade Bevel -->
+    <div class="p-5 bg-slate-50/50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <div class="flex items-center justify-between mb-3 text-xs">
+        <span class="font-bold text-slate-700 dark:text-slate-300">3. Retro 3D Arcade Bevel</span>
+        <span class="text-[10px] font-mono text-amber-500">border-b-4 border-r-4 border-slate-950</span>
+      </div>
+      <div class="suite-btn-wrapper flex justify-start items-center transition-all duration-300">
+        <button type="button" class="px-6 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider border-t-2 border-l-2 border-amber-200 border-b-4 border-r-4 border-slate-950 active:border-2 active:translate-x-0.5 active:translate-y-0.5 transition-all shadow-md flex items-center space-x-2 cursor-pointer">
+          <span>👾 START GAME 3D</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Style 4: 3D Shadow Lift Button -->
+    <div class="p-5 bg-slate-50/50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <div class="flex items-center justify-between mb-3 text-xs">
+        <span class="font-bold text-slate-700 dark:text-slate-300">4. 3D Shadow Lift Button</span>
+        <span class="text-[10px] font-mono text-purple-500">shadow-[0_6px_0_0]</span>
+      </div>
+      <div class="suite-btn-wrapper flex justify-start items-center transition-all duration-300">
+        <button type="button" class="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm rounded-2xl shadow-[0_6px_0_0_rgba(88,28,135,1)] active:shadow-[0_1px_0_0_rgba(88,28,135,1)] active:translate-y-1.5 transition-all flex items-center space-x-2 cursor-pointer">
+          <span>📦 Lift Shadow 3D</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const card = document.currentScript ? document.currentScript.closest('.apex-3d-suite-card') : document.querySelector('.apex-3d-suite-card');
+      if (!card) return;
+
+      const wrappers = card.querySelectorAll('.suite-btn-wrapper');
+      const alignBtns = card.querySelectorAll('.btn-3d-align');
+      const tag = card.querySelector('.active-3d-placement');
+
+      alignBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const align = btn.dataset.align;
+          wrappers.forEach(w => {
+            w.classList.remove('justify-start', 'justify-center', 'justify-end');
+            if (align === 'start') w.classList.add('justify-start');
+            else if (align === 'center') w.classList.add('justify-center');
+            else if (align === 'end') w.classList.add('justify-end');
+          });
+
+          alignBtns.forEach(b => {
+            b.classList.remove('bg-indigo-600', 'text-white');
+            b.classList.add('bg-slate-200', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+          });
+          btn.classList.remove('bg-slate-200', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+          btn.classList.add('bg-indigo-600', 'text-white');
+
+          if (tag) {
+            tag.textContent = align === 'start' ? 'Left Aligned' : align === 'center' ? 'Center Aligned' : 'Right Aligned';
+          }
+        });
+      });
+    })();
+  </script>
+</div>`
+  },
+  {
+    id: '2d-buttons-design-suite',
+    name: '2D Action Button Suite (Flat, Outline, Ghost & Neo-Brutalist)',
+    category: 'ui',
+    icon: 'MoveHorizontal',
+    description: 'Modern 2D flat button gallery including Flat Solid, Bordered Outline, Soft Tint/Ghost, Pill Badge, and Neo-Brutalist 2D styles with live placement controls.',
+    html: `<div class="max-w-2xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-xl font-sans text-slate-900 dark:text-white my-6 apex-2d-suite-card relative overflow-hidden">
+  <div class="absolute -top-24 -right-24 w-60 h-60 bg-cyan-500/10 dark:bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+  <!-- Header -->
+  <div class="border-b border-slate-200 dark:border-slate-800 pb-5 mb-6">
+    <div class="inline-flex items-center space-x-2 text-cyan-600 dark:text-cyan-400 font-bold text-xs uppercase tracking-wider mb-1">
+      <span>🎨 2D Button Design Suite</span>
+    </div>
+    <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white">Modern 2D Button Styles</h3>
+    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Flat solids, crisp outlined borders, subtle ghost tints, rounded pills, and bold neo-brutalist designs.</p>
+  </div>
+
+  <!-- Placement & Alignment Switcher -->
+  <div class="mb-6 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+    <div class="flex items-center justify-between">
+      <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Action Button Placement:</span>
+      <span class="text-[10px] font-mono text-cyan-500 active-2d-placement">Left Aligned</span>
+    </div>
+    <div class="grid grid-cols-3 gap-2 text-xs">
+      <button type="button" class="btn-2d-align px-3 py-1.5 bg-cyan-600 text-white font-semibold rounded-xl transition-all cursor-pointer" data-align="start">Left</button>
+      <button type="button" class="btn-2d-align px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-xl hover:bg-cyan-600 hover:text-white transition-all cursor-pointer" data-align="center">Center</button>
+      <button type="button" class="btn-2d-align px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-xl hover:bg-cyan-600 hover:text-white transition-all cursor-pointer" data-align="end">Right</button>
+    </div>
+  </div>
+
+  <!-- 2D Button Showcase Grid -->
+  <div class="space-y-5">
+    <!-- Style 1: 2D Flat Solid -->
+    <div class="p-5 bg-slate-50/50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <div class="flex items-center justify-between mb-3 text-xs">
+        <span class="font-bold text-slate-700 dark:text-slate-300">1. 2D Flat Solid (Minimalist)</span>
+        <span class="text-[10px] font-mono text-cyan-500">bg-indigo-600 shadow-none</span>
+      </div>
+      <div class="suite-2d-wrapper flex justify-start items-center transition-all duration-300">
+        <button type="button" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-none flex items-center space-x-2 cursor-pointer">
+          <span>⬛ Primary Flat Action</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Style 2: 2D Bordered Outline -->
+    <div class="p-5 bg-slate-50/50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <div class="flex items-center justify-between mb-3 text-xs">
+        <span class="font-bold text-slate-700 dark:text-slate-300">2. 2D Outlined Border</span>
+        <span class="text-[10px] font-mono text-indigo-500">border-2 border-indigo-600</span>
+      </div>
+      <div class="suite-2d-wrapper flex justify-start items-center transition-all duration-300">
+        <button type="button" class="px-6 py-3 bg-transparent border-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 font-semibold text-sm rounded-xl transition-colors flex items-center space-x-2 cursor-pointer">
+          <span>🔲 Secondary Outlined Button</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Style 3: 2D Soft Ghost Tint -->
+    <div class="p-5 bg-slate-50/50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <div class="flex items-center justify-between mb-3 text-xs">
+        <span class="font-bold text-slate-700 dark:text-slate-300">3. 2D Soft Tint / Ghost</span>
+        <span class="text-[10px] font-mono text-purple-500">bg-purple-50 text-purple-600</span>
+      </div>
+      <div class="suite-2d-wrapper flex justify-start items-center transition-all duration-300">
+        <button type="button" class="px-6 py-3 bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 font-medium text-sm rounded-xl transition-colors flex items-center space-x-2 cursor-pointer">
+          <span>👻 Soft Ghost Tint Button</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Style 4: 2D Pill Badge -->
+    <div class="p-5 bg-slate-50/50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <div class="flex items-center justify-between mb-3 text-xs">
+        <span class="font-bold text-slate-700 dark:text-slate-300">4. 2D Pill Badge Button</span>
+        <span class="text-[10px] font-mono text-emerald-500">rounded-full</span>
+      </div>
+      <div class="suite-2d-wrapper flex justify-start items-center transition-all duration-300">
+        <button type="button" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-full transition-colors flex items-center space-x-2 cursor-pointer">
+          <span>💊 2D Pill Capsule</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Style 5: 2D Neo-Brutalist -->
+    <div class="p-5 bg-slate-50/50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <div class="flex items-center justify-between mb-3 text-xs">
+        <span class="font-bold text-slate-700 dark:text-slate-300">5. 2D Neo-Brutalist</span>
+        <span class="text-[10px] font-mono text-amber-500">border-2 border-black bg-amber-400</span>
+      </div>
+      <div class="suite-2d-wrapper flex justify-start items-center transition-all duration-300">
+        <button type="button" class="px-6 py-3 bg-amber-400 text-slate-900 font-bold text-xs uppercase tracking-wider border-2 border-slate-900 dark:border-white rounded-none hover:bg-amber-300 transition-colors flex items-center space-x-2 cursor-pointer">
+          <span>🎨 2D NEO-BRUTALIST</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const card = document.currentScript ? document.currentScript.closest('.apex-2d-suite-card') : document.querySelector('.apex-2d-suite-card');
+      if (!card) return;
+
+      const wrappers = card.querySelectorAll('.suite-2d-wrapper');
+      const alignBtns = card.querySelectorAll('.btn-2d-align');
+      const tag = card.querySelector('.active-2d-placement');
+
+      alignBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const align = btn.dataset.align;
+          wrappers.forEach(w => {
+            w.classList.remove('justify-start', 'justify-center', 'justify-end');
+            if (align === 'start') w.classList.add('justify-start');
+            else if (align === 'center') w.classList.add('justify-center');
+            else if (align === 'end') w.classList.add('justify-end');
+          });
+
+          alignBtns.forEach(b => {
+            b.classList.remove('bg-cyan-600', 'text-white');
+            b.classList.add('bg-slate-200', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+          });
+          btn.classList.remove('bg-slate-200', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300');
+          btn.classList.add('bg-cyan-600', 'text-white');
+
+          if (tag) {
+            tag.textContent = align === 'start' ? 'Left Aligned' : align === 'center' ? 'Center Aligned' : 'Right Aligned';
+          }
+        });
+      });
+    })();
+  </script>
+</div>`
+  },
 
   // FORMS
   {
