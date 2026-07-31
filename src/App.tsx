@@ -25,6 +25,7 @@ import { ExportDeployModal } from './components/ExportDeployModal';
 import { AIAssistantModal } from './components/AIAssistantModal';
 import { NewProjectModal } from './components/NewProjectModal';
 import { downloadTarZstd } from './utils/tarZstd';
+import { normalizeSvgContent } from './utils/svgUtils';
 
 export default function App() {
   const [projectName, setProjectName] = useState('ApexStudio Project');
@@ -322,6 +323,8 @@ export default function App() {
     setActiveDiagram(diagram);
     if (!activeHtmlFile) return;
 
+    const normalizedSvg = normalizeSvgContent(diagram.svg);
+
     const parser = new DOMParser();
     const doc = parser.parseFromString(activeHtmlFile.content, 'text/html');
 
@@ -334,7 +337,7 @@ export default function App() {
     <span class="text-xs px-2.5 py-1 bg-amber-500/20 text-amber-300 rounded-full border border-amber-500/30">Draw.io Vector</span>
   </div>
   <div class="diagram-viewport p-4 bg-slate-950 rounded-xl flex items-center justify-center">
-    ${diagram.svg || `<div class="text-amber-400 font-bold p-8">Diagram SVG updated</div>`}
+    ${normalizedSvg || `<div class="text-amber-400 font-bold p-8">Diagram SVG updated</div>`}
   </div>
 </div>`;
 

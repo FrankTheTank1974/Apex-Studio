@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Workflow, X, Save, Check, RotateCw } from 'lucide-react';
 import { DrawIoDiagram } from '../types';
+import { normalizeSvgContent } from '../utils/svgUtils';
 
 interface DrawIoEditorProps {
   isOpen: boolean;
@@ -44,7 +45,8 @@ export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
         } else if (msg.event === 'save') {
           // Received save event from Draw.io
           const xml = msg.xml || '';
-          const svg = msg.svg || '';
+          const rawSvg = msg.svg || msg.data || '';
+          const svg = normalizeSvgContent(rawSvg);
           setCurrentXml(xml);
 
           onSaveDiagram({
@@ -59,11 +61,13 @@ export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
           setTimeout(() => setSavedSuccess(false), 2500);
         } else if (msg.event === 'export') {
           // Received export SVG format
-          const svg = msg.data || msg.svg || '';
+          const rawSvg = msg.data || msg.svg || '';
+          const xml = msg.xml || currentXml;
+          const svg = normalizeSvgContent(rawSvg);
           onSaveDiagram({
             id: activeDiagram?.id || 'diagram-' + Date.now(),
             title: diagramTitle,
-            xml: currentXml,
+            xml,
             svg,
             updatedAt: new Date().toISOString(),
           });
