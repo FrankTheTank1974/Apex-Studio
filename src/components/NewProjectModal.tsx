@@ -166,13 +166,16 @@ document.addEventListener('DOMContentLoaded', () => {
 </head>
 <body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-6 text-center">
 
-  <div class="max-w-md p-8 bg-slate-950 border border-slate-800 rounded-2xl shadow-xl">
+  <div id="welcome-card" class="relative max-w-md p-8 bg-slate-950 border border-slate-800 rounded-2xl shadow-xl">
+    <button id="close-welcome-btn" onclick="document.getElementById('welcome-card').remove()" class="absolute top-3 right-3 w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors text-sm font-bold cursor-pointer" title="Close Welcome Window">
+      ✕
+    </button>
     <div class="w-12 h-12 mx-auto mb-4 bg-indigo-600/20 border border-indigo-500/40 rounded-xl flex items-center justify-center text-indigo-400 font-bold text-xl">
       ✨
     </div>
     <h1 class="text-2xl font-bold mb-2">Blank Web Project</h1>
     <p class="text-slate-400 text-sm mb-6">Drag components from the library panel or start typing custom HTML to build your design.</p>
-    <button class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-indigo-600/20 transition-all">
+    <button id="get-started-btn" onclick="document.getElementById('welcome-card').remove()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-indigo-600/20 transition-all cursor-pointer">
       Get Started
     </button>
   </div>
@@ -198,7 +201,18 @@ body {
         type: 'js' as const,
         path: '/script.js',
         content: `// Client-side interactions
-console.log('Project loaded');`,
+document.addEventListener('DOMContentLoaded', () => {
+  const card = document.getElementById('welcome-card');
+  const closeBtn = document.getElementById('close-welcome-btn');
+  const getStartedBtn = document.getElementById('get-started-btn');
+
+  const removeCard = () => {
+    if (card) card.remove();
+  };
+
+  if (closeBtn) closeBtn.addEventListener('click', removeCard);
+  if (getStartedBtn) getStartedBtn.addEventListener('click', removeCard);
+});`,
       },
     ],
   },
@@ -468,7 +482,6 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
             <label className="block text-slate-300 font-semibold mb-2">Choose Starter Template</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {PROJECT_TEMPLATES.map((tmpl) => {
-                const IconComponent = tmpl.icon;
                 const isSelected = selectedTemplateId === tmpl.id;
 
                 return (
@@ -490,7 +503,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
                     <div>
                       <div className="flex items-center space-x-2 mb-2">
                         <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400'}`}>
-                          <IconComponent className="w-4 h-4" />
+                          <tmpl.icon className="w-4 h-4" />
                         </div>
                         <span className="font-bold text-slate-100 text-xs">{tmpl.name}</span>
                       </div>
