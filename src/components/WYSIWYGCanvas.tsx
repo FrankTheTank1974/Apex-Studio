@@ -9,6 +9,7 @@ interface WYSIWYGCanvasProps {
   deviceMode: DeviceMode;
   onSelectElement: (info: SelectedElementInfo | null) => void;
   onUpdateHtmlFromCanvas: (newHtml: string) => void;
+  onDeleteSelectedElement?: () => void;
   onOpenDrawIoWithDiagram?: (diagramId: string) => void;
   collaboratorCursors?: Record<string, { x: number; y: number; name: string; color: string }>;
 }
@@ -20,6 +21,7 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
   deviceMode,
   onSelectElement,
   onUpdateHtmlFromCanvas,
+  onDeleteSelectedElement,
   onOpenDrawIoWithDiagram,
   collaboratorCursors = {}
 }) => {
@@ -165,17 +167,40 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
       target.addEventListener('blur', handleBlur);
     };
 
+    // Handle keydown inside iframe for Delete/Backspace key
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const activeTarget = doc.activeElement as HTMLElement;
+        if (
+          activeTarget &&
+          (activeTarget.isContentEditable ||
+            activeTarget.tagName === 'INPUT' ||
+            activeTarget.tagName === 'TEXTAREA' ||
+            activeTarget.closest('[contenteditable="true"]'))
+        ) {
+          return;
+        }
+
+        if (onDeleteSelectedElement) {
+          e.preventDefault();
+          onDeleteSelectedElement();
+        }
+      }
+    };
+
     // Attach listeners
     doc.addEventListener('mouseover', handleMouseOver);
     doc.addEventListener('mouseout', handleMouseOut);
     doc.addEventListener('click', handleClick);
     doc.addEventListener('dblclick', handleDblClick);
+    doc.addEventListener('keydown', handleKeyDown);
 
     return () => {
       doc.removeEventListener('mouseover', handleMouseOver);
       doc.removeEventListener('mouseout', handleMouseOut);
       doc.removeEventListener('click', handleClick);
       doc.removeEventListener('dblclick', handleDblClick);
+      doc.removeEventListener('keydown', handleKeyDown);
     };
   }, [htmlContent, cssContent, deviceMode]);
 

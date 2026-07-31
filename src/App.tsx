@@ -244,6 +244,31 @@ export default function App() {
     }
   };
 
+  // Keyboard shortcut listener for Delete / Backspace key
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement) {
+        const activeEl = document.activeElement;
+        const isInputOrEditable =
+          activeEl instanceof HTMLInputElement ||
+          activeEl instanceof HTMLTextAreaElement ||
+          (activeEl instanceof HTMLElement && activeEl.isContentEditable) ||
+          activeEl?.closest('input') ||
+          activeEl?.closest('textarea') ||
+          activeEl?.closest('.monaco-editor') ||
+          activeEl?.closest('[contenteditable="true"]');
+
+        if (!isInputOrEditable) {
+          e.preventDefault();
+          handleDeleteElement();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [selectedElement, activeHtmlFile]);
+
   const handleMoveElement = (direction: 'up' | 'down') => {
     if (!selectedElement || !activeHtmlFile) return;
     const parser = new DOMParser();
@@ -372,6 +397,7 @@ export default function App() {
               deviceMode={viewMode === 'preview' ? 'desktop' : deviceMode}
               onSelectElement={setSelectedElement}
               onUpdateHtmlFromCanvas={handleUpdateHtml}
+              onDeleteSelectedElement={handleDeleteElement}
               onOpenDrawIoWithDiagram={() => setIsDrawIoOpen(true)}
               collaboratorCursors={remoteCursors}
             />

@@ -121,7 +121,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           <button
             onClick={onDeleteElement}
             className="p-1 hover:bg-red-950/50 rounded text-red-400 hover:text-red-300"
-            title="Delete Element"
+            title="Delete Element (Del / Backspace)"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
