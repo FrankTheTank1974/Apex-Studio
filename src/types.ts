@@ -53,7 +53,7 @@ export interface ChatMessage {
   timestamp: string;
 }
 
-export type DeploymentProvider = 'github' | 'gitlab' | 'bitbucket' | 'codeberg' | 'vercel' | 'netlify';
+export type DeploymentProvider = 'github' | 'gitlab' | 'bitbucket' | 'codeberg' | 'vercel' | 'netlify' | 'svn' | 'cvs' | 'mercurial';
 
 export interface DeploymentConfig {
   provider: DeploymentProvider;

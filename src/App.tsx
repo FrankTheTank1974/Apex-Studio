@@ -23,6 +23,7 @@ import { DrawIoEditor } from './components/DrawIoEditor';
 import { CollaborationBar } from './components/CollaborationBar';
 import { ExportDeployModal } from './components/ExportDeployModal';
 import { AIAssistantModal } from './components/AIAssistantModal';
+import { NewProjectModal } from './components/NewProjectModal';
 import { downloadTarZstd } from './utils/tarZstd';
 
 export default function App() {
@@ -38,6 +39,7 @@ export default function App() {
   const [isDrawIoOpen, setIsDrawIoOpen] = useState(false);
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isCollabOpen, setIsCollabOpen] = useState(false);
+  const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
 
   // Active Draw.io diagram state
   const [activeDiagram, setActiveDiagram] = useState<DrawIoDiagram | null>(null);
@@ -309,6 +311,14 @@ export default function App() {
     }
   };
 
+  // Initialize / Create new project
+  const handleCreateNewProject = (newTitle: string, newFiles: ProjectFile[]) => {
+    setProjectName(newTitle);
+    broadcastFileUpdate(newFiles);
+    setActiveFileId(newFiles[0]?.id || 'index-html');
+    setSelectedElement(null);
+  };
+
   // Download .tar.zst archive directly
   const handleExportZstArchive = () => {
     const archiveFiles = files.map((f) => ({
@@ -335,6 +345,7 @@ export default function App() {
         onOpenExport={() => setIsExportOpen(true)}
         onOpenAI={() => setIsAIOpen(true)}
         onOpenDrawIo={() => setIsDrawIoOpen(true)}
+        onOpenNewProject={() => setIsNewProjectOpen(true)}
         onExportZst={handleExportZstArchive}
         activeRoomId={activeRoomId}
         onToggleCollab={() => setIsCollabOpen(!isCollabOpen)}
@@ -431,6 +442,13 @@ export default function App() {
         isOpen={isAIOpen}
         onClose={() => setIsAIOpen(false)}
         onInsertGeneratedHtml={handleInsertComponentHtml}
+      />
+
+      {/* New Project Starter Modal */}
+      <NewProjectModal
+        isOpen={isNewProjectOpen}
+        onClose={() => setIsNewProjectOpen(false)}
+        onCreateProject={handleCreateNewProject}
       />
     </div>
   );

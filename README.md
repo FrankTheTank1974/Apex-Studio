@@ -1,6 +1,6 @@
 # ApexStudio - WYSIWYG HTML IDE, Real-Time Collaboration & Cloud Deployment Platform
 
-**ApexStudio** is a full-featured visual web application builder and cloud deployment IDE. It combines a live visual drag-and-drop WYSIWYG canvas, raw HTML/CSS/JS code editors, embedded Draw.io architecture diagramming, WebSocket real-time team collaboration, multi-cloud repository & hosting deployment (GitHub, GitLab, Bitbucket, Codeberg, Vercel, Netlify), and native `.tar.zst` binary archival.
+**ApexStudio** is a full-featured visual web application builder and cloud deployment IDE. It combines a live visual drag-and-drop WYSIWYG canvas, raw HTML/CSS/JS code editors, embedded Draw.io architecture diagramming, WebSocket real-time team collaboration, multi-VCS repository & hosting deployment (GitHub, GitLab, Bitbucket, Codeberg, Apache SVN, CVS, Mercurial Hg, Vercel, Netlify), and native `.tar.zst` binary archival.
 
 ---
 
@@ -22,10 +22,10 @@
 - **Direct Canvas Insertion**: Save system flowcharts and architecture diagrams as vector SVGs directly into your HTML page.
 - **Re-editable Diagrams**: Double-click diagram containers on the visual canvas to re-open and update them in Draw.io anytime.
 
-### 4. 🚀 Multi-Cloud Deployment Engine
-- **Source Control Integrations**: Direct push pipeline for **GitHub**, **GitLab**, **Bitbucket**, and **Codeberg**.
+### 4. 🚀 Multi-Cloud & Multi-VCS Deployment Engine
+- **Source Control & VCS Integrations**: Direct push pipeline for **GitHub**, **GitLab**, **Bitbucket**, **Codeberg**, **Apache SVN** (Subversion), **CVS** (Concurrent Versions System), and **Mercurial (Hg)**.
 - **Edge Hosting Providers**: Instant single-click publishing to **Vercel** and **Netlify**.
-- **Configurable Environments**: Supports custom repository names, target branches (`main`, `prod`), access token authentication, and public/private repo flags.
+- **Configurable Environments**: Supports custom repository/module names, target branches/trunks (`main`, `trunk`, `HEAD`, `default`), access token/credentials authentication, and public/private flags.
 
 ### 5. 👥 Real-Time Team Collaboration
 - **WebSocket Room Engine**: Create or join collaboration rooms with shared room codes.

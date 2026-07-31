@@ -13,7 +13,8 @@ import {
   Workflow, 
   FolderArchive,
   Play,
-  Share2
+  Share2,
+  FolderPlus
 } from 'lucide-react';
 import { ViewMode, DeviceMode, ProjectFile } from '../types';
 
@@ -27,6 +28,7 @@ interface NavbarProps {
   onOpenExport: () => void;
   onOpenAI: () => void;
   onOpenDrawIo: () => void;
+  onOpenNewProject: () => void;
   onExportZst: () => void;
   activeRoomId: string | null;
   onToggleCollab: () => void;
@@ -43,6 +45,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenExport,
   onOpenAI,
   onOpenDrawIo,
+  onOpenNewProject,
   onExportZst,
   activeRoomId,
   onToggleCollab,
@@ -61,14 +64,24 @@ export const Navbar: React.FC<NavbarProps> = ({
         
         <span className="text-slate-700 hidden sm:inline">|</span>
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1.5">
           <input
             type="text"
             value={projectName}
             onChange={(e) => onProjectNameChange(e.target.value)}
-            className="bg-transparent hover:bg-slate-800 focus:bg-slate-800 text-white font-medium text-sm px-2 py-1 rounded border border-transparent focus:border-indigo-500 outline-none transition-colors w-36 sm:w-48"
+            className="bg-transparent hover:bg-slate-800 focus:bg-slate-800 text-white font-medium text-sm px-2 py-1 rounded border border-transparent focus:border-indigo-500 outline-none transition-colors w-32 sm:w-44"
             placeholder="Project Title"
           />
+
+          {/* New Project Button */}
+          <button
+            onClick={onOpenNewProject}
+            className="flex items-center space-x-1 px-2.5 py-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:border-indigo-500/70 rounded-lg text-xs font-semibold transition-all shadow-sm"
+            title="Start a New Project with starter template"
+          >
+            <FolderPlus className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="hidden sm:inline">New</span>
+          </button>
         </div>
       </div>
 

@@ -29,13 +29,16 @@ interface ExportDeployModalProps {
   files: ProjectFile[];
 }
 
-const PROVIDERS: { id: DeploymentProvider; name: string; icon: string; category: 'git' | 'hosting' }[] = [
+const PROVIDERS: { id: DeploymentProvider; name: string; icon: string; category: 'git' | 'vcs' | 'hosting' }[] = [
   { id: 'github', name: 'GitHub', icon: '🐙', category: 'git' },
   { id: 'gitlab', name: 'GitLab', icon: '🦊', category: 'git' },
   { id: 'vercel', name: 'Vercel', icon: '▲', category: 'hosting' },
   { id: 'netlify', name: 'Netlify', icon: '🌐', category: 'hosting' },
   { id: 'bitbucket', name: 'Bitbucket', icon: '🪣', category: 'git' },
   { id: 'codeberg', name: 'Codeberg', icon: '🏔️', category: 'git' },
+  { id: 'svn', name: 'Apache SVN', icon: '🐢', category: 'vcs' },
+  { id: 'cvs', name: 'CVS Repo', icon: '📜', category: 'vcs' },
+  { id: 'mercurial', name: 'Mercurial (Hg)', icon: '☿', category: 'vcs' },
 ];
 
 export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
@@ -63,10 +66,12 @@ export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
 
   const handleProviderChange = (provider: DeploymentProvider) => {
     setSelectedProvider(provider);
+    const defaultBranch = provider === 'svn' ? 'trunk' : provider === 'cvs' ? 'MAIN' : provider === 'mercurial' ? 'default' : 'main';
     setConfig((prev) => ({
       ...prev,
       provider,
       repoName: projectName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+      branch: defaultBranch,
     }));
   };
 
@@ -146,7 +151,7 @@ export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
             <div>
               <h3 className="font-bold text-slate-100 text-sm">Deployment & Archival Hub</h3>
               <p className="text-[11px] text-slate-400">
-                Deploy to Vercel, Netlify, GitHub, GitLab, Codeberg, or download .tar.zst archive
+                Deploy to Vercel, Netlify, GitHub, GitLab, Bitbucket, Codeberg, SVN, CVS, Mercurial, or download .tar.zst archive
               </p>
             </div>
           </div>
@@ -230,7 +235,13 @@ export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] text-slate-400 font-semibold mb-1">
-                    {selectedProvider === 'vercel' || selectedProvider === 'netlify' ? 'Project / Site Name' : 'Repository Name'}
+                    {selectedProvider === 'vercel' || selectedProvider === 'netlify'
+                      ? 'Project / Site Name'
+                      : selectedProvider === 'svn'
+                      ? 'SVN Repository Path / Module'
+                      : selectedProvider === 'cvs'
+                      ? 'CVS Module Name'
+                      : 'Repository Name'}
                   </label>
                   <input
                     type="text"
@@ -242,7 +253,9 @@ export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] text-slate-400 font-semibold mb-1">Target Branch</label>
+                  <label className="block text-[11px] text-slate-400 font-semibold mb-1">
+                    {selectedProvider === 'svn' ? 'Trunk / Branch' : selectedProvider === 'cvs' ? 'Tag / Branch' : selectedProvider === 'mercurial' ? 'Hg Branch / Bookmark' : 'Target Branch'}
+                  </label>
                   <div className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-white font-mono text-xs">
                     <GitBranch className="w-3.5 h-3.5 text-indigo-400" />
                     <input
@@ -257,13 +270,13 @@ export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
 
               <div>
                 <label className="block text-[11px] text-slate-400 font-semibold mb-1">
-                  API Token / Personal Access Key
+                  {selectedProvider === 'svn' ? 'SVN Password / Access Credentials' : selectedProvider === 'cvs' ? 'CVS Password / Key' : selectedProvider === 'mercurial' ? 'Mercurial Auth Key / Password' : 'API Token / Personal Access Key'}
                 </label>
                 <div className="relative">
                   <Key className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-500" />
                   <input
                     type="password"
-                    placeholder={`Enter your ${selectedProvider.toUpperCase()} Access Token...`}
+                    placeholder={`Enter your ${selectedProvider.toUpperCase()} Access Token or Credentials...`}
                     value={config.token}
                     onChange={(e) => setConfig({ ...config, token: e.target.value })}
                     className="w-full pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-indigo-500"
@@ -275,7 +288,9 @@ export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 font-semibold mb-1">Commit / Release Description</label>
+                <label className="block text-[11px] text-slate-400 font-semibold mb-1">
+                  {selectedProvider === 'svn' ? 'SVN Commit Log Message' : selectedProvider === 'cvs' ? 'CVS Change Log Message' : selectedProvider === 'mercurial' ? 'Hg Commit Description' : 'Commit / Release Description'}
+                </label>
                 <input
                   type="text"
                   value={config.commitMessage}
