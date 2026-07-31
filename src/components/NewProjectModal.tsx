@@ -411,6 +411,7 @@ html {
             <h3 class="font-bold text-indigo-400 text-sm">🖼️ Image Formats</h3>
             <ul class="space-y-1 list-disc list-inside text-slate-300">
               <li><strong>JPEG XL (.jxl)</strong>: Next-gen high efficiency & lossless image format</li>
+              <li><strong>JPEG 2000 (.jp2, .j2k)</strong>: Native browser support in Safari / WebKit</li>
               <li><strong>PNG (.png)</strong>: Lossless quality with full transparency</li>
               <li><strong>JPEG (.jpg, .jpeg)</strong>: Standard web photography</li>
               <li><strong>WebP (.webp)</strong>: Next-gen compressed web images</li>

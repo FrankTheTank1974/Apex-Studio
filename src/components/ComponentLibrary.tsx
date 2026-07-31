@@ -17,7 +17,11 @@ import {
   Code,
   Film,
   Plus,
-  GripVertical
+  GripVertical,
+  MoveHorizontal,
+  Clock,
+  Timer,
+  Globe
 } from 'lucide-react';
 
 interface ComponentLibraryProps {
@@ -64,6 +68,10 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({
       case 'Mail': return <Mail className="w-4 h-4 text-cyan-400" />;
       case 'Workflow': return <Workflow className="w-4 h-4 text-amber-400" />;
       case 'Film': return <Film className="w-4 h-4 text-purple-400" />;
+      case 'MoveHorizontal': return <MoveHorizontal className="w-4 h-4 text-cyan-400" />;
+      case 'Clock': return <Clock className="w-4 h-4 text-emerald-400" />;
+      case 'Timer': return <Timer className="w-4 h-4 text-amber-400" />;
+      case 'Globe': return <Globe className="w-4 h-4 text-cyan-400" />;
       default: return <Code className="w-4 h-4 text-slate-400" />;
     }
   };

@@ -219,6 +219,7 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
       <h4 class="font-bold text-indigo-600 dark:text-indigo-400 text-sm mb-1.5">🖼️ Supported Image Formats</h4>
       <ul class="space-y-1 list-disc list-inside text-slate-600 dark:text-slate-400">
         <li><strong class="text-slate-900 dark:text-white">JPEG XL (.jxl)</strong>: Next-generation high efficiency & lossless image format</li>
+        <li><strong class="text-slate-900 dark:text-white">JPEG 2000 (.jp2, .j2k)</strong>: Native support in Safari & WebKit browsers</li>
         <li><strong class="text-slate-900 dark:text-white">PNG (.png)</strong>: High quality with full alpha transparency</li>
         <li><strong class="text-slate-900 dark:text-white">JPEG (.jpg, .jpeg)</strong>: Standard web imagery</li>
         <li><strong class="text-slate-900 dark:text-white">WebP (.webp)</strong>: Next-gen compressed web format</li>
@@ -256,6 +257,459 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
   <button class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md transition-all">
     Get Started Now
   </button>
+</div>`
+  },
+  {
+    id: 'marquee-scroller-rtl',
+    name: 'Scrolling Text Marquee (Right-to-Left)',
+    category: 'ui',
+    icon: 'MoveHorizontal',
+    description: 'Continuous right-to-left scrolling text marquee ticker banner with pause-on-hover and gradient edge masks',
+    html: `<div class="w-full bg-slate-900 text-slate-100 py-3.5 border-y border-slate-800 overflow-hidden relative shadow-md font-sans group">
+  <!-- Gradient Edge Fade Overlay -->
+  <div class="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-slate-900 to-transparent z-10 pointer-events-none"></div>
+  <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-slate-900 to-transparent z-10 pointer-events-none"></div>
+
+  <style>
+    @keyframes apexMarqueeRTL {
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-50%, 0, 0); }
+    }
+    .apex-marquee-track {
+      display: flex;
+      width: max-content;
+      animation: apexMarqueeRTL 24s linear infinite;
+      will-change: transform;
+    }
+    .apex-marquee-track:hover {
+      animation-play-state: paused;
+    }
+  </style>
+
+  <div class="apex-marquee-track flex items-center space-x-8 text-xs md:text-sm font-medium">
+    <!-- Sequence 1 -->
+    <div class="flex items-center space-x-8 shrink-0">
+      <span class="inline-flex items-center space-x-1.5 bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30 font-semibold tracking-wide text-xs">
+        <span class="animate-pulse">⚡</span>
+        <span>LIVE ANNOUNCEMENT</span>
+      </span>
+      <span class="text-slate-200">🚀 ApexStudio 2.0 Released — Instant Visual & Code Builder</span>
+      <span class="text-indigo-400 font-bold">✦</span>
+      <span class="text-slate-300">🖼️ Support added for JXL, JPEG 2000, WebP, SVG, AVIF, PNG & JPG formats</span>
+      <span class="text-purple-400 font-bold">✦</span>
+      <span class="text-slate-200">📊 Live interactive Draw.io vector architecture diagrams</span>
+      <span class="text-emerald-400 font-bold">✦</span>
+      <span class="text-slate-300">🌐 1-Click export to GitHub, Vercel, Netlify & .tar.zst archives</span>
+      <span class="text-amber-400 font-bold">✦</span>
+    </div>
+
+    <!-- Sequence 2 (Duplicated for seamless continuous loop) -->
+    <div class="flex items-center space-x-8 shrink-0" aria-hidden="true">
+      <span class="inline-flex items-center space-x-1.5 bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30 font-semibold tracking-wide text-xs">
+        <span class="animate-pulse">⚡</span>
+        <span>LIVE ANNOUNCEMENT</span>
+      </span>
+      <span class="text-slate-200">🚀 ApexStudio 2.0 Released — Instant Visual & Code Builder</span>
+      <span class="text-indigo-400 font-bold">✦</span>
+      <span class="text-slate-300">🖼️ Support added for JXL, JPEG 2000, WebP, SVG, AVIF, PNG & JPG formats</span>
+      <span class="text-purple-400 font-bold">✦</span>
+      <span class="text-slate-200">📊 Live interactive Draw.io vector architecture diagrams</span>
+      <span class="text-emerald-400 font-bold">✦</span>
+      <span class="text-slate-300">🌐 1-Click export to GitHub, Vercel, Netlify & .tar.zst archives</span>
+      <span class="text-amber-400 font-bold">✦</span>
+    </div>
+  </div>
+</div>`
+  },
+  {
+    id: 'js-marquee-ticker-rtl',
+    name: 'Interactive JS Right-to-Left Ticker Bar',
+    category: 'ui',
+    icon: 'MoveHorizontal',
+    description: 'News ticker banner with right-to-left scrolling text, badge tags, and pause control',
+    html: `<div class="w-full bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 text-indigo-100 py-3 px-4 border-y border-indigo-800/60 shadow-lg font-sans my-4">
+  <div class="flex items-center justify-between mb-2 pb-2 border-b border-indigo-800/40">
+    <div class="flex items-center space-x-2 text-xs font-bold text-indigo-300">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+      <span class="uppercase tracking-wider text-[11px]">Right-to-Left Ticker</span>
+    </div>
+    <span class="text-[10px] text-indigo-300/70 font-mono">Hover to pause • Smooth RHS ➔ LHS</span>
+  </div>
+
+  <div class="w-full overflow-hidden relative py-1">
+    <style>
+      @keyframes tickerRTL {
+        0% { transform: translate3d(100%, 0, 0); }
+        100% { transform: translate3d(-100%, 0, 0); }
+      }
+      .animate-ticker-rtl {
+        display: inline-block;
+        white-space: nowrap;
+        animation: tickerRTL 18s linear infinite;
+        will-change: transform;
+      }
+      .animate-ticker-rtl:hover {
+        animation-play-state: paused;
+      }
+    </style>
+    <div class="animate-ticker-rtl text-sm font-medium text-white space-x-8">
+      <span>🎉 Welcome to the Right-to-Left Ticker Banner!</span>
+      <span class="text-indigo-400 font-bold">•</span>
+      <span>Continuous JavaScript & CSS right-to-left scrolling animation</span>
+      <span class="text-purple-400 font-bold">•</span>
+      <span>Hover anywhere on this banner to pause text movement</span>
+      <span class="text-emerald-400 font-bold">•</span>
+      <span>Fully customizable text, animation duration, and color styling</span>
+    </div>
+  </div>
+</div>`
+  },
+  {
+    id: 'countdown-timer-interactive',
+    name: 'Interactive Countdown Timer',
+    category: 'ui',
+    icon: 'Timer',
+    description: 'Customizable countdown timer card with datetime-local picker, quick presets (+1h, +1d, +7d, +30d), digital cards, and real-time JavaScript timer.',
+    html: `<div class="max-w-2xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-xl font-sans text-slate-900 dark:text-white my-6 apex-countdown-card relative overflow-hidden">
+  <div class="absolute -top-24 -right-24 w-60 h-60 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute -bottom-24 -left-24 w-60 h-60 bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-200 dark:border-slate-800 pb-5">
+    <div>
+      <div class="inline-flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 font-bold text-xs uppercase tracking-wider mb-1">
+        <span>⏳ Countdown Timer</span>
+      </div>
+      <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white">Event & Target Time Countdown</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Select a target date and time to calculate live remaining time.</p>
+    </div>
+
+    <div class="flex flex-col items-start sm:items-end space-y-1">
+      <label class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Target Date & Time:</label>
+      <input 
+        type="datetime-local" 
+        class="apex-target-datetime bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white text-xs px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono shadow-inner cursor-pointer" 
+      />
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-2 mb-6 text-xs">
+    <span class="text-slate-500 dark:text-slate-400 font-medium text-[11px] mr-1">Quick Presets:</span>
+    <button type="button" class="preset-btn px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 rounded-lg text-slate-700 dark:text-slate-300 font-medium transition-colors cursor-pointer" data-hours="1">+1 Hour</button>
+    <button type="button" class="preset-btn px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 rounded-lg text-slate-700 dark:text-slate-300 font-medium transition-colors cursor-pointer" data-days="1">+1 Day</button>
+    <button type="button" class="preset-btn px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 rounded-lg text-slate-700 dark:text-slate-300 font-medium transition-colors cursor-pointer" data-days="7">+7 Days</button>
+    <button type="button" class="preset-btn px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 rounded-lg text-slate-700 dark:text-slate-300 font-medium transition-colors cursor-pointer" data-days="30">+30 Days</button>
+    <button type="button" class="preset-btn px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-600 hover:text-white rounded-lg font-medium transition-colors cursor-pointer" data-newyear="true">🎉 New Year 2027</button>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4 text-center my-4">
+    <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 md:p-5 shadow-sm">
+      <div class="text-3xl md:text-5xl font-black text-indigo-600 dark:text-indigo-400 font-mono tracking-tight days-val">00</div>
+      <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-1">Days</div>
+    </div>
+    <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 md:p-5 shadow-sm">
+      <div class="text-3xl md:text-5xl font-black text-indigo-600 dark:text-indigo-400 font-mono tracking-tight hours-val">00</div>
+      <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-1">Hours</div>
+    </div>
+    <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 md:p-5 shadow-sm">
+      <div class="text-3xl md:text-5xl font-black text-indigo-600 dark:text-indigo-400 font-mono tracking-tight minutes-val">00</div>
+      <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-1">Minutes</div>
+    </div>
+    <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 md:p-5 shadow-sm">
+      <div class="text-3xl md:text-5xl font-black text-purple-600 dark:text-purple-400 font-mono tracking-tight seconds-val animate-pulse">00</div>
+      <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-1">Seconds</div>
+    </div>
+  </div>
+
+  <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+    <div class="flex items-center space-x-2 text-slate-600 dark:text-slate-300">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+      <span class="font-medium countdown-status">Countdown active...</span>
+    </div>
+    <span class="font-mono text-slate-400 dark:text-slate-500 text-[11px] target-formatted-date"></span>
+  </div>
+
+  <script>
+    (function() {
+      const card = document.currentScript ? document.currentScript.closest('.apex-countdown-card') : document.querySelector('.apex-countdown-card');
+      if (!card) return;
+
+      const input = card.querySelector('.apex-target-datetime');
+      const daysEl = card.querySelector('.days-val');
+      const hoursEl = card.querySelector('.hours-val');
+      const minutesEl = card.querySelector('.minutes-val');
+      const secondsEl = card.querySelector('.seconds-val');
+      const statusEl = card.querySelector('.countdown-status');
+      const formattedEl = card.querySelector('.target-formatted-date');
+      const presetBtns = card.querySelectorAll('.preset-btn');
+
+      const pad = (n) => String(Math.max(0, Math.floor(n))).padStart(2, '0');
+
+      let targetDate = new Date(Date.now() + 7 * 24 * 3600 * 1000);
+
+      function formatForInput(date) {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        const hh = String(date.getHours()).padStart(2, '0');
+        const min = String(date.getMinutes()).padStart(2, '0');
+        return \`\${yyyy}-\${mm}-\${dd}T\${hh}:\${min}\`;
+      }
+
+      if (input) {
+        input.value = formatForInput(targetDate);
+        input.addEventListener('change', (e) => {
+          if (e.target.value) {
+            targetDate = new Date(e.target.value);
+            tick();
+          }
+        });
+      }
+
+      presetBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const now = new Date();
+          if (btn.dataset.hours) targetDate = new Date(now.getTime() + parseInt(btn.dataset.hours) * 3600 * 1000);
+          else if (btn.dataset.days) targetDate = new Date(now.getTime() + parseInt(btn.dataset.days) * 86400 * 1000);
+          else if (btn.dataset.newyear) targetDate = new Date('2027-01-01T00:00:00');
+          if (input) input.value = formatForInput(targetDate);
+          tick();
+        });
+      });
+
+      function tick() {
+        const now = new Date().getTime();
+        const diff = targetDate.getTime() - now;
+
+        if (formattedEl) {
+          formattedEl.textContent = targetDate.toLocaleString(undefined, {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+          });
+        }
+
+        if (diff <= 0) {
+          if (daysEl) daysEl.textContent = '00';
+          if (hoursEl) hoursEl.textContent = '00';
+          if (minutesEl) minutesEl.textContent = '00';
+          if (secondsEl) secondsEl.textContent = '00';
+          if (statusEl) {
+            statusEl.textContent = '🎉 Event Reached! Countdown finished.';
+            statusEl.className = 'font-bold text-emerald-500 animate-bounce';
+          }
+          return;
+        }
+
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        if (daysEl) daysEl.textContent = pad(d);
+        if (hoursEl) hoursEl.textContent = pad(h);
+        if (minutesEl) minutesEl.textContent = pad(m);
+        if (secondsEl) secondsEl.textContent = pad(s);
+        if (statusEl) {
+          statusEl.textContent = 'Countdown active...';
+          statusEl.className = 'font-medium text-indigo-500';
+        }
+      }
+
+      tick();
+      setInterval(tick, 1000);
+    })();
+  </script>
+</div>`
+  },
+  {
+    id: 'browser-ip-address',
+    name: 'Browser IP Address Inspector',
+    category: 'ui',
+    icon: 'Globe',
+    description: 'Displays browser IP address, network details, geolocation, User-Agent info, copy button & refresh capability',
+    html: `<div class="max-w-xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-xl font-sans text-slate-900 dark:text-white my-6 apex-ip-card relative overflow-hidden">
+  <div class="absolute -top-24 -right-24 w-56 h-56 bg-cyan-500/10 dark:bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute -bottom-24 -left-24 w-56 h-56 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+  <!-- Header -->
+  <div class="flex items-center justify-between pb-5 border-b border-slate-200 dark:border-slate-800">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-bold text-lg border border-cyan-500/20">
+        🌐
+      </div>
+      <div>
+        <h3 class="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <span>Browser IP Address</span>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>
+            Online
+          </span>
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Public IP detection and network diagnostics</p>
+      </div>
+    </div>
+
+    <!-- Refresh Button -->
+    <button type="button" class="ip-refresh-btn p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-all shadow-sm active:scale-95 cursor-pointer" title="Refresh IP Address">
+      <svg class="w-4 h-4 refresh-icon transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Main IP Display Card -->
+  <div class="my-6 p-5 bg-gradient-to-br from-slate-50 to-cyan-50/30 dark:from-slate-950 dark:to-cyan-950/20 border border-slate-200 dark:border-slate-800/80 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+    <div class="flex flex-col text-center sm:text-left">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Your Public IP Address</span>
+      <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight text-slate-900 dark:text-cyan-300 ip-address-text flex items-center justify-center sm:justify-start gap-2">
+        <span class="animate-pulse text-slate-400">Loading IP...</span>
+      </div>
+    </div>
+
+    <button type="button" class="ip-copy-btn px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold text-xs rounded-xl shadow-md hover:shadow-indigo-500/20 transition-all flex items-center space-x-2 cursor-pointer shrink-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+      </svg>
+      <span class="copy-btn-label">Copy IP</span>
+    </button>
+  </div>
+
+  <!-- Details Grid -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+    <div class="p-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/60 rounded-xl">
+      <span class="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-bold tracking-wider block mb-1">IP Type</span>
+      <span class="font-mono font-semibold text-slate-800 dark:text-slate-200 ip-type-val">IPv4 / IPv6</span>
+    </div>
+
+    <div class="p-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/60 rounded-xl">
+      <span class="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-bold tracking-wider block mb-1">Location</span>
+      <span class="font-semibold text-slate-800 dark:text-slate-200 ip-location-val">Detecting...</span>
+    </div>
+
+    <div class="p-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/60 rounded-xl col-span-2 sm:col-span-1">
+      <span class="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-bold tracking-wider block mb-1">Network ISP</span>
+      <span class="font-semibold text-slate-800 dark:text-slate-200 truncate block ip-isp-val">Detecting...</span>
+    </div>
+  </div>
+
+  <!-- User Agent Footer -->
+  <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+    <span class="truncate pr-2 font-mono ip-ua-text">Browser: ...</span>
+    <span class="shrink-0 font-medium text-indigo-600 dark:text-indigo-400 ip-protocol-val">HTTPS</span>
+  </div>
+
+  <script>
+    (function() {
+      const card = document.currentScript ? document.currentScript.closest('.apex-ip-card') : document.querySelector('.apex-ip-card');
+      if (!card) return;
+
+      const ipTextEl = card.querySelector('.ip-address-text');
+      const copyBtn = card.querySelector('.ip-copy-btn');
+      const copyLabel = card.querySelector('.copy-btn-label');
+      const refreshBtn = card.querySelector('.ip-refresh-btn');
+      const refreshIcon = card.querySelector('.refresh-icon');
+      const typeEl = card.querySelector('.ip-type-val');
+      const locationEl = card.querySelector('.ip-location-val');
+      const ispEl = card.querySelector('.ip-isp-val');
+      const uaEl = card.querySelector('.ip-ua-text');
+      const protocolEl = card.querySelector('.ip-protocol-val');
+
+      let currentIP = '';
+
+      if (uaEl) {
+        const ua = navigator.userAgent;
+        let browserName = 'Browser';
+        if (ua.includes('Firefox')) browserName = 'Firefox';
+        else if (ua.includes('Edg')) browserName = 'Edge';
+        else if (ua.includes('Chrome')) browserName = 'Chrome';
+        else if (ua.includes('Safari')) browserName = 'Safari';
+        uaEl.textContent = \`Browser: \${browserName} (\${navigator.platform || 'Client'})\`;
+      }
+
+      if (protocolEl) {
+        protocolEl.textContent = window.location.protocol.replace(':', '').toUpperCase();
+      }
+
+      async function fetchIP() {
+        if (ipTextEl) ipTextEl.innerHTML = '<span class="animate-pulse text-slate-400">Fetching IP...</span>';
+        if (refreshIcon) refreshIcon.classList.add('animate-spin');
+
+        try {
+          // Primary API
+          let res = await fetch('https://api.ipify.org?format=json');
+          if (!res.ok) throw new Error('Primary API failed');
+          let data = await res.json();
+          currentIP = data.ip;
+
+          // Attempt detailed Geo IP lookup from ipapi.co
+          try {
+            let detailRes = await fetch('https://ipapi.co/json/');
+            if (detailRes.ok) {
+              let detailData = await detailRes.json();
+              if (locationEl) locationEl.textContent = \`\${detailData.city || ''}, \${detailData.country_name || ''}\`.replace(/^, /, '') || 'Detected';
+              if (ispEl) ispEl.textContent = detailData.org || detailData.asn || 'Connected Network';
+              if (typeEl) typeEl.textContent = detailData.version || (currentIP.includes(':') ? 'IPv6' : 'IPv4');
+            }
+          } catch (e) {
+            if (locationEl) locationEl.textContent = 'Public Client';
+            if (ispEl) ispEl.textContent = 'Active Network';
+            if (typeEl) typeEl.textContent = currentIP.includes(':') ? 'IPv6' : 'IPv4';
+          }
+
+        } catch (err) {
+          // Fallback API (ipapi.co directly or ipwho.is)
+          try {
+            let fallbackRes = await fetch('https://ipwho.is/');
+            let fallbackData = await fallbackRes.json();
+            if (fallbackData.success) {
+              currentIP = fallbackData.ip;
+              if (locationEl) locationEl.textContent = \`\${fallbackData.city || ''}, \${fallbackData.country || ''}\`;
+              if (ispEl) ispEl.textContent = fallbackData.connection?.isp || fallbackData.connection?.org || 'Network';
+              if (typeEl) typeEl.textContent = fallbackData.type || (currentIP.includes(':') ? 'IPv6' : 'IPv4');
+            } else {
+              throw new Error('Fallback failed');
+            }
+          } catch (err2) {
+            currentIP = '127.0.0.1';
+            if (locationEl) locationEl.textContent = 'Local Client';
+            if (ispEl) ispEl.textContent = 'Localhost';
+            if (typeEl) typeEl.textContent = 'IPv4';
+          }
+        }
+
+        if (ipTextEl) {
+          ipTextEl.textContent = currentIP;
+        }
+
+        if (refreshIcon) {
+          setTimeout(() => refreshIcon.classList.remove('animate-spin'), 600);
+        }
+      }
+
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          if (!currentIP) return;
+          navigator.clipboard.writeText(currentIP).then(() => {
+            if (copyLabel) copyLabel.textContent = 'Copied!';
+            copyBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+            copyBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+            setTimeout(() => {
+              if (copyLabel) copyLabel.textContent = 'Copy IP';
+              copyBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+              copyBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+            }, 2000);
+          }).catch(() => {
+            alert('IP: ' + currentIP);
+          });
+        });
+      }
+
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', fetchIP);
+      }
+
+      fetchIP();
+    })();
+  </script>
 </div>`
   },
 
@@ -382,6 +836,56 @@ export const INITIAL_DEFAULT_FILES = [
       </div>
     </div>
   </header>
+
+  <!-- RIGHT-TO-LEFT SCROLLING MARQUEE BANNER -->
+  <div class="w-full bg-slate-900 text-slate-100 py-3 border-y border-slate-800 overflow-hidden relative font-sans">
+    <div class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-slate-900 to-transparent z-10 pointer-events-none"></div>
+    <div class="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-900 to-transparent z-10 pointer-events-none"></div>
+    <style>
+      @keyframes defaultMarqueeRTL {
+        0% { transform: translate3d(0, 0, 0); }
+        100% { transform: translate3d(-50%, 0, 0); }
+      }
+      .default-marquee-track {
+        display: flex;
+        width: max-content;
+        animation: defaultMarqueeRTL 24s linear infinite;
+      }
+      .default-marquee-track:hover {
+        animation-play-state: paused;
+      }
+    </style>
+    <div class="default-marquee-track flex items-center space-x-8 text-xs font-medium">
+      <div class="flex items-center space-x-8 shrink-0">
+        <span class="inline-flex items-center space-x-1.5 bg-indigo-500/20 text-indigo-300 px-3 py-0.5 rounded-full border border-indigo-500/30 text-xs font-semibold">
+          <span class="animate-pulse">⚡</span>
+          <span>ANNOUNCEMENT</span>
+        </span>
+        <span class="text-slate-200">🚀 ApexStudio 2.0 Released — Drag & Drop Visual Web Builder</span>
+        <span class="text-indigo-400 font-bold">✦</span>
+        <span class="text-slate-300">🖼️ Image Formats: JXL, JPEG 2000, WebP, SVG, AVIF, PNG, JPG</span>
+        <span class="text-purple-400 font-bold">✦</span>
+        <span class="text-slate-200">📊 Live Vector Draw.io Flowcharts</span>
+        <span class="text-emerald-400 font-bold">✦</span>
+        <span class="text-slate-300">🌐 Direct 1-Click Multi-Cloud Deployment</span>
+        <span class="text-amber-400 font-bold">✦</span>
+      </div>
+      <div class="flex items-center space-x-8 shrink-0" aria-hidden="true">
+        <span class="inline-flex items-center space-x-1.5 bg-indigo-500/20 text-indigo-300 px-3 py-0.5 rounded-full border border-indigo-500/30 text-xs font-semibold">
+          <span class="animate-pulse">⚡</span>
+          <span>ANNOUNCEMENT</span>
+        </span>
+        <span class="text-slate-200">🚀 ApexStudio 2.0 Released — Drag & Drop Visual Web Builder</span>
+        <span class="text-indigo-400 font-bold">✦</span>
+        <span class="text-slate-300">🖼️ Image Formats: JXL, JPEG 2000, WebP, SVG, AVIF, PNG, JPG</span>
+        <span class="text-purple-400 font-bold">✦</span>
+        <span class="text-slate-200">📊 Live Vector Draw.io Flowcharts</span>
+        <span class="text-emerald-400 font-bold">✦</span>
+        <span class="text-slate-300">🌐 Direct 1-Click Multi-Cloud Deployment</span>
+        <span class="text-amber-400 font-bold">✦</span>
+      </div>
+    </div>
+  </div>
 
   <!-- HERO SECTION -->
   <section class="py-16 px-6 max-w-6xl mx-auto text-center">

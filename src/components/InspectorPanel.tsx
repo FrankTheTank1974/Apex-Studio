@@ -420,6 +420,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                     </div>
                     <ul className="list-disc list-inside space-y-0.5 text-[10px] text-slate-400 dark:text-slate-400 pl-1">
                       <li><strong className="text-indigo-400">JPEG XL (.jxl)</strong>: Next-gen high efficiency & lossless image format</li>
+                      <li><strong className="text-indigo-400">JPEG 2000 (.jp2, .j2k)</strong>: Supported natively in Safari / WebKit browsers</li>
                       <li><strong className="text-indigo-400">PNG (.png)</strong>: High quality, full alpha transparency</li>
                       <li><strong className="text-indigo-400">JPEG (.jpg, .jpeg)</strong>: Web photos & compressed imagery</li>
                       <li><strong className="text-indigo-400">WebP (.webp)</strong>: Next-gen high compression format</li>
