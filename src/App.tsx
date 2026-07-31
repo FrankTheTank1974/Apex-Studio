@@ -25,6 +25,7 @@ import { CollaborationBar } from './components/CollaborationBar';
 import { ExportDeployModal } from './components/ExportDeployModal';
 import { AIAssistantModal } from './components/AIAssistantModal';
 import { NewProjectModal } from './components/NewProjectModal';
+import { GoogleDriveManagerModal } from './components/GoogleDriveManagerModal';
 import { downloadTarZstd } from './utils/tarZstd';
 import { normalizeSvgContent, serializeDocumentOrBody } from './utils/svgUtils';
 
@@ -54,6 +55,7 @@ export default function App() {
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isCollabOpen, setIsCollabOpen] = useState(false);
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
+  const [isDriveOpen, setIsDriveOpen] = useState(false);
 
   // Active Draw.io diagram state
   const [activeDiagram, setActiveDiagram] = useState<DrawIoDiagram | null>(null);
