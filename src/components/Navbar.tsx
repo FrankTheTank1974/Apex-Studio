@@ -16,7 +16,8 @@ import {
   Share2,
   FolderPlus,
   Sun,
-  Moon
+  Moon,
+  Type
 } from 'lucide-react';
 import { ViewMode, DeviceMode, ProjectFile, ThemeMode } from '../types';
 
@@ -32,6 +33,7 @@ interface NavbarProps {
   onOpenExport: () => void;
   onOpenAI: () => void;
   onOpenDrawIo: () => void;
+  onOpenFonts?: () => void;
   onOpenNewProject: () => void;
   onExportZst: () => void;
   activeRoomId: string | null;
@@ -51,6 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenExport,
   onOpenAI,
   onOpenDrawIo,
+  onOpenFonts,
   onOpenNewProject,
   onExportZst,
   activeRoomId,
@@ -196,6 +199,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Action Tools & Integration Buttons */}
       <div className="flex items-center space-x-2">
+        {/* Google Fonts Studio Trigger */}
+        {onOpenFonts && (
+          <button
+            onClick={onOpenFonts}
+            className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-lg text-xs font-medium transition-all"
+            title="Browse & Apply Google Fonts to Project CSS"
+          >
+            <Type className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="hidden sm:inline">Fonts</span>
+          </button>
+        )}
+
         {/* Draw.io Embedded Editor Trigger */}
         <button
           onClick={onOpenDrawIo}

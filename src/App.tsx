@@ -25,6 +25,7 @@ import { CollaborationBar } from './components/CollaborationBar';
 import { ExportDeployModal } from './components/ExportDeployModal';
 import { AIAssistantModal } from './components/AIAssistantModal';
 import { NewProjectModal } from './components/NewProjectModal';
+import { GoogleFontsModal } from './components/GoogleFontsModal';
 import { downloadTarZstd } from './utils/tarZstd';
 import { normalizeSvgContent, serializeDocumentOrBody } from './utils/svgUtils';
 
@@ -54,6 +55,7 @@ export default function App() {
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isCollabOpen, setIsCollabOpen] = useState(false);
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
+  const [isFontsOpen, setIsFontsOpen] = useState(false);
 
   // Active Draw.io diagram state
   const [activeDiagram, setActiveDiagram] = useState<DrawIoDiagram | null>(null);
@@ -439,6 +441,7 @@ export default function App() {
         onOpenExport={() => setIsExportOpen(true)}
         onOpenAI={() => setIsAIOpen(true)}
         onOpenDrawIo={() => setIsDrawIoOpen(true)}
+        onOpenFonts={() => setIsFontsOpen(true)}
         onOpenNewProject={() => setIsNewProjectOpen(true)}
         onExportZst={handleExportZstArchive}
         activeRoomId={activeRoomId}
@@ -497,10 +500,20 @@ export default function App() {
             onDeleteElement={handleDeleteElement}
             onMoveElement={handleMoveElement}
             onOpenDrawIoWithDiagram={handleOpenDrawIoWithDiagram}
+            onOpenFonts={() => setIsFontsOpen(true)}
             themeMode={themeMode}
           />
         )}
       </div>
+
+      {/* Google Fonts Studio Utility Modal */}
+      <GoogleFontsModal
+        isOpen={isFontsOpen}
+        onClose={() => setIsFontsOpen(false)}
+        cssContent={activeCssFile?.content || ''}
+        onUpdateCssContent={(newCss) => handleFileContentChange(activeCssFile?.id || 'styles-css', newCss)}
+        themeMode={themeMode}
+      />
 
       {/* Draw.io Integrated Editor Modal */}
       <DrawIoEditor

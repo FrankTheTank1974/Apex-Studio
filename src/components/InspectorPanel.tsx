@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SelectedElementInfo, ThemeMode } from '../types';
+import { GradientBuilder } from './GradientBuilder';
 import { 
   Type, 
   Palette, 
@@ -35,6 +36,7 @@ interface InspectorPanelProps {
   onDeleteElement: () => void;
   onMoveElement: (direction: 'up' | 'down') => void;
   onOpenDrawIoWithDiagram?: (diagramId?: string) => void;
+  onOpenFonts?: () => void;
   themeMode?: ThemeMode;
 }
 
@@ -45,6 +47,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   onDeleteElement,
   onMoveElement,
   onOpenDrawIoWithDiagram,
+  onOpenFonts,
   themeMode = 'dark'
 }) => {
   const isDark = themeMode === 'dark';
@@ -56,9 +59,21 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
       }`}>
         <Sliders className={`w-8 h-8 mb-3 stroke-1 ${isDark ? 'text-slate-700' : 'text-slate-300'}`} />
         <p className={`font-semibold mb-1 ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>No Element Selected</p>
-        <p className={`max-w-[200px] leading-relaxed ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+        <p className={`max-w-[200px] leading-relaxed mb-6 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
           Click on any text, button, container or image in the visual canvas to inspect and edit its styles & HTML attributes.
         </p>
+
+        {/* Global Google Fonts Utility Shortcut */}
+        {onOpenFonts && (
+          <button
+            type="button"
+            onClick={onOpenFonts}
+            className="w-full max-w-[220px] p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 font-semibold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
+          >
+            <Type className="w-4 h-4 text-indigo-400" />
+            <span>Google Fonts Studio</span>
+          </button>
+        )}
       </div>
     );
   }
@@ -68,6 +83,9 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   const [newClass, setNewClass] = useState('');
   const [attributes, setAttributes] = useState<Record<string, string>>(selectedElement.attributes || {});
   const [showFormatDocs, setShowFormatDocs] = useState(true);
+  const [copiedClasses, setCopiedClasses] = useState(false);
+  const [chipCopied, setChipCopied] = useState<string | null>(null);
+  const classTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setTextContent(selectedElement.textContent || '');
@@ -112,10 +130,102 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     onUpdateElement({ textContent });
   };
 
+  const cleanClassString = (rawText: string) => {
+    if (!rawText) return '';
+    return rawText
+      .replace(/className\s*=\s*["'`{]([^"'`}]+)["'`}]/g, '$1')
+      .replace(/class\s*=\s*["'`{]([^"'`}]+)["'`}]/g, '$1')
+      .replace(/["'`{}]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
   const handleApplyClasses = (classesStr: string) => {
-    const newArr = classesStr.split(' ').filter(Boolean);
-    setClassList(classesStr);
+    const cleaned = cleanClassString(classesStr);
+    const newArr = cleaned.split(' ').filter(Boolean);
+    setClassList(cleaned);
     onUpdateElement({ classList: newArr });
+  };
+
+  const handleApplyGradient = (gradientClasses: string) => {
+    const currentList = cleanClassString(classList);
+    const cleanClasses = currentList
+      .split(' ')
+      .filter(Boolean)
+      .filter((cls) => {
+        if (cls.startsWith('bg-gradient-to-')) return false;
+        if (cls.startsWith('from-')) return false;
+        if (cls.startsWith('via-')) return false;
+        if (cls.startsWith('to-')) return false;
+        if (cls === 'bg-clip-text' || cls === 'text-transparent') return false;
+        return true;
+      });
+
+    const updatedStr = [...cleanClasses, gradientClasses].join(' ').trim();
+    handleApplyClasses(updatedStr);
+    setCopiedClasses(true);
+    setTimeout(() => setCopiedClasses(false), 2000);
+  };
+
+  const handleCopyClasses = (customText?: string) => {
+    const textToCopy = customText !== undefined ? customText : classList;
+    if (!textToCopy) return;
+    try {
+      navigator.clipboard.writeText(textToCopy);
+    } catch {
+      // Fallback ignore if clipboard permission restricted
+    }
+    if (customText) {
+      setChipCopied(customText);
+      setTimeout(() => setChipCopied(null), 1500);
+    } else {
+      setCopiedClasses(true);
+      setTimeout(() => setCopiedClasses(false), 2000);
+    }
+  };
+
+  const handlePasteClasses = async () => {
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.readText === 'function') {
+        const clipboardText = await navigator.clipboard.readText();
+        if (clipboardText) {
+          const cleaned = cleanClassString(clipboardText);
+          if (cleaned) {
+            handleApplyClasses(cleaned);
+            setCopiedClasses(true);
+            setTimeout(() => setCopiedClasses(false), 2000);
+            return;
+          }
+        }
+      }
+    } catch {
+      // Browser permission policy blocked Clipboard API inside iframe preview
+    }
+
+    // Direct fallback: focus the textarea and guide user to press Ctrl+V / Cmd+V
+    if (classTextareaRef.current) {
+      classTextareaRef.current.focus();
+      classTextareaRef.current.select();
+    }
+    setChipCopied('Box focused — press Ctrl+V (or Cmd+V) to paste!');
+    setTimeout(() => setChipCopied(null), 3000);
+  };
+
+  const handleTextareaPaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    if (pastedText) {
+      e.preventDefault();
+      const cleaned = cleanClassString(pastedText);
+      const currentList = cleanClassString(classList);
+      const combined = currentList ? `${currentList} ${cleaned}` : cleaned;
+      handleApplyClasses(combined);
+      setCopiedClasses(true);
+      setTimeout(() => setCopiedClasses(false), 2000);
+    }
+  };
+
+  const handleClearClasses = () => {
+    handleApplyClasses('');
   };
 
   const handleAddQuickClass = (className: string) => {
@@ -514,6 +624,17 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
               <Type className="w-3.5 h-3.5 text-indigo-500" />
               <span>Text Content</span>
             </span>
+            {onOpenFonts && (
+              <button
+                type="button"
+                onClick={onOpenFonts}
+                className="text-[10px] text-indigo-400 hover:text-indigo-300 hover:underline font-semibold flex items-center space-x-1 cursor-pointer"
+                title="Browse and apply Google Fonts"
+              >
+                <span>Google Fonts</span>
+                <span>→</span>
+              </button>
+            )}
           </div>
           <textarea
             rows={2}
@@ -528,40 +649,132 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         </div>
 
         {/* TAILWIND & CSS CLASSES MANAGER */}
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           <div className={`flex items-center justify-between font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
             <span className="flex items-center space-x-1">
               <Layers className="w-3.5 h-3.5 text-purple-500" />
               <span>Tailwind CSS Classes</span>
             </span>
-          </div>
 
-          {/* Active Class Chips */}
-          <div className={`flex flex-wrap gap-1 max-h-24 overflow-y-auto p-1.5 border rounded-lg ${
-            isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
-          }`}>
-            {classList.split(' ').filter(Boolean).map((cls, idx) => (
-              <span
-                key={idx}
-                className={`inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-mono group ${
-                  isDark ? 'bg-slate-800 text-indigo-300' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+            {/* Quick Action Buttons */}
+            <div className="flex items-center space-x-1">
+              <button
+                type="button"
+                onClick={() => handleCopyClasses()}
+                className={`flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-semibold transition-all cursor-pointer ${
+                  copiedClasses
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                    : isDark
+                      ? 'bg-indigo-600/30 text-indigo-300 hover:bg-indigo-600 hover:text-white'
+                      : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-600 hover:text-white'
                 }`}
+                title="Copy all Tailwind classes to clipboard"
               >
-                <span>{cls}</span>
-                <button
-                  onClick={() => handleRemoveClass(cls)}
-                  className="text-slate-400 hover:text-red-500 font-bold ml-1"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
+                {copiedClasses ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                <span>{copiedClasses ? 'Copied!' : 'Copy'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePasteClasses}
+                className={`px-1.5 py-0.5 rounded text-[10px] font-semibold transition-all cursor-pointer ${
+                  isDark
+                    ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                }`}
+                title="Paste Tailwind classes from clipboard"
+              >
+                📋 Paste
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClearClasses}
+                className="px-1.5 py-0.5 rounded text-[10px] font-semibold text-slate-400 hover:text-red-400 hover:bg-red-950/30 transition-all cursor-pointer"
+                title="Clear all classes"
+              >
+                Clear
+              </button>
+            </div>
           </div>
 
-          <div className="flex space-x-1">
+          {/* Full Raw Class String Textarea (Direct Copy & Paste Box) */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[10px]">
+              <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>Full class string (paste or copy below):</span>
+              {chipCopied && (
+                <span className="text-emerald-400 font-mono font-bold animate-fade-in">
+                  Copied "{chipCopied}"!
+                </span>
+              )}
+            </div>
+            <textarea
+              ref={classTextareaRef}
+              rows={2}
+              value={classList}
+              onChange={(e) => handleApplyClasses(e.target.value)}
+              onPaste={handleTextareaPaste}
+              placeholder="Paste Tailwind classes here (e.g. bg-indigo-600 text-white font-bold p-4 rounded-xl)..."
+              className={`w-full p-2 border rounded-lg font-mono text-[11px] focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed ${
+                isDark ? 'bg-slate-950 border-slate-800 text-indigo-300' : 'bg-indigo-50/50 border-indigo-200 text-indigo-900'
+              }`}
+            />
+          </div>
+
+          {/* Active Class Chips with Copy & Delete */}
+          <div className="space-y-1">
+            <span className={`text-[10px] font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              Individual Class Chips ({classList.split(' ').filter(Boolean).length}):
+            </span>
+            <div className={`flex flex-wrap gap-1 max-h-28 overflow-y-auto p-1.5 border rounded-lg ${
+              isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+            }`}>
+              {classList.split(' ').filter(Boolean).length === 0 ? (
+                <span className={`text-[10px] italic p-1 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+                  No classes applied yet. Type or paste classes above.
+                </span>
+              ) : (
+                classList.split(' ').filter(Boolean).map((cls, idx) => (
+                  <span
+                    key={idx}
+                    className={`inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-mono group transition-all ${
+                      isDark ? 'bg-slate-800 text-indigo-300 hover:bg-slate-700' : 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100'
+                    }`}
+                  >
+                    <span 
+                      onClick={() => handleCopyClasses(cls)}
+                      className="cursor-pointer hover:underline"
+                      title="Click to copy single class"
+                    >
+                      {cls}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyClasses(cls)}
+                      className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-indigo-400 transition-opacity p-0.5"
+                      title={`Copy '${cls}'`}
+                    >
+                      <Copy className="w-2.5 h-2.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveClass(cls)}
+                      className="text-slate-400 hover:text-red-500 font-bold ml-0.5"
+                      title="Remove class"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Quick Add Class Field */}
+          <div className="flex space-x-1 pt-0.5">
             <input
               type="text"
-              placeholder="Add class e.g. bg-indigo-600"
+              placeholder="Add class e.g. shadow-lg hover:scale-105"
               value={newClass}
               onChange={(e) => setNewClass(e.target.value)}
               onKeyDown={(e) => {
@@ -575,13 +788,14 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
               }`}
             />
             <button
+              type="button"
               onClick={() => {
                 if (newClass.trim()) {
                   handleAddQuickClass(newClass.trim());
                   setNewClass('');
                 }
               }}
-              className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-medium text-[11px]"
+              className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-medium text-[11px] cursor-pointer"
             >
               Add
             </button>
@@ -621,6 +835,14 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
               <button onClick={() => handleAddQuickClass('bg-amber-600')} className="h-6 bg-amber-600 rounded border border-amber-400" title="Amber BG" />
               <button onClick={() => handleAddQuickClass('bg-slate-900')} className="h-6 bg-slate-900 rounded border border-slate-700" title="Dark BG" />
             </div>
+          </div>
+
+          {/* Dedicated Tailwind Gradient Studio & Mixer */}
+          <div className="pt-1">
+            <GradientBuilder
+              onApplyGradient={handleApplyGradient}
+              themeMode={themeMode}
+            />
           </div>
 
           {/* Spacing & Rounded Presets */}
