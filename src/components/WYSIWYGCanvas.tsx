@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { DeviceMode, SelectedElementInfo, ThemeMode } from '../types';
-import { RotateCw } from 'lucide-react';
+import { RotateCw, Undo2, Redo2 } from 'lucide-react';
 import { extractCanvasBodyHtml } from '../utils/svgUtils';
 
 interface WYSIWYGCanvasProps {
@@ -14,6 +14,10 @@ interface WYSIWYGCanvasProps {
   onOpenDrawIoWithDiagram?: (diagramId: string) => void;
   collaboratorCursors?: Record<string, { x: number; y: number; name: string; color: string }>;
   themeMode?: ThemeMode;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
 }
 
 export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
@@ -26,7 +30,11 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
   onDeleteSelectedElement,
   onOpenDrawIoWithDiagram,
   collaboratorCursors = {},
-  themeMode = 'dark'
+  themeMode = 'dark',
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
 }) => {
   const isDark = themeMode === 'dark';
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -75,6 +83,68 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
         outline: 2px solid #6366f1 !important;
         outline-offset: 2px !important;
         box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25) !important;
+      }
+      /* Polished Canvas Hover Tooltip with Cloud Archiver Gradient Aesthetics */
+      .apex-hover-tooltip {
+        position: fixed;
+        pointer-events: none;
+        z-index: 999999;
+        display: none;
+        align-items: center;
+        gap: 6px;
+        background: rgba(15, 23, 42, 0.94);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(99, 102, 241, 0.45);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(99, 102, 241, 0.25);
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        font-size: 11px;
+        color: #f8fafc;
+        white-space: nowrap;
+        transform: translateY(-100%);
+        transition: opacity 0.12s ease, transform 0.12s ease;
+      }
+      .apex-tooltip-badge {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        padding: 2px 7px;
+        border-radius: 5px;
+        text-transform: lowercase;
+        box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+        display: inline-flex;
+        align-items: center;
+      }
+      .apex-tooltip-structure {
+        color: #94a3b8;
+        font-size: 10px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+      }
+      .apex-tooltip-id {
+        color: #38bdf8;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-weight: 600;
+        font-size: 10px;
+      }
+      .apex-tooltip-class {
+        color: #a7f3d0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 10px;
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .apex-tooltip-dims {
+        color: #64748b;
+        font-size: 9px;
+        font-weight: 600;
+        margin-left: 2px;
       }
       .drawio-container {
         transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
@@ -128,16 +198,88 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
     if (!doc || !doc.body) return;
 
     // Attach click & hover events inside iframe
+    const showTooltip = (target: HTMLElement) => {
+      let tooltip = doc.getElementById('apex-hover-tooltip');
+      if (!tooltip) {
+        tooltip = doc.createElement('div');
+        tooltip.id = 'apex-hover-tooltip';
+        tooltip.className = 'apex-hover-tooltip';
+        doc.body.appendChild(tooltip);
+      }
+
+      const tagName = target.tagName.toLowerCase();
+      const id = target.id ? `#${target.id}` : '';
+      
+      const cleanClasses = Array.from(target.classList || [])
+        .filter((c) => !c.startsWith('apex-'))
+        .slice(0, 3)
+        .map((c) => `.${c}`)
+        .join('');
+
+      let parentBreadcrumb = '';
+      if (target.parentElement && target.parentElement.id !== 'apex-canvas-root' && target.parentElement.tagName !== 'BODY') {
+        const parentTag = target.parentElement.tagName.toLowerCase();
+        parentBreadcrumb = `${parentTag} › `;
+      }
+
+      const rect = target.getBoundingClientRect();
+      const dims = `${Math.round(rect.width)}×${Math.round(rect.height)}px`;
+
+      tooltip.innerHTML = `
+        <span class="apex-tooltip-badge">&lt;${tagName}&gt;</span>
+        ${parentBreadcrumb ? `<span class="apex-tooltip-structure">${parentBreadcrumb}</span>` : ''}
+        ${id ? `<span class="apex-tooltip-id">${id}</span>` : ''}
+        ${cleanClasses ? `<span class="apex-tooltip-class" title="${cleanClasses}">${cleanClasses}</span>` : ''}
+        <span class="apex-tooltip-dims">${dims}</span>
+      `;
+
+      tooltip.style.display = 'inline-flex';
+      tooltip.style.opacity = '1';
+
+      let left = rect.left;
+      const tooltipWidth = tooltip.offsetWidth || 180;
+      const winWidth = doc.defaultView?.innerWidth || 800;
+
+      if (left + tooltipWidth > winWidth - 12) {
+        left = Math.max(10, winWidth - tooltipWidth - 12);
+      }
+      if (left < 10) left = 10;
+
+      let top = rect.top - 8;
+      if (top < 32) {
+        top = rect.bottom + 8;
+        tooltip.style.transform = 'translateY(0)';
+      } else {
+        tooltip.style.transform = 'translateY(-100%)';
+      }
+
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${top}px`;
+    };
+
+    const hideTooltip = () => {
+      const tooltip = doc.getElementById('apex-hover-tooltip');
+      if (tooltip) {
+        tooltip.style.display = 'none';
+        tooltip.style.opacity = '0';
+      }
+    };
+
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target || target.id === 'apex-canvas-root' || target.tagName === 'BODY' || target.tagName === 'HTML') return;
+      if (!target || target.id === 'apex-canvas-root' || target.tagName === 'BODY' || target.tagName === 'HTML' || target.id === 'apex-hover-tooltip' || target.closest('.apex-hover-tooltip')) {
+        hideTooltip();
+        return;
+      }
       target.classList.add('apex-hover-outline');
+      showTooltip(target);
     };
 
     const handleMouseOut = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target) return;
       target.classList.remove('apex-hover-outline');
+      hideTooltip();
     };
 
     const handleClick = (e: MouseEvent) => {
@@ -295,8 +437,31 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
       target.addEventListener('blur', handleBlur);
     };
 
-    // Handle keydown inside iframe for Delete/Backspace key
+    // Handle keydown inside iframe for Undo/Redo & Delete/Backspace key
     const handleKeyDown = (e: KeyboardEvent) => {
+      const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+      const key = e.key.toLowerCase();
+
+      if (isCmdOrCtrl && (key === 'z' || key === 'y')) {
+        const activeTarget = doc.activeElement as HTMLElement;
+        const isEditingText = activeTarget && (
+          activeTarget.isContentEditable ||
+          activeTarget.tagName === 'INPUT' ||
+          activeTarget.tagName === 'TEXTAREA' ||
+          activeTarget.closest('[contenteditable="true"]')
+        );
+
+        if (!isEditingText) {
+          e.preventDefault();
+          if (key === 'y' || (key === 'z' && e.shiftKey)) {
+            if (onRedo) onRedo();
+          } else {
+            if (onUndo) onUndo();
+          }
+          return;
+        }
+      }
+
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const activeTarget = doc.activeElement as HTMLElement;
         if (
@@ -413,8 +578,11 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
   // Extract clean HTML without editor helper classes
   const getCleanHtmlFromRoot = (rootEl: HTMLElement): string => {
     const clone = rootEl.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll('.apex-hover-outline, .apex-selected-outline').forEach((el) => {
+    clone.querySelectorAll('.apex-hover-outline, .apex-selected-outline, #apex-hover-tooltip, .apex-hover-tooltip').forEach((el) => {
       el.classList.remove('apex-hover-outline', 'apex-selected-outline');
+      if (el.id === 'apex-hover-tooltip' || el.classList.contains('apex-hover-tooltip')) {
+        el.remove();
+      }
     });
     return clone.innerHTML;
   };
@@ -458,6 +626,38 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
         <span className="font-medium">WYSIWYG Visual Canvas</span>
         <span className={isDark ? 'text-slate-600' : 'text-slate-300'}>|</span>
         <span className="font-mono text-indigo-500 font-semibold">{deviceMode.toUpperCase()} VIEW</span>
+
+        <span className={isDark ? 'text-slate-600' : 'text-slate-300'}>|</span>
+        <div className="flex items-center space-x-1">
+          <button
+            onClick={onUndo}
+            disabled={!canUndo}
+            className={`p-1 rounded-full text-[10px] font-semibold border transition-all flex items-center ${
+              canUndo
+                ? isDark
+                  ? 'text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border-slate-700 cursor-pointer'
+                  : 'text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border-slate-300 cursor-pointer shadow-xs'
+                : isDark ? 'text-slate-600 opacity-40 cursor-not-allowed border-transparent' : 'text-slate-400 opacity-40 cursor-not-allowed border-transparent'
+            }`}
+            title="Undo Canvas Action (Ctrl+Z)"
+          >
+            <Undo2 className="w-3 h-3" />
+          </button>
+          <button
+            onClick={onRedo}
+            disabled={!canRedo}
+            className={`p-1 rounded-full text-[10px] font-semibold border transition-all flex items-center ${
+              canRedo
+                ? isDark
+                  ? 'text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border-slate-700 cursor-pointer'
+                  : 'text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border-slate-300 cursor-pointer shadow-xs'
+                : isDark ? 'text-slate-600 opacity-40 cursor-not-allowed border-transparent' : 'text-slate-400 opacity-40 cursor-not-allowed border-transparent'
+            }`}
+            title="Redo Canvas Action (Ctrl+Y / Cmd+Shift+Z)"
+          >
+            <Redo2 className="w-3 h-3" />
+          </button>
+        </div>
 
         <button
           onClick={handleManualRefresh}

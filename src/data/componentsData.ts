@@ -1454,8 +1454,8 @@ export const INITIAL_DEFAULT_FILES = [
     <span class="inline-block px-4 py-1.5 mb-6 text-xs font-semibold tracking-wider text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-full border border-indigo-200 dark:border-indigo-800">
       ⚡ WYSIWYG & MULTI-CLOUD DEPLOYMENT
     </span>
-    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6 leading-tight">
-      Visual Web Editor & <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">Cloud Archiver</span>
+    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
+      <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">Visual Web Editor & Cloud Archiver</span>
     </h1>
     <p class="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-8">
       Design graphically with drag-and-drop components, edit raw HTML/CSS/JS code, embed Draw.io diagrams, collaborate live with team members, and export to GitHub, GitLab, Vercel, or local .tar.zst archives.

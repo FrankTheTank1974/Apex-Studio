@@ -17,7 +17,9 @@ import {
   FolderPlus,
   Sun,
   Moon,
-  Type
+  Type,
+  Undo2,
+  Redo2
 } from 'lucide-react';
 import { ViewMode, DeviceMode, ProjectFile, ThemeMode } from '../types';
 
@@ -39,6 +41,10 @@ interface NavbarProps {
   activeRoomId: string | null;
   onToggleCollab: () => void;
   collaboratorCount: number;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -58,7 +64,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   onExportZst,
   activeRoomId,
   onToggleCollab,
-  collaboratorCount
+  collaboratorCount,
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
 }) => {
   const isDark = themeMode === 'dark';
 
@@ -107,7 +117,41 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* View Mode & Device Mode Controls */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3">
+        {/* Undo / Redo History Controls */}
+        <div className={`p-1 rounded-lg border flex items-center space-x-0.5 ${
+          isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-300'
+        }`}>
+          <button
+            onClick={onUndo}
+            disabled={!canUndo}
+            className={`p-1.5 rounded text-xs transition-colors flex items-center ${
+              canUndo
+                ? isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-800 cursor-pointer'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white cursor-pointer shadow-xs'
+                : isDark ? 'text-slate-600 opacity-40 cursor-not-allowed' : 'text-slate-400 opacity-40 cursor-not-allowed'
+            }`}
+            title="Undo Canvas Action (Ctrl+Z)"
+          >
+            <Undo2 className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onRedo}
+            disabled={!canRedo}
+            className={`p-1.5 rounded text-xs transition-colors flex items-center ${
+              canRedo
+                ? isDark
+                  ? 'text-slate-200 hover:text-white hover:bg-slate-800 cursor-pointer'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white cursor-pointer shadow-xs'
+                : isDark ? 'text-slate-600 opacity-40 cursor-not-allowed' : 'text-slate-400 opacity-40 cursor-not-allowed'
+            }`}
+            title="Redo Canvas Action (Ctrl+Y / Cmd+Shift+Z)"
+          >
+            <Redo2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
         {/* View Mode Switcher */}
         <div className="bg-slate-950 p-1 rounded-lg border border-slate-800 flex items-center space-x-1">
           <button

@@ -60,6 +60,10 @@ export default function App() {
   // Active Draw.io diagram state
   const [activeDiagram, setActiveDiagram] = useState<DrawIoDiagram | null>(null);
 
+  // Undo / Redo History Stacks
+  const [historyPast, setHistoryPast] = useState<string[]>([]);
+  const [historyFuture, setHistoryFuture] = useState<string[]>([]);
+
   // Real-time Collaboration States
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
@@ -140,15 +144,58 @@ export default function App() {
   };
 
   // Update HTML content from Code Editor or Canvas
-  const handleUpdateHtml = (newHtml: string) => {
+  const handleUpdateHtml = (newHtml: string, skipHistory = false) => {
+    const currentHtml = activeHtmlFile?.content || '';
+    if (newHtml === currentHtml) return;
+
+    if (!skipHistory) {
+      setHistoryPast((prev) => {
+        const updated = [...prev, currentHtml];
+        return updated.length > 50 ? updated.slice(updated.length - 50) : updated;
+      });
+      setHistoryFuture([]);
+    }
+
     const updated = files.map((f) => (f.type === 'html' ? { ...f, content: newHtml } : f));
     broadcastFileUpdate(updated);
   };
 
+  // Perform Undo Action
+  const handleUndo = () => {
+    if (historyPast.length === 0 || !activeHtmlFile) return;
+
+    const previousHtml = historyPast[historyPast.length - 1];
+    const newPast = historyPast.slice(0, historyPast.length - 1);
+
+    setHistoryFuture((prev) => [activeHtmlFile.content, ...prev]);
+    setHistoryPast(newPast);
+    setSelectedElement(null);
+
+    handleUpdateHtml(previousHtml, true);
+  };
+
+  // Perform Redo Action
+  const handleRedo = () => {
+    if (historyFuture.length === 0 || !activeHtmlFile) return;
+
+    const nextHtml = historyFuture[0];
+    const newFuture = historyFuture.slice(1);
+
+    setHistoryPast((prev) => [...prev, activeHtmlFile.content]);
+    setHistoryFuture(newFuture);
+    setSelectedElement(null);
+
+    handleUpdateHtml(nextHtml, true);
+  };
+
   // Update File content from Code Editor
   const handleFileContentChange = (fileId: string, newContent: string) => {
-    const updated = files.map((f) => (f.id === fileId ? { ...f, content: newContent } : f));
-    broadcastFileUpdate(updated);
+    if (activeHtmlFile && fileId === activeHtmlFile.id) {
+      handleUpdateHtml(newContent, false);
+    } else {
+      const updated = files.map((f) => (f.id === fileId ? { ...f, content: newContent } : f));
+      broadcastFileUpdate(updated);
+    }
   };
 
   // Insert HTML component from library or AI assistant
@@ -262,20 +309,32 @@ export default function App() {
     }
   };
 
-  // Keyboard shortcut listener for Delete / Backspace key
+  // Keyboard shortcut listener for Delete/Backspace key and Ctrl+Z / Cmd+Z Undo/Redo
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement) {
-        const activeEl = document.activeElement;
-        const isInputOrEditable =
-          activeEl instanceof HTMLInputElement ||
-          activeEl instanceof HTMLTextAreaElement ||
-          (activeEl instanceof HTMLElement && activeEl.isContentEditable) ||
-          activeEl?.closest('input') ||
-          activeEl?.closest('textarea') ||
-          activeEl?.closest('.monaco-editor') ||
-          activeEl?.closest('[contenteditable="true"]');
+      const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+      const key = e.key.toLowerCase();
+      const activeEl = document.activeElement;
 
+      const isInputOrEditable =
+        activeEl instanceof HTMLInputElement ||
+        activeEl instanceof HTMLTextAreaElement ||
+        (activeEl instanceof HTMLElement && activeEl.isContentEditable) ||
+        activeEl?.closest('input') ||
+        activeEl?.closest('textarea') ||
+        activeEl?.closest('.monaco-editor') ||
+        activeEl?.closest('[contenteditable="true"]');
+
+      if (isCmdOrCtrl && (key === 'z' || key === 'y')) {
+        if (!isInputOrEditable) {
+          e.preventDefault();
+          if (key === 'y' || (key === 'z' && e.shiftKey)) {
+            handleRedo();
+          } else {
+            handleUndo();
+          }
+        }
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement) {
         if (!isInputOrEditable) {
           e.preventDefault();
           handleDeleteElement();
@@ -285,7 +344,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [selectedElement, activeHtmlFile]);
+  }, [selectedElement, activeHtmlFile, historyPast, historyFuture]);
 
   const handleMoveElement = (direction: 'up' | 'down') => {
     if (!selectedElement || !activeHtmlFile) return;
