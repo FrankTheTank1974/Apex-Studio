@@ -75,6 +75,39 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     setAttributes(selectedElement.attributes || {});
   }, [selectedElement]);
 
+  const tagNameLower = selectedElement?.tagName?.toLowerCase() || '';
+
+  const isSvgOrDiagram = 
+    tagNameLower === 'svg' ||
+    tagNameLower === 'path' ||
+    tagNameLower === 'g' ||
+    tagNameLower === 'rect' ||
+    tagNameLower === 'circle' ||
+    tagNameLower === 'polygon' ||
+    tagNameLower === 'ellipse' ||
+    tagNameLower === 'line' ||
+    tagNameLower === 'polyline' ||
+    selectedElement?.classList?.includes('drawio-container') ||
+    selectedElement?.classList?.includes('diagram-viewport') ||
+    selectedElement?.classList?.includes('diagram-title') ||
+    Boolean(selectedElement?.attributes?.['data-diagram-id']);
+
+  const isButtonOrLink = 
+    !isSvgOrDiagram && (
+      tagNameLower === 'button' ||
+      tagNameLower === 'a' ||
+      selectedElement?.classList?.some(c => c.includes('btn') || c.includes('button'))
+    );
+
+  const isMediaAsset = 
+    !isSvgOrDiagram && (
+      tagNameLower === 'img' ||
+      tagNameLower === 'video' ||
+      tagNameLower === 'audio' ||
+      selectedElement?.classList?.some(c => c.includes('media-card') || c.includes('media-container')) ||
+      (attributes.src !== undefined && attributes.src !== '')
+    );
+
   const handleApplyText = () => {
     onUpdateElement({ textContent });
   };
@@ -146,6 +179,12 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           <span className="px-2 py-0.5 bg-indigo-600/30 text-indigo-400 dark:text-indigo-300 rounded font-mono font-bold uppercase text-[11px]">
             &lt;{selectedElement.tagName.toLowerCase()}&gt;
           </span>
+          {isSvgOrDiagram && (
+            <span className="px-2 py-0.5 bg-amber-500/20 text-amber-500 rounded font-semibold text-[10px] flex items-center space-x-1 border border-amber-500/30">
+              <Workflow className="w-3 h-3 text-amber-500" />
+              <span>SVG Diagram</span>
+            </span>
+          )}
           <span className={`font-mono text-[11px] truncate max-w-[120px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             {selectedElement.id ? `#${selectedElement.id}` : ''}
           </span>
@@ -186,25 +225,27 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
 
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
         {/* Draw.io Embedded Diagram Helper */}
-        {(selectedElement.classList?.includes('drawio-container') ||
-          selectedElement.classList?.includes('diagram-title') ||
-          selectedElement.classList?.includes('diagram-viewport') ||
-          selectedElement.attributes?.['data-diagram-id']) && (
+        {isSvgOrDiagram && (
           <div className={`p-3 border rounded-xl space-y-2 ${
             isDark ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-900'
           }`}>
-            <div className="flex items-center space-x-2">
-              <Workflow className="w-4 h-4 text-amber-500" />
-              <span className="font-bold text-xs">Draw.io Diagram Block</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Workflow className="w-4 h-4 text-amber-500" />
+                <span className="font-bold text-xs">Draw.io / SVG Vector Diagram</span>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-600 dark:text-amber-300 rounded-full font-mono font-semibold">
+                Vector Block
+              </span>
             </div>
             <p className="text-[11px] leading-relaxed opacity-90">
-              Rename the diagram by double-clicking title text directly on the canvas or using "Text Content" below.
+              Double-click diagram on the canvas or click below to launch the Draw.io vector diagram editor.
             </p>
             {onOpenDrawIoWithDiagram && (
               <button
                 type="button"
                 onClick={() => {
-                  const id = selectedElement.attributes?.['data-diagram-id'] || 'main-flow';
+                  const id = selectedElement.attributes?.['data-diagram-id'] || 'diagram-1';
                   onOpenDrawIoWithDiagram(id);
                 }}
                 className="w-full py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all shadow-xs cursor-pointer"
@@ -217,12 +258,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         )}
 
         {/* MEDIA & VIDEO ASSET MANAGER */}
-        {(selectedElement.tagName.toLowerCase() === 'img' ||
-          selectedElement.tagName.toLowerCase() === 'video' ||
-          selectedElement.tagName.toLowerCase() === 'audio' ||
-          selectedElement.classList?.some(c => c.includes('media') || c.includes('card')) ||
-          attributes.src !== undefined ||
-          true) && (
+        {isMediaAsset && (
           <div className={`p-3 border rounded-xl space-y-3 ${
             isDark ? 'bg-purple-950/20 border-purple-500/30' : 'bg-purple-50/70 border-purple-200'
           }`}>
@@ -597,99 +633,103 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
             </div>
           </div>
 
-          {/* 2D Button Styling Presets */}
-          <div className="space-y-1 pt-1">
-            <span className={`text-[10px] font-semibold flex items-center justify-between ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
-              <span>🎨 2D Button Presets</span>
-              <span className="text-[9px] opacity-75">Flat & Clean</span>
-            </span>
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                type="button"
-                onClick={() => handleAddQuickClass('bg-indigo-600 hover:bg-indigo-700 text-white shadow-none rounded-xl font-semibold')}
-                className={buttonPresetStyle}
-                title="2D Flat Solid"
-              >
-                ⬛ 2D Flat Solid
-              </button>
+          {/* 2D & 3D Button Styling Presets (Only shown for Buttons / Links) */}
+          {isButtonOrLink && (
+            <>
+              <div className="space-y-1 pt-1 border-t border-slate-700/40">
+                <span className={`text-[10px] font-semibold flex items-center justify-between ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
+                  <span>🎨 2D Button Presets</span>
+                  <span className="text-[9px] opacity-75">Flat & Clean</span>
+                </span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleAddQuickClass('bg-indigo-600 hover:bg-indigo-700 text-white shadow-none rounded-xl font-semibold')}
+                    className={buttonPresetStyle}
+                    title="2D Flat Solid"
+                  >
+                    ⬛ 2D Flat Solid
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => handleAddQuickClass('bg-transparent border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-xl font-semibold')}
-                className={buttonPresetStyle}
-                title="2D Bordered Outline"
-              >
-                🔲 2D Outline
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddQuickClass('bg-transparent border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-xl font-semibold')}
+                    className={buttonPresetStyle}
+                    title="2D Bordered Outline"
+                  >
+                    🔲 2D Outline
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => handleAddQuickClass('bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-xl font-medium')}
-                className={buttonPresetStyle}
-                title="2D Soft Tint / Ghost"
-              >
-                👻 2D Soft Ghost
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddQuickClass('bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-xl font-medium')}
+                    className={buttonPresetStyle}
+                    title="2D Soft Tint / Ghost"
+                  >
+                    👻 2D Soft Ghost
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => handleAddQuickClass('border-2 border-slate-900 dark:border-white bg-amber-400 text-slate-900 font-bold rounded-none')}
-                className={buttonPresetStyle}
-                title="2D Neo-Brutalist"
-              >
-                🎨 2D Neo-Brutalist
-              </button>
-            </div>
-          </div>
+                  <button
+                    type="button"
+                    onClick={() => handleAddQuickClass('border-2 border-slate-900 dark:border-white bg-amber-400 text-slate-900 font-bold rounded-none')}
+                    className={buttonPresetStyle}
+                    title="2D Neo-Brutalist"
+                  >
+                    🎨 2D Neo-Brutalist
+                  </button>
+                </div>
+              </div>
 
-          {/* 3D Button Styling Presets */}
-          <div className="space-y-1 pt-1">
-            <span className={`text-[10px] font-semibold flex items-center justify-between ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
-              <span>✨ 3D Button Presets</span>
-              <span className="text-[9px] opacity-75">Tactile push</span>
-            </span>
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                type="button"
-                onClick={() => handleAddQuickClass('border-b-4 border-indigo-800 active:translate-y-1 active:border-b-0 transition-all')}
-                className={`px-2 py-1.5 rounded-lg text-[10px] font-bold border-b-2 border-indigo-700 active:translate-y-0.5 transition-all cursor-pointer ${
-                  isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-500 text-white'
-                }`}
-                title="3D Tactile Push (Indigo)"
-              >
-                🎮 3D Indigo Push
-              </button>
+              {/* 3D Button Styling Presets */}
+              <div className="space-y-1 pt-1">
+                <span className={`text-[10px] font-semibold flex items-center justify-between ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                  <span>✨ 3D Button Presets</span>
+                  <span className="text-[9px] opacity-75">Tactile push</span>
+                </span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleAddQuickClass('border-b-4 border-indigo-800 active:translate-y-1 active:border-b-0 transition-all')}
+                    className={`px-2 py-1.5 rounded-lg text-[10px] font-bold border-b-2 border-indigo-700 active:translate-y-0.5 transition-all cursor-pointer ${
+                      isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-500 text-white'
+                    }`}
+                    title="3D Tactile Push (Indigo)"
+                  >
+                    🎮 3D Indigo Push
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => handleAddQuickClass('border-b-4 border-emerald-800 active:translate-y-1 active:border-b-0 transition-all')}
-                className={`px-2 py-1.5 rounded-lg text-[10px] font-bold border-b-2 border-emerald-700 active:translate-y-0.5 transition-all cursor-pointer ${
-                  isDark ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-white'
-                }`}
-                title="3D Tactile Push (Emerald)"
-              >
-                🟩 3D Emerald Push
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddQuickClass('border-b-4 border-emerald-800 active:translate-y-1 active:border-b-0 transition-all')}
+                    className={`px-2 py-1.5 rounded-lg text-[10px] font-bold border-b-2 border-emerald-700 active:translate-y-0.5 transition-all cursor-pointer ${
+                      isDark ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-white'
+                    }`}
+                    title="3D Tactile Push (Emerald)"
+                  >
+                    🟩 3D Emerald Push
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => handleAddQuickClass('shadow-[0_6px_0_0_rgba(15,23,42,1)] active:translate-y-1 active:shadow-[0_2px_0_0_rgba(15,23,42,1)] transition-all')}
-                className={buttonPresetStyle}
-                title="3D Shadow Lift"
-              >
-                📦 3D Lift Shadow
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddQuickClass('shadow-[0_6px_0_0_rgba(15,23,42,1)] active:translate-y-1 active:shadow-[0_2px_0_0_rgba(15,23,42,1)] transition-all')}
+                    className={buttonPresetStyle}
+                    title="3D Shadow Lift"
+                  >
+                    📦 3D Lift Shadow
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => handleAddQuickClass('border-t-2 border-l-2 border-slate-300 border-b-4 border-r-4 border-slate-900 bg-slate-200 text-slate-900 active:border-2')}
-                className={buttonPresetStyle}
-                title="Retro 3D Arcade Bevel"
-              >
-                👾 Retro 3D Arcade
-              </button>
-            </div>
-          </div>
+                  <button
+                    type="button"
+                    onClick={() => handleAddQuickClass('border-t-2 border-l-2 border-slate-300 border-b-4 border-r-4 border-slate-900 bg-slate-200 text-slate-900 active:border-2')}
+                    className={buttonPresetStyle}
+                    title="Retro 3D Arcade Bevel"
+                  >
+                    👾 Retro 3D Arcade
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* ACTION BUTTON & ELEMENT PLACEMENT (LEFT, CENTER, RIGHT, FULL) */}

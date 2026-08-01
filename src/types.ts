@@ -53,7 +53,30 @@ export interface ChatMessage {
   timestamp: string;
 }
 
-export type DeploymentProvider = 'github' | 'gitlab' | 'bitbucket' | 'codeberg' | 'vercel' | 'netlify' | 'svn' | 'cvs' | 'mercurial';
+export type DeploymentProvider = 
+  | 'github' 
+  | 'gitlab' 
+  | 'bitbucket' 
+  | 'codeberg' 
+  | 'vercel' 
+  | 'netlify' 
+  | 'cloudrun'
+  | 'azure'
+  | 'aws'
+  | 'alibabacloud'
+  | 'hetzner'
+  | 'strato'
+  | 'ionos'
+  | 'hostinger'
+  | 'bluehost'
+  | 'googledrive'
+  | 'onedrive'
+  | 'sharepoint'
+  | 'iclouddrive'
+  | 'dropbox'
+  | 'svn' 
+  | 'cvs' 
+  | 'mercurial';
 
 export interface DeploymentConfig {
   provider: DeploymentProvider;
@@ -83,6 +106,7 @@ export interface DrawIoDiagram {
   xml: string;
   svg: string;
   updatedAt: string;
+  bgColor?: string;
 }
 
 export type ViewMode = 'wysiwyg' | 'code' | 'split' | 'preview' | 'drawio';

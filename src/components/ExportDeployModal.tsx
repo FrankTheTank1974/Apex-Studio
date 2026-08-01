@@ -29,11 +29,25 @@ interface ExportDeployModalProps {
   files: ProjectFile[];
 }
 
-const PROVIDERS: { id: DeploymentProvider; name: string; icon: string; category: 'git' | 'vcs' | 'hosting' }[] = [
-  { id: 'github', name: 'GitHub', icon: '🐙', category: 'git' },
-  { id: 'gitlab', name: 'GitLab', icon: '🦊', category: 'git' },
+const PROVIDERS: { id: DeploymentProvider; name: string; icon: string; category: 'git' | 'vcs' | 'hosting' | 'cloud' | 'storage' }[] = [
+  { id: 'cloudrun', name: 'Google Cloud Run', icon: '☁️', category: 'cloud' },
+  { id: 'aws', name: 'Amazon Web Services', icon: '🟧', category: 'cloud' },
+  { id: 'azure', name: 'Microsoft Azure', icon: '🔷', category: 'cloud' },
+  { id: 'alibabacloud', name: 'Alibaba Cloud', icon: '🟠', category: 'cloud' },
+  { id: 'hetzner', name: 'Hetzner Cloud', icon: '🔴', category: 'cloud' },
+  { id: 'strato', name: 'STRATO Hosting', icon: '🌐', category: 'hosting' },
+  { id: 'ionos', name: 'IONOS Deploy', icon: '🌍', category: 'hosting' },
+  { id: 'hostinger', name: 'Hostinger Cloud', icon: '🚀', category: 'hosting' },
+  { id: 'bluehost', name: 'Bluehost Hosting', icon: '💙', category: 'hosting' },
   { id: 'vercel', name: 'Vercel', icon: '▲', category: 'hosting' },
   { id: 'netlify', name: 'Netlify', icon: '🌐', category: 'hosting' },
+  { id: 'googledrive', name: 'Google Drive', icon: '📁', category: 'storage' },
+  { id: 'onedrive', name: 'MS OneDrive', icon: '☁️', category: 'storage' },
+  { id: 'dropbox', name: 'Dropbox', icon: '🔹', category: 'storage' },
+  { id: 'sharepoint', name: 'MS SharePoint', icon: '📊', category: 'storage' },
+  { id: 'iclouddrive', name: 'Apple iCloud', icon: '🍏', category: 'storage' },
+  { id: 'github', name: 'GitHub', icon: '🐙', category: 'git' },
+  { id: 'gitlab', name: 'GitLab', icon: '🦊', category: 'git' },
   { id: 'bitbucket', name: 'Bitbucket', icon: '🪣', category: 'git' },
   { id: 'codeberg', name: 'Codeberg', icon: '🏔️', category: 'git' },
   { id: 'svn', name: 'Apache SVN', icon: '🐢', category: 'vcs' },
@@ -85,7 +99,35 @@ export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
       timestamp: new Date().toLocaleTimeString(),
       provider: selectedProvider,
       status: 'in_progress',
-      message: `Initiating ${selectedProvider.toUpperCase()} release sequence...`,
+      message: selectedProvider === 'cloudrun'
+        ? `Building container image & deploying service to Google Cloud Run...`
+        : selectedProvider === 'aws'
+        ? `Provisioning S3 / ECS / Amplify deployment on AWS...`
+        : selectedProvider === 'azure'
+        ? `Provisioning App Service / Static Web App on Microsoft Azure...`
+        : selectedProvider === 'alibabacloud'
+        ? `Deploying OSS bucket / ECS container on Alibaba Cloud...`
+        : selectedProvider === 'hetzner'
+        ? `Provisioning Cloud Server instance & deploying on Hetzner...`
+        : selectedProvider === 'strato'
+        ? `Connecting via SFTP/FTP Deploy to STRATO Webhosting...`
+        : selectedProvider === 'ionos'
+        ? `Deploying static build & WebSpace payload to IONOS...`
+        : selectedProvider === 'hostinger'
+        ? `Publishing web build to Hostinger Cloud Web Hosting...`
+        : selectedProvider === 'bluehost'
+        ? `Uploading web assets via SSH/cPanel to Bluehost...`
+        : selectedProvider === 'googledrive'
+        ? `Syncing project files to Google Drive...`
+        : selectedProvider === 'onedrive'
+        ? `Uploading project workspace to Microsoft OneDrive...`
+        : selectedProvider === 'dropbox'
+        ? `Syncing project payload to Dropbox workspace...`
+        : selectedProvider === 'sharepoint'
+        ? `Uploading workspace assets to SharePoint Document Library...`
+        : selectedProvider === 'iclouddrive'
+        ? `Packaging CloudKit bundle for Apple iCloud Drive...`
+        : `Initiating ${selectedProvider.toUpperCase()} release sequence...`,
     };
 
     setLogs((prev) => [newLog, ...prev]);
@@ -101,11 +143,56 @@ export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
       );
 
       setTimeout(() => {
-        const liveUrl = selectedProvider === 'vercel'
-          ? `https://${config.repoName}.vercel.app`
-          : selectedProvider === 'netlify'
-          ? `https://${config.repoName}.netlify.app`
-          : `https://${selectedProvider}.com/user/${config.repoName}`;
+        let liveUrl = `https://${selectedProvider}.com/user/${config.repoName}`;
+        let successMessage = `Successfully released to ${selectedProvider.toUpperCase()}!`;
+
+        if (selectedProvider === 'cloudrun') {
+          liveUrl = `https://${config.repoName}-wzp2g-ew.a.run.app`;
+          successMessage = `Successfully deployed container service to Google Cloud Run!`;
+        } else if (selectedProvider === 'aws') {
+          liveUrl = `https://${config.repoName}.s3-website.amazonaws.com`;
+          successMessage = `Successfully deployed application to Amazon Web Services (AWS)!`;
+        } else if (selectedProvider === 'azure') {
+          liveUrl = `https://${config.repoName}.azurewebsites.net`;
+          successMessage = `Successfully deployed App Service to Microsoft Azure!`;
+        } else if (selectedProvider === 'alibabacloud') {
+          liveUrl = `https://${config.repoName}.oss-cn-hangzhou.aliyuncs.com`;
+          successMessage = `Successfully deployed static workspace to Alibaba Cloud!`;
+        } else if (selectedProvider === 'hetzner') {
+          liveUrl = `https://${config.repoName}.hetzner.app`;
+          successMessage = `Successfully deployed server container on Hetzner Cloud!`;
+        } else if (selectedProvider === 'strato') {
+          liveUrl = `https://${config.repoName}.stratoserver.net`;
+          successMessage = `Successfully deployed website assets to STRATO Hosting!`;
+        } else if (selectedProvider === 'ionos') {
+          liveUrl = `https://${config.repoName}.hostingsite.net`;
+          successMessage = `Successfully published project to IONOS WebSpace!`;
+        } else if (selectedProvider === 'hostinger') {
+          liveUrl = `https://${config.repoName}.main-page.net`;
+          successMessage = `Successfully deployed static workspace to Hostinger!`;
+        } else if (selectedProvider === 'bluehost') {
+          liveUrl = `https://${config.repoName}.bluehost.com`;
+          successMessage = `Successfully published site to Bluehost Web Server!`;
+        } else if (selectedProvider === 'googledrive') {
+          liveUrl = `https://drive.google.com/drive/u/0/my-drive`;
+          successMessage = `Successfully synced project folder "${config.repoName}" to Google Drive!`;
+        } else if (selectedProvider === 'onedrive') {
+          liveUrl = `https://onedrive.live.com`;
+          successMessage = `Successfully synced project bundle to Microsoft OneDrive!`;
+        } else if (selectedProvider === 'dropbox') {
+          liveUrl = `https://www.dropbox.com/home`;
+          successMessage = `Successfully synced project workspace to Dropbox!`;
+        } else if (selectedProvider === 'sharepoint') {
+          liveUrl = `https://sharepoint.com/sites/${config.repoName}`;
+          successMessage = `Successfully published assets to Microsoft SharePoint Document Library!`;
+        } else if (selectedProvider === 'iclouddrive') {
+          liveUrl = `https://www.icloud.com/iclouddrive`;
+          successMessage = `Successfully packaged and synced with Apple iCloud Drive!`;
+        } else if (selectedProvider === 'vercel') {
+          liveUrl = `https://${config.repoName}.vercel.app`;
+        } else if (selectedProvider === 'netlify') {
+          liveUrl = `https://${config.repoName}.netlify.app`;
+        }
 
         setLogs((prev) =>
           prev.map((l) =>
@@ -113,7 +200,7 @@ export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
               ? {
                   ...l,
                   status: 'success',
-                  message: `Successfully released to ${selectedProvider.toUpperCase()}!`,
+                  message: successMessage,
                   url: liveUrl,
                 }
               : l
@@ -235,7 +322,35 @@ export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] text-slate-400 font-semibold mb-1">
-                    {selectedProvider === 'vercel' || selectedProvider === 'netlify'
+                    {selectedProvider === 'cloudrun'
+                      ? 'Cloud Run Service Name'
+                      : selectedProvider === 'aws'
+                      ? 'AWS S3 / App Name'
+                      : selectedProvider === 'azure'
+                      ? 'Azure Web App / Service Name'
+                      : selectedProvider === 'alibabacloud'
+                      ? 'Alibaba Bucket / Service Name'
+                      : selectedProvider === 'hetzner'
+                      ? 'Hetzner Server / App Name'
+                      : selectedProvider === 'strato'
+                      ? 'STRATO Domain / Subfolder'
+                      : selectedProvider === 'ionos'
+                      ? 'IONOS Project / Domain Name'
+                      : selectedProvider === 'hostinger'
+                      ? 'Hostinger Domain / App Name'
+                      : selectedProvider === 'bluehost'
+                      ? 'Bluehost Domain / Subdirectory'
+                      : selectedProvider === 'googledrive'
+                      ? 'Google Drive Folder Name'
+                      : selectedProvider === 'onedrive'
+                      ? 'OneDrive Target Path'
+                      : selectedProvider === 'dropbox'
+                      ? 'Dropbox Target Folder'
+                      : selectedProvider === 'sharepoint'
+                      ? 'SharePoint Site / Library Name'
+                      : selectedProvider === 'iclouddrive'
+                      ? 'iCloud Drive Folder Name'
+                      : selectedProvider === 'vercel' || selectedProvider === 'netlify'
                       ? 'Project / Site Name'
                       : selectedProvider === 'svn'
                       ? 'SVN Repository Path / Module'
@@ -254,7 +369,33 @@ export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
 
                 <div>
                   <label className="block text-[11px] text-slate-400 font-semibold mb-1">
-                    {selectedProvider === 'svn' ? 'Trunk / Branch' : selectedProvider === 'cvs' ? 'Tag / Branch' : selectedProvider === 'mercurial' ? 'Hg Branch / Bookmark' : 'Target Branch'}
+                    {selectedProvider === 'cloudrun' 
+                      ? 'GCP Region / Tag' 
+                      : selectedProvider === 'aws'
+                      ? 'AWS Region (e.g. us-east-1)'
+                      : selectedProvider === 'azure'
+                      ? 'Azure Resource Group / Region'
+                      : selectedProvider === 'alibabacloud'
+                      ? 'Alibaba Region (e.g. cn-hangzhou)'
+                      : selectedProvider === 'hetzner'
+                      ? 'Datacenter / Location (e.g. FSN1)'
+                      : selectedProvider === 'strato'
+                      ? 'SFTP Directory Path'
+                      : selectedProvider === 'ionos'
+                      ? 'Deploy WebSpace Subpath'
+                      : selectedProvider === 'hostinger'
+                      ? 'Target public_html Folder'
+                      : selectedProvider === 'bluehost'
+                      ? 'cPanel Subdirectory'
+                      : selectedProvider === 'googledrive' || selectedProvider === 'onedrive' || selectedProvider === 'iclouddrive' || selectedProvider === 'sharepoint' || selectedProvider === 'dropbox'
+                      ? 'Sync Subfolder / Tag'
+                      : selectedProvider === 'svn' 
+                      ? 'Trunk / Branch' 
+                      : selectedProvider === 'cvs' 
+                      ? 'Tag / Branch' 
+                      : selectedProvider === 'mercurial' 
+                      ? 'Hg Branch / Bookmark' 
+                      : 'Target Branch'}
                   </label>
                   <div className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-white font-mono text-xs">
                     <GitBranch className="w-3.5 h-3.5 text-indigo-400" />
@@ -270,7 +411,41 @@ export const ExportDeployModal: React.FC<ExportDeployModalProps> = ({
 
               <div>
                 <label className="block text-[11px] text-slate-400 font-semibold mb-1">
-                  {selectedProvider === 'svn' ? 'SVN Password / Access Credentials' : selectedProvider === 'cvs' ? 'CVS Password / Key' : selectedProvider === 'mercurial' ? 'Mercurial Auth Key / Password' : 'API Token / Personal Access Key'}
+                  {selectedProvider === 'cloudrun'
+                    ? 'GCP Service Account Token / Key'
+                    : selectedProvider === 'aws'
+                    ? 'AWS Access Key ID & Secret Access Key'
+                    : selectedProvider === 'azure'
+                    ? 'Azure Publish Profile / Service Principal Key'
+                    : selectedProvider === 'alibabacloud'
+                    ? 'Alibaba Cloud AccessKey ID / Secret'
+                    : selectedProvider === 'hetzner'
+                    ? 'Hetzner Cloud API Token'
+                    : selectedProvider === 'strato'
+                    ? 'STRATO SFTP / FTP Password'
+                    : selectedProvider === 'ionos'
+                    ? 'IONOS Deploy Token / FTP Pass'
+                    : selectedProvider === 'hostinger'
+                    ? 'Hostinger API Token / SSH Key'
+                    : selectedProvider === 'bluehost'
+                    ? 'Bluehost SSH Key / cPanel Auth'
+                    : selectedProvider === 'googledrive'
+                    ? 'Google OAuth / Access Token'
+                    : selectedProvider === 'onedrive'
+                    ? 'Microsoft Graph Access Token'
+                    : selectedProvider === 'dropbox'
+                    ? 'Dropbox OAuth 2.0 Access Token'
+                    : selectedProvider === 'sharepoint'
+                    ? 'SharePoint App Token / Client Secret'
+                    : selectedProvider === 'iclouddrive'
+                    ? 'Apple CloudKit API Token'
+                    : selectedProvider === 'svn' 
+                    ? 'SVN Password / Access Credentials' 
+                    : selectedProvider === 'cvs' 
+                    ? 'CVS Password / Key' 
+                    : selectedProvider === 'mercurial' 
+                    ? 'Mercurial Auth Key / Password' 
+                    : 'API Token / Personal Access Key'}
                 </label>
                 <div className="relative">
                   <Key className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-500" />

@@ -149,7 +149,7 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
       }
 
       // Check if user explicitly clicked an "Edit Diagram" button to launch Draw.io editor
-      const openDrawIoBtn = target.closest('[data-action="open-drawio"], .open-drawio-btn') as HTMLElement;
+      const openDrawIoBtn = target.closest('.open-drawio-btn') as HTMLElement;
       if (openDrawIoBtn && onOpenDrawIoWithDiagram) {
         const drawioParent = target.closest('.drawio-container') as HTMLElement;
         const diagramId = drawioParent?.getAttribute('data-diagram-id') || 'diagram-1';
@@ -234,34 +234,52 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
         el.classList.remove('apex-selected-outline');
       });
 
-      target.classList.add('apex-selected-outline');
+      // If user clicked inside an SVG or Draw.io container, select the container or SVG element for clean diagram outline
+      const drawioContainer = target.closest('.drawio-container') as HTMLElement | null;
+      const svgElement = (target.closest('svg') as unknown) as HTMLElement | null;
+      const selectTarget = (drawioContainer || svgElement || target) as HTMLElement;
 
-      // Build attribute record
+      selectTarget.classList?.add('apex-selected-outline');
+
+      // Build attribute record safely
       const attrs: Record<string, string> = {};
-      Array.from(target.attributes).forEach((attr) => {
-        if (!attr.name.startsWith('data-apex')) {
-          attrs[attr.name] = attr.value;
-        }
-      });
+      if (selectTarget.attributes) {
+        Array.from(selectTarget.attributes).forEach((attr) => {
+          if (!attr.name.startsWith('data-apex')) {
+            attrs[attr.name] = attr.value;
+          }
+        });
+      }
 
       const elementInfo: SelectedElementInfo = {
-        tagName: target.tagName,
-        id: target.id || '',
-        classList: Array.from(target.classList).filter((c) => !c.startsWith('apex-')),
+        tagName: selectTarget.tagName || 'DIV',
+        id: selectTarget.id || '',
+        classList: selectTarget.classList ? Array.from(selectTarget.classList).filter((c) => !c.startsWith('apex-')) : [],
         attributes: attrs,
         style: {},
-        textContent: target.childNodes.length === 1 && target.childNodes[0].nodeType === 3
-          ? target.textContent || ''
-          : target.innerHTML || '',
+        textContent: selectTarget.childNodes && selectTarget.childNodes.length === 1 && selectTarget.childNodes[0].nodeType === 3
+          ? selectTarget.textContent || ''
+          : selectTarget.innerHTML || '',
       };
 
       onSelectElement(elementInfo);
     };
 
-    // Handle Inline Text Editing inside Canvas
+    // Handle Inline Text Editing & Draw.io Diagram Double-Click Launch inside Canvas
     const handleDblClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target || target.id === 'apex-canvas-root') return;
+
+      // Double-clicking a Draw.io diagram container or SVG opens the Draw.io editor modal!
+      const drawioParent = target.closest('.drawio-container, .diagram-viewport') as HTMLElement;
+      if (drawioParent && onOpenDrawIoWithDiagram) {
+        const diagramId = drawioParent.getAttribute('data-diagram-id') || 
+                          drawioParent.closest('[data-diagram-id]')?.getAttribute('data-diagram-id') || 
+                          'diagram-1';
+        onOpenDrawIoWithDiagram(diagramId);
+        return;
+      }
+
       target.contentEditable = 'true';
       target.focus();
 

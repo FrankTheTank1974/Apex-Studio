@@ -21,7 +21,9 @@ import {
   MoveHorizontal,
   Clock,
   Timer,
-  Globe
+  Globe,
+  FileText,
+  Table
 } from 'lucide-react';
 
 interface ComponentLibraryProps {
@@ -72,6 +74,8 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({
       case 'Clock': return <Clock className="w-4 h-4 text-emerald-400" />;
       case 'Timer': return <Timer className="w-4 h-4 text-amber-400" />;
       case 'Globe': return <Globe className="w-4 h-4 text-cyan-400" />;
+      case 'FileText': return <FileText className="w-4 h-4 text-indigo-400" />;
+      case 'Table': return <Table className="w-4 h-4 text-emerald-400" />;
       default: return <Code className="w-4 h-4 text-slate-400" />;
     }
   };

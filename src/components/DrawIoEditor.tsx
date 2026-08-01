@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Workflow, X, Save, Check, RotateCw } from 'lucide-react';
+import { Workflow, X, Save, Check, RotateCw, Palette, ChevronDown } from 'lucide-react';
 import { DrawIoDiagram, ThemeMode } from '../types';
 import { normalizeSvgContent } from '../utils/svgUtils';
 
@@ -10,6 +10,19 @@ interface DrawIoEditorProps {
   onSaveDiagram: (diagram: DrawIoDiagram) => void;
   themeMode?: ThemeMode;
 }
+
+const BG_PRESETS = [
+  { name: 'Transparent', value: 'none', colorClass: 'bg-transparent border-dashed border border-slate-400' },
+  { name: 'Dark Slate', value: '#0f172a', colorClass: 'bg-[#0f172a]' },
+  { name: 'Pitch Black', value: '#020617', colorClass: 'bg-[#020617]' },
+  { name: 'Pure White', value: '#ffffff', colorClass: 'bg-white border border-slate-300' },
+  { name: 'Soft Gray', value: '#f8fafc', colorClass: 'bg-[#f8fafc] border border-slate-300' },
+  { name: 'Warm Paper', value: '#fefcbf', colorClass: 'bg-[#fefcbf] border border-amber-300' },
+  { name: 'Blueprint Navy', value: '#1e3a8a', colorClass: 'bg-[#1e3a8a]' },
+  { name: 'Emerald Dark', value: '#064e3b', colorClass: 'bg-[#064e3b]' },
+  { name: 'Deep Purple', value: '#3b0764', colorClass: 'bg-[#3b0764]' },
+  { name: 'Charcoal', value: '#18181b', colorClass: 'bg-[#18181b]' },
+];
 
 export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
   isOpen,
@@ -22,14 +35,47 @@ export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [diagramTitle, setDiagramTitle] = useState(activeDiagram?.title || 'System Architecture Diagram');
   const [currentXml, setCurrentXml] = useState(activeDiagram?.xml || '');
+  const [bgColor, setBgColor] = useState<string>(activeDiagram?.bgColor || (isDark ? '#0f172a' : 'none'));
+  const [isColorMenuOpen, setIsColorMenuOpen] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
     if (activeDiagram) {
       setDiagramTitle(activeDiagram.title);
       setCurrentXml(activeDiagram.xml);
+      if (activeDiagram.bgColor) {
+        setBgColor(activeDiagram.bgColor);
+      }
     }
   }, [activeDiagram]);
+
+  const updateXmlBackground = (xmlStr: string, color: string): string => {
+    if (!xmlStr) return xmlStr;
+    const cleanColor = color === 'none' ? 'none' : color;
+    if (xmlStr.includes('<mxGraphModel')) {
+      if (xmlStr.includes('background=')) {
+        return xmlStr.replace(/background="[^"]*"/, `background="${cleanColor}"`);
+      } else {
+        return xmlStr.replace('<mxGraphModel', `<mxGraphModel background="${cleanColor}"`);
+      }
+    }
+    return xmlStr;
+  };
+
+  const handleBgColorChange = (newColor: string) => {
+    setBgColor(newColor);
+    const updatedXml = updateXmlBackground(currentXml, newColor);
+    setCurrentXml(updatedXml);
+
+    iframeRef.current?.contentWindow?.postMessage(
+      JSON.stringify({
+        action: 'load',
+        xml: updatedXml || '',
+        bg: newColor === 'none' ? 'transparent' : newColor,
+      }),
+      '*'
+    );
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -40,9 +86,14 @@ export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
         const msg = JSON.parse(evt.data);
 
         if (msg.event === 'init') {
-          // Initialize Draw.io iframe with diagram XML
+          // Initialize Draw.io iframe with diagram XML & background color
+          const xmlWithBg = updateXmlBackground(currentXml, bgColor);
           iframeRef.current?.contentWindow?.postMessage(
-            JSON.stringify({ action: 'load', xml: currentXml || '' }),
+            JSON.stringify({
+              action: 'load',
+              xml: xmlWithBg || '',
+              bg: bgColor === 'none' ? 'transparent' : bgColor
+            }),
             '*'
           );
         } else if (msg.event === 'save') {
@@ -57,6 +108,7 @@ export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
             title: diagramTitle,
             xml,
             svg,
+            bgColor,
             updatedAt: new Date().toISOString(),
           });
 
@@ -72,6 +124,7 @@ export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
             title: diagramTitle,
             xml,
             svg,
+            bgColor,
             updatedAt: new Date().toISOString(),
           });
           setSavedSuccess(true);
@@ -84,7 +137,7 @@ export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [isOpen, currentXml, diagramTitle, activeDiagram]);
+  }, [isOpen, currentXml, diagramTitle, activeDiagram, bgColor]);
 
   if (!isOpen) return null;
 
@@ -138,6 +191,87 @@ export const DrawIoEditor: React.FC<DrawIoEditorProps> = ({
               <span>Diagram Saved & Sync'd to Canvas!</span>
             </span>
           )}
+
+          {/* Background Color Quick Selector Popover */}
+          <div className="relative">
+            <button
+              onClick={() => setIsColorMenuOpen(!isColorMenuOpen)}
+              className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                isDark 
+                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700' 
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
+              }`}
+              title="Change Canvas Background Color"
+            >
+              <Palette className="w-3.5 h-3.5 text-amber-500" />
+              <span>Background:</span>
+              <div 
+                className="w-4 h-4 rounded-full border border-slate-400 shadow-inner"
+                style={{ backgroundColor: bgColor === 'none' ? 'transparent' : bgColor }}
+              />
+              <span className="font-mono text-[11px] opacity-80 uppercase">
+                {bgColor === 'none' ? 'Transparent' : bgColor}
+              </span>
+              <ChevronDown className="w-3 h-3 text-slate-400" />
+            </button>
+
+            {isColorMenuOpen && (
+              <div className={`absolute right-0 mt-2 w-64 p-3 rounded-xl border shadow-xl z-50 animate-in fade-in zoom-in-95 ${
+                isDark ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
+              }`}>
+                <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-700/50">
+                  <span className="text-xs font-semibold flex items-center space-x-1.5">
+                    <Palette className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Diagram Background</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">Presets & Custom</span>
+                </div>
+
+                {/* Preset Swatches */}
+                <div className="grid grid-cols-5 gap-1.5 mb-3">
+                  {BG_PRESETS.map((preset) => (
+                    <button
+                      key={preset.value}
+                      onClick={() => {
+                        handleBgColorChange(preset.value);
+                        setIsColorMenuOpen(false);
+                      }}
+                      title={preset.name}
+                      className={`group relative h-7 rounded-md flex items-center justify-center transition-transform hover:scale-105 ${preset.colorClass} ${
+                        bgColor === preset.value ? 'ring-2 ring-amber-500 ring-offset-1 ring-offset-slate-900' : ''
+                      }`}
+                    >
+                      {bgColor === preset.value && (
+                        <Check className={`w-3.5 h-3.5 ${preset.value === '#ffffff' || preset.value === '#f8fafc' || preset.value === '#fefcbf' ? 'text-slate-900' : 'text-white'}`} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Hex / Color Input */}
+                <div className="pt-2 border-t border-slate-700/50 flex items-center justify-between space-x-2">
+                  <span className="text-xs text-slate-400">Custom Color:</span>
+                  <div className="flex items-center space-x-1.5">
+                    <input
+                      type="color"
+                      value={bgColor === 'none' ? '#0f172a' : bgColor}
+                      onChange={(e) => handleBgColorChange(e.target.value)}
+                      className="w-7 h-7 rounded cursor-pointer border-none bg-transparent"
+                    />
+                    <input
+                      type="text"
+                      value={bgColor}
+                      onChange={(e) => handleBgColorChange(e.target.value)}
+                      placeholder="#0f172a or none"
+                      className={`w-24 px-2 py-1 text-xs font-mono rounded border ${
+                        isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           <button
             onClick={handleReloadIframe}

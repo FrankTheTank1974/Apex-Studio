@@ -127,6 +127,212 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
   </div>
 </footer>`
   },
+  {
+    id: 'impressum-footer',
+    name: 'Impressum Legal Footer',
+    category: 'layout',
+    icon: 'FileText',
+    description: 'EU & German compliant legal Impressum footer with company details, contact info, register ID, tax number, and legal links',
+    html: `<footer class="bg-slate-900 text-slate-300 py-12 px-6 border-t border-slate-800 font-sans my-4">
+  <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+    <!-- Company & Legal Info -->
+    <div class="space-y-3">
+      <div class="flex items-center space-x-2 text-white font-bold text-lg">
+        <span class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-sm shadow-sm">⚖️</span>
+        <span>Impressum / Legal Notice</span>
+      </div>
+      <p class="text-xs text-slate-400 leading-relaxed">
+        Angaben gemäß § 5 Digital-Dienste-Gesetz (DDG) / Information in accordance with EU & German legal guidelines.
+      </p>
+      <div class="text-xs space-y-1 text-slate-300 border-l-2 border-indigo-500 pl-3 py-1 bg-slate-950/40 rounded-r-lg">
+        <p class="font-semibold text-white">ApexStudio Technologies GmbH</p>
+        <p>Musterstraße 42</p>
+        <p>10115 Berlin, Deutschland</p>
+      </div>
+    </div>
+
+    <!-- Contact & Register Details -->
+    <div class="space-y-3">
+      <h4 class="text-xs font-bold text-white uppercase tracking-wider border-b border-slate-800 pb-2">Vertretung & Kontakt</h4>
+      <div class="text-xs space-y-1.5 text-slate-400">
+        <p><strong class="text-slate-200">Vertreten durch:</strong> Max Mustermann (Geschäftsführer)</p>
+        <p><strong class="text-slate-200">Telefon:</strong> +49 (0) 30 12345678</p>
+        <p><strong class="text-slate-200">E-Mail:</strong> <a href="mailto:impressum@example.com" class="text-indigo-400 hover:underline">impressum@example.com</a></p>
+        <p><strong class="text-slate-200">Registergericht:</strong> Amtsgericht Berlin-Charlottenburg</p>
+        <p><strong class="text-slate-200">Registernummer:</strong> HRB 123456 B</p>
+        <p><strong class="text-slate-200">Umsatzsteuer-ID:</strong> DE 987654321</p>
+      </div>
+    </div>
+
+    <!-- Legal Disclaimers & Links -->
+    <div class="space-y-3">
+      <h4 class="text-xs font-bold text-white uppercase tracking-wider border-b border-slate-800 pb-2">Rechtliche Hinweise</h4>
+      <ul class="text-xs space-y-2 text-slate-400">
+        <li><a href="#impressum" class="hover:text-white transition-colors flex items-center space-x-1.5"><span class="text-indigo-400">•</span><span>Impressum</span></a></li>
+        <li><a href="#datenschutz" class="hover:text-white transition-colors flex items-center space-x-1.5"><span class="text-indigo-400">•</span><span>Datenschutzerklärung (Privacy Policy)</span></a></li>
+        <li><a href="#agb" class="hover:text-white transition-colors flex items-center space-x-1.5"><span class="text-indigo-400">•</span><span>Allgemeine Geschäftsbedingungen (AGB)</span></a></li>
+        <li><a href="#cookies" class="hover:text-white transition-colors flex items-center space-x-1.5"><span class="text-indigo-400">•</span><span>Cookie-Einstellungen</span></a></li>
+        <li><a href="#disclaimer" class="hover:text-white transition-colors flex items-center space-x-1.5"><span class="text-indigo-400">•</span><span>Haftungsausschluss (Disclaimer)</span></a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+    <p>© 2026 ApexStudio Technologies GmbH. Alle Rechte vorbehalten.</p>
+    <div class="flex items-center space-x-4">
+      <a href="#impressum" class="hover:text-slate-300">Impressum</a>
+      <span>•</span>
+      <a href="#datenschutz" class="hover:text-slate-300">Datenschutz</a>
+      <span>•</span>
+      <a href="#agb" class="hover:text-slate-300">AGB</a>
+    </div>
+  </div>
+</footer>`
+  },
+  {
+    id: 'data-table-modern',
+    name: 'Responsive Data Table',
+    category: 'ui',
+    icon: 'Table',
+    description: 'Data table with search field, badge status tags, row actions, hover highlight, and pagination controls',
+    html: `<div class="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden font-sans my-6">
+  <!-- Table Header Bar -->
+  <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-950/40">
+    <div>
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+        <span>📊 Project Deployment Directory</span>
+      </h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Overview of active application instances, cloud providers, and system status health.</p>
+    </div>
+    <div class="flex items-center space-x-3">
+      <div class="relative">
+        <input 
+          type="text" 
+          placeholder="Search items..." 
+          class="w-48 sm:w-64 px-3.5 py-1.5 pl-8 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner"
+        />
+        <span class="absolute left-2.5 top-2 text-slate-400 text-xs">🔍</span>
+      </div>
+      <button class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-all flex items-center space-x-1.5 cursor-pointer">
+        <span>+ Add Row</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Responsive Table Container -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse text-xs">
+      <thead>
+        <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-950/80 text-slate-600 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+          <th class="py-3.5 px-4">Project Name</th>
+          <th class="py-3.5 px-4">Cloud Provider</th>
+          <th class="py-3.5 px-4">Environment</th>
+          <th class="py-3.5 px-4">Status</th>
+          <th class="py-3.5 px-4">Last Sync</th>
+          <th class="py-3.5 px-4 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+        <!-- Row 1 -->
+        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+          <td class="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-bold flex items-center justify-center text-xs">A</span>
+              <div>
+                <div class="font-bold">ApexStudio App</div>
+                <div class="text-[10px] text-slate-400 font-mono">v2.4.0 • production</div>
+              </div>
+            </div>
+          </td>
+          <td class="py-3.5 px-4">
+            <span class="inline-flex items-center space-x-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2.5 py-0.5 rounded-md font-medium text-[11px] border border-blue-500/20">
+              <span>☁️ Cloud Run</span>
+            </span>
+          </td>
+          <td class="py-3.5 px-4 font-mono text-[11px]">Production</td>
+          <td class="py-3.5 px-4">
+            <span class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Healthy</span>
+            </span>
+          </td>
+          <td class="py-3.5 px-4 text-slate-500 font-mono text-[11px]">2 mins ago</td>
+          <td class="py-3.5 px-4 text-right">
+            <button class="px-2.5 py-1 text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950/60 rounded-lg transition-colors cursor-pointer">Edit</button>
+          </td>
+        </tr>
+
+        <!-- Row 2 -->
+        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+          <td class="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold flex items-center justify-center text-xs">L</span>
+              <div>
+                <div class="font-bold">Lambda Microservice</div>
+                <div class="text-[10px] text-slate-400 font-mono">v1.8.2 • serverless</div>
+              </div>
+            </div>
+          </td>
+          <td class="py-3.5 px-4">
+            <span class="inline-flex items-center space-x-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 py-0.5 rounded-md font-medium text-[11px] border border-amber-500/20">
+              <span>🟧 AWS Lambda</span>
+            </span>
+          </td>
+          <td class="py-3.5 px-4 font-mono text-[11px]">Staging</td>
+          <td class="py-3.5 px-4">
+            <span class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>Active</span>
+            </span>
+          </td>
+          <td class="py-3.5 px-4 text-slate-500 font-mono text-[11px]">1 hour ago</td>
+          <td class="py-3.5 px-4 text-right">
+            <button class="px-2.5 py-1 text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950/60 rounded-lg transition-colors cursor-pointer">Edit</button>
+          </td>
+        </tr>
+
+        <!-- Row 3 -->
+        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+          <td class="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400 font-bold flex items-center justify-center text-xs">D</span>
+              <div>
+                <div class="font-bold">Dropbox Storage Sync</div>
+                <div class="text-[10px] text-slate-400 font-mono">v3.0.1 • storage</div>
+              </div>
+            </div>
+          </td>
+          <td class="py-3.5 px-4">
+            <span class="inline-flex items-center space-x-1 bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2.5 py-0.5 rounded-md font-medium text-[11px] border border-purple-500/20">
+              <span>🔹 Dropbox Storage</span>
+            </span>
+          </td>
+          <td class="py-3.5 px-4 font-mono text-[11px]">Development</td>
+          <td class="py-3.5 px-4">
+            <span class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              <span>Syncing</span>
+            </span>
+          </td>
+          <td class="py-3.5 px-4 text-slate-500 font-mono text-[11px]">Yesterday</td>
+          <td class="py-3.5 px-4 text-right">
+            <button class="px-2.5 py-1 text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-950/60 rounded-lg transition-colors cursor-pointer">Edit</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Table Pagination Footer -->
+  <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-950/40">
+    <span>Showing <strong>3</strong> of <strong>24</strong> entries</span>
+    <div class="flex items-center space-x-2">
+      <button class="px-3 py-1 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg font-medium transition-colors cursor-pointer">Previous</button>
+      <button class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors cursor-pointer">Next</button>
+    </div>
+  </div>
+</div>`
+  },
 
   // UI ELEMENTS & BUTTONS
   {
