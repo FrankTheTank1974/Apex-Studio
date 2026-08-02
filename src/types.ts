@@ -7,6 +7,26 @@ export interface ProjectFile {
   content: string;
   path: string;
   isMain?: boolean;
+  size?: number;
+  lastModified?: number;
+  mediaType?: 'image' | 'video' | 'audio' | 'svg';
+}
+
+export interface IncludedMediaItem {
+  id: string;
+  name: string;
+  type: 'image' | 'video' | 'audio' | 'svg';
+  src: string;
+  origin: string;
+  sizeFormatted: string;
+  sizeBytes: number;
+  dateFormatted: string;
+  timestamp: number;
+  dimensions?: { width: number; height: number };
+  durationFormatted?: string;
+  altText?: string;
+  isAssetFile?: boolean;
+  fileId?: string;
 }
 
 export interface SelectedElementInfo {

@@ -29,6 +29,8 @@ import { GoogleFontsModal } from './components/GoogleFontsModal';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { HostedPreviewModal } from './components/HostedPreviewModal';
 import { ImportUrlModal } from './components/ImportUrlModal';
+import { MediaListModal } from './components/MediaListModal';
+import { QuickLinkModal } from './components/QuickLinkModal';
 import { downloadTarZstd } from './utils/tarZstd';
 import { normalizeSvgContent, serializeDocumentOrBody } from './utils/svgUtils';
 
@@ -62,6 +64,8 @@ export default function App() {
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isHostedPreviewOpen, setIsHostedPreviewOpen] = useState(false);
   const [isImportUrlOpen, setIsImportUrlOpen] = useState(false);
+  const [isMediaOpen, setIsMediaOpen] = useState(false);
+  const [isQuickLinkOpen, setIsQuickLinkOpen] = useState(false);
 
   // Active Draw.io diagram state
   const [activeDiagram, setActiveDiagram] = useState<DrawIoDiagram | null>(null);
@@ -77,7 +81,10 @@ export default function App() {
   const [remoteCursors, setRemoteCursors] = useState<Record<string, { x: number; y: number; name: string; color: string }>>({});
   const wsRef = useRef<WebSocket | null>(null);
 
-  const activeHtmlFile = files.find((f) => f.type === 'html') || files[0];
+  const activeFile = files.find((f) => f.id === activeFileId) || files[0];
+  const activeHtmlFile = activeFile?.type === 'html'
+    ? activeFile
+    : (files.find((f) => f.type === 'html') || files[0]);
   const activeCssFile = files.find((f) => f.type === 'css') || files[1];
   const activeJsFile = files.find((f) => f.type === 'js') || files[2];
 
@@ -162,7 +169,7 @@ export default function App() {
       setHistoryFuture([]);
     }
 
-    const updated = files.map((f) => (f.type === 'html' ? { ...f, content: newHtml } : f));
+    const updated = files.map((f) => (f.id === activeHtmlFile?.id ? { ...f, content: newHtml } : f));
     broadcastFileUpdate(updated);
   };
 
@@ -477,12 +484,66 @@ export default function App() {
 
   // Add Custom File to project
   const handleAddNewFile = (name: string, type: 'html' | 'css' | 'js') => {
+    const rawTitle = name.replace(/\.html$/i, '').split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+    const pageTitle = rawTitle || 'New Page';
+
+    let defaultContent = '';
+    if (type === 'html') {
+      defaultContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${pageTitle}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+  <!-- Navigation Header -->
+  <header class="border-b border-slate-800 bg-slate-950/80 sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center space-x-2 font-bold text-lg text-white">
+        <span class="text-indigo-500">✦</span>
+        <span>My App Studio</span>
+      </a>
+      <nav class="flex items-center space-x-6 text-sm font-medium">
+        <a href="index.html" class="text-slate-400 hover:text-white transition-colors">Home</a>
+        <a href="${name}" class="text-indigo-400 font-bold border-b-2 border-indigo-500 pb-1">${pageTitle}</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-5xl mx-auto px-6 py-16">
+    <div id="${name.replace(/\.html$/i, '')}-hero" class="text-center space-y-4">
+      <span class="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold rounded-full uppercase tracking-wider">
+        ${pageTitle}
+      </span>
+      <h1 class="text-4xl font-extrabold text-white tracking-tight">${pageTitle} Page</h1>
+      <p class="text-slate-400 max-w-xl mx-auto text-base">
+        Welcome to the ${pageTitle} page. Edit this layout visually using drag-and-drop components or the code editor.
+      </p>
+      <div class="pt-4">
+        <a href="index.html" class="inline-flex items-center space-x-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl transition-all">
+          <span>← Back to Home</span>
+        </a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>`;
+    } else if (type === 'css') {
+      defaultContent = '/* Custom Stylesheet */';
+    } else {
+      defaultContent = '// Custom JavaScript';
+    }
+
     const newFile: ProjectFile = {
       id: 'file-' + Date.now(),
       name,
       type,
       path: `/${name}`,
-      content: type === 'html' ? '<div>Custom Page Content</div>' : type === 'css' ? '/* Custom CSS */' : '// Custom JS',
+      content: defaultContent,
     };
     const updated = [...files, newFile];
     broadcastFileUpdate(updated);
@@ -562,6 +623,8 @@ export default function App() {
         onOpenShortcuts={() => setIsShortcutsOpen(true)}
         onOpenHostedPreview={() => setIsHostedPreviewOpen(true)}
         onOpenImportUrl={() => setIsImportUrlOpen(true)}
+        onOpenMedia={() => setIsMediaOpen(true)}
+        onOpenQuickLinkModal={() => setIsQuickLinkOpen(true)}
         onOpenNewProject={() => setIsNewProjectOpen(true)}
         onExportZst={handleExportZstArchive}
         activeRoomId={activeRoomId}
@@ -630,6 +693,7 @@ export default function App() {
             onMoveElement={handleMoveElement}
             onOpenDrawIoWithDiagram={handleOpenDrawIoWithDiagram}
             onOpenFonts={() => setIsFontsOpen(true)}
+            onOpenQuickLinkModal={() => setIsQuickLinkOpen(true)}
             themeMode={themeMode}
           />
         )}
@@ -716,6 +780,27 @@ export default function App() {
         isOpen={isImportUrlOpen}
         onClose={() => setIsImportUrlOpen(false)}
         onImportWebpage={handleImportWebpage}
+        themeMode={themeMode}
+      />
+
+      {/* Included Media Directory Modal */}
+      <MediaListModal
+        isOpen={isMediaOpen}
+        onClose={() => setIsMediaOpen(false)}
+        files={files}
+        activeFileId={activeFileId}
+        onUpdateFiles={setFiles}
+        onInsertMediaHtml={handleInsertComponentHtml}
+        themeMode={themeMode}
+      />
+
+      {/* Quick Link & Anchor Creator Modal */}
+      <QuickLinkModal
+        isOpen={isQuickLinkOpen}
+        onClose={() => setIsQuickLinkOpen(false)}
+        files={files}
+        activeFileId={activeFileId}
+        onInsertLinkHtml={handleInsertComponentHtml}
         themeMode={themeMode}
       />
     </div>

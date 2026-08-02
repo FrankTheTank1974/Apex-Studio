@@ -21,7 +21,9 @@ import {
   Undo2,
   Redo2,
   Keyboard,
-  Globe
+  Globe,
+  Film,
+  Link as LinkIcon
 } from 'lucide-react';
 import { ViewMode, DeviceMode, ProjectFile, ThemeMode } from '../types';
 
@@ -41,6 +43,8 @@ interface NavbarProps {
   onOpenShortcuts?: () => void;
   onOpenHostedPreview?: () => void;
   onOpenImportUrl?: () => void;
+  onOpenMedia?: () => void;
+  onOpenQuickLinkModal?: () => void;
   onOpenNewProject: () => void;
   onExportZst: () => void;
   activeRoomId: string | null;
@@ -68,6 +72,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenShortcuts,
   onOpenHostedPreview,
   onOpenImportUrl,
+  onOpenMedia,
+  onOpenQuickLinkModal,
   onOpenNewProject,
   onExportZst,
   activeRoomId,
@@ -251,6 +257,30 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Action Tools & Integration Buttons */}
       <div className="flex items-center space-x-2">
+        {/* Quick Link & Anchor Creator Trigger */}
+        {onOpenQuickLinkModal && (
+          <button
+            onClick={onOpenQuickLinkModal}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 rounded-lg text-xs font-semibold shadow-xs shadow-cyan-500/20 transition-all cursor-pointer"
+            title="Create external URLs, page section anchors, email, or phone call links"
+          >
+            <LinkIcon className="w-3.5 h-3.5 text-cyan-400" />
+            <span>+ Link</span>
+          </button>
+        )}
+
+        {/* Included Media Directory Trigger */}
+        {onOpenMedia && (
+          <button
+            onClick={onOpenMedia}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/40 rounded-lg text-xs font-semibold shadow-xs shadow-purple-500/20 transition-all cursor-pointer"
+            title="List all included media (pictures, videos, audio, SVGs) with thumbnails, playback & details"
+          >
+            <Film className="w-3.5 h-3.5 text-purple-400" />
+            <span>Media</span>
+          </button>
+        )}
+
         {/* Directly Import Webpage by URL Trigger */}
         {onOpenImportUrl && (
           <button

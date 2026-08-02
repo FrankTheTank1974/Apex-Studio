@@ -336,6 +336,49 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
 
   // UI ELEMENTS & BUTTONS
   {
+    id: 'link-styled-arrow',
+    name: 'Interactive Arrow Link',
+    category: 'ui',
+    icon: 'SquareMousePointer',
+    description: 'Text hyperlink with animated hover arrow icon and clean focus states',
+    html: `<a href="#features" class="inline-flex items-center space-x-1.5 font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline transition-all group">
+  <span>Explore All Features</span>
+  <span class="transform group-hover:translate-x-1 transition-transform">→</span>
+</a>`
+  },
+  {
+    id: 'link-cta-button',
+    name: 'Call-to-Action Link Button',
+    category: 'ui',
+    icon: 'SquareMousePointer',
+    description: 'Primary CTA link button (<a href="...">) with hover elevation shadow',
+    html: `<a href="#get-started" class="inline-flex items-center justify-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5">
+  Get Started Free
+</a>`
+  },
+  {
+    id: 'link-anchor-smooth',
+    name: 'Page Section Anchor Link',
+    category: 'ui',
+    icon: 'Tag',
+    description: 'Page section jump anchor link pointing to a section ID (#pricing)',
+    html: `<a href="#pricing" class="inline-flex items-center space-x-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-medium text-xs rounded-lg border border-slate-200 dark:border-slate-700 transition-all">
+  <span>⚓</span>
+  <span>Jump to Pricing (#pricing)</span>
+</a>`
+  },
+  {
+    id: 'link-contact-mailto',
+    name: 'Direct Email Support Link',
+    category: 'ui',
+    icon: 'Mail',
+    description: 'Email hyperlink opening default mail client (mailto:support@example.com)',
+    html: `<a href="mailto:support@example.com" class="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 font-semibold text-xs rounded-xl border border-indigo-200 dark:border-indigo-800 transition-all">
+  <span>✉️</span>
+  <span>Contact Support (support@example.com)</span>
+</a>`
+  },
+  {
     id: 'btn-primary',
     name: 'Primary Action Button',
     category: 'ui',

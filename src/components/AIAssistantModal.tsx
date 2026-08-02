@@ -66,7 +66,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
             </div>
             <div>
               <h3 className="font-bold text-slate-100 text-sm">AI Component Generator</h3>
-              <p className="text-[10px] text-slate-400">Powered by Gemini 2.5 Flash Server API</p>
+              <p className="text-[10px] text-slate-400">Powered by Gemini 3.6 Flash Server API</p>
             </div>
           </div>
 

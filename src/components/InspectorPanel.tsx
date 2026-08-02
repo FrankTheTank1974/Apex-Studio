@@ -26,7 +26,12 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  MoveHorizontal
+  MoveHorizontal,
+  Link as LinkIcon,
+  ExternalLink,
+  Anchor,
+  Globe,
+  Plus
 } from 'lucide-react';
 
 interface InspectorPanelProps {
@@ -37,6 +42,7 @@ interface InspectorPanelProps {
   onMoveElement: (direction: 'up' | 'down') => void;
   onOpenDrawIoWithDiagram?: (diagramId?: string) => void;
   onOpenFonts?: () => void;
+  onOpenQuickLinkModal?: () => void;
   themeMode?: ThemeMode;
 }
 
@@ -48,6 +54,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   onMoveElement,
   onOpenDrawIoWithDiagram,
   onOpenFonts,
+  onOpenQuickLinkModal,
   themeMode = 'dark'
 }) => {
   const isDark = themeMode === 'dark';
@@ -63,17 +70,31 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           Click on any text, button, container or image in the visual canvas to inspect and edit its styles & HTML attributes.
         </p>
 
-        {/* Global Google Fonts Utility Shortcut */}
-        {onOpenFonts && (
-          <button
-            type="button"
-            onClick={onOpenFonts}
-            className="w-full max-w-[220px] p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 font-semibold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
-          >
-            <Type className="w-4 h-4 text-indigo-400" />
-            <span>Google Fonts Studio</span>
-          </button>
-        )}
+        <div className="w-full max-w-[220px] space-y-2">
+          {/* Quick Link Creator Shortcut */}
+          {onOpenQuickLinkModal && (
+            <button
+              type="button"
+              onClick={onOpenQuickLinkModal}
+              className="w-full p-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 dark:text-cyan-300 font-semibold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
+            >
+              <LinkIcon className="w-4 h-4 text-cyan-400" />
+              <span>Quick Link & Anchor Creator</span>
+            </button>
+          )}
+
+          {/* Global Google Fonts Utility Shortcut */}
+          {onOpenFonts && (
+            <button
+              type="button"
+              onClick={onOpenFonts}
+              className="w-full p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 font-semibold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
+            >
+              <Type className="w-4 h-4 text-indigo-400" />
+              <span>Google Fonts Studio</span>
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -1025,6 +1046,110 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
             >
               <span>Full</span>
             </button>
+          </div>
+        </div>
+
+        {/* DEDICATED LINK & ANCHOR SETTINGS CARD */}
+        <div className={`p-3 border rounded-xl space-y-2.5 transition-all ${
+          tagNameLower === 'a' || attributes.href !== undefined
+            ? isDark ? 'bg-indigo-950/30 border-indigo-500/40' : 'bg-indigo-50 border-indigo-300'
+            : isDark ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-50 border-slate-200'
+        }`}>
+          <div className="flex items-center justify-between">
+            <span className="flex items-center space-x-1.5 font-bold text-xs text-indigo-500 dark:text-indigo-400">
+              <LinkIcon className="w-4 h-4 text-indigo-400" />
+              <span>Link & Anchor Settings (href)</span>
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono">&lt;a&gt; tag</span>
+          </div>
+
+          <div className="space-y-2">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className={`text-[10px] font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                  Href Destination URL / Anchor:
+                </label>
+                {tagNameLower !== 'a' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onUpdateElement({ tagName: 'a', attributes: { ...attributes, href: attributes.href || '#' } });
+                    }}
+                    className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 hover:underline flex items-center space-x-1 cursor-pointer"
+                    title="Change element HTML tag to <a> link"
+                  >
+                    <span>Convert to &lt;a&gt; Link</span>
+                    <span>→</span>
+                  </button>
+                )}
+              </div>
+              <input
+                type="text"
+                value={attributes.href || ''}
+                onChange={(e) => handleAttributeChange('href', e.target.value)}
+                placeholder="e.g. https://example.com or #features or mailto:user@domain.com"
+                className={`w-full px-2.5 py-1.5 border rounded-lg text-xs focus:outline-none focus:border-indigo-500 transition-colors ${
+                  isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+                }`}
+              />
+            </div>
+
+            {/* Quick Href Preset Shortcuts */}
+            <div className="space-y-1">
+              <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Quick Shortcuts:</span>
+              <div className="flex flex-wrap gap-1">
+                {['#hero', '#features', '#pricing', '#contact', '#faq', 'https://google.com', 'mailto:contact@example.com'].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => handleAttributeChange('href', preset)}
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-mono border transition-all cursor-pointer ${
+                      attributes.href === preset
+                        ? 'bg-indigo-600 text-white border-indigo-500 font-bold'
+                        : isDark ? 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Target Options & Link Formatting */}
+            <div className="flex items-center justify-between pt-1 border-t border-slate-800/40">
+              <label className="flex items-center space-x-1.5 text-[10px] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={attributes.target === '_blank'}
+                  onChange={(e) => {
+                    const isNewTab = e.target.checked;
+                    const updated = { ...attributes };
+                    if (isNewTab) {
+                      updated.target = '_blank';
+                      updated.rel = 'noopener noreferrer';
+                    } else {
+                      delete updated.target;
+                      delete updated.rel;
+                    }
+                    setAttributes(updated);
+                    onUpdateElement({ attributes: updated });
+                  }}
+                  className="rounded accent-indigo-600 cursor-pointer"
+                />
+                <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>Open in new tab (<code className="text-indigo-400">target="_blank"</code>)</span>
+              </label>
+
+              {onOpenQuickLinkModal && (
+                <button
+                  type="button"
+                  onClick={onOpenQuickLinkModal}
+                  className="text-[10px] text-cyan-400 hover:text-cyan-300 hover:underline font-semibold flex items-center space-x-1 cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Insert New Link</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

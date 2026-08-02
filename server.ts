@@ -11,12 +11,32 @@ import { ZstdCodec } from "zstd-codec";
 dotenv.config();
 
 // Helper function to robustly fetch HTTP/HTTPS URLs avoiding TLS handshake alerts & 403 bot blocks
+function isBlockedOrFailed(status: number, text: string): boolean {
+  if (status >= 400) return true;
+  if (!text) return true;
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("cf-browser-verification") ||
+    lower.includes("<title>just a moment...</title>") ||
+    lower.includes("attention required! | cloudflare") ||
+    lower.includes("checking your browser before accessing") ||
+    lower.includes("cloudflare ray id") ||
+    lower.includes("403 forbidden")
+  );
+}
+
 async function fetchUrlContent(targetUrl: string, maxRedirects = 5): Promise<{ status: number; statusText: string; text: string; finalUrl: string }> {
   let currentUrl = targetUrl;
   let redirects = 0;
 
   while (redirects < maxRedirects) {
-    const parsedUrl = new URL(currentUrl);
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(currentUrl);
+    } catch {
+      throw new Error("Invalid URL format. Please enter a valid webpage URL.");
+    }
+
     const isHttps = parsedUrl.protocol === "https:";
     const httpModule = isHttps ? https : http;
 
@@ -25,7 +45,7 @@ async function fetchUrlContent(targetUrl: string, maxRedirects = 5): Promise<{ s
         const options: https.RequestOptions = {
           hostname: parsedUrl.hostname,
           port: parsedUrl.port || (isHttps ? 443 : 80),
-          path: parsedUrl.pathname + parsedUrl.search,
+          path: (parsedUrl.pathname || "/") + parsedUrl.search,
           method: "GET",
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -80,23 +100,53 @@ async function fetchUrlContent(targetUrl: string, maxRedirects = 5): Promise<{ s
         continue;
       }
 
-      // If direct request returned 403 or 401 or 405 (bot blocking), attempt CORS proxy fallback
-      if (result.status === 403 || result.status === 401 || result.status === 405) {
-        console.log(`Direct fetch returned ${result.status} for ${currentUrl}. Attempting CORS proxy fallback...`);
-        const proxyUrls = [
-          `https://api.allorigins.win/raw?url=${encodeURIComponent(currentUrl)}`,
-          `https://corsproxy.io/?${encodeURIComponent(currentUrl)}`,
-          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(currentUrl)}`,
+      // If direct request returned 403 or Cloudflare challenge, attempt Googlebot header and CORS proxy fallbacks
+      if (isBlockedOrFailed(result.status, result.text)) {
+        console.log(`Direct fetch returned status ${result.status} or challenge page for ${currentUrl}. Attempting Googlebot & CORS proxy fallbacks...`);
+        
+        // 1. Try Googlebot User-Agent
+        try {
+          const gRes = await fetch(currentUrl, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            },
+          });
+          if (gRes.ok) {
+            const gText = await gRes.text();
+            if (gText && gText.length > 50 && !isBlockedOrFailed(gRes.status, gText)) {
+              return { status: 200, statusText: "OK (via Googlebot)", text: gText, finalUrl: currentUrl };
+            }
+          }
+        } catch {
+          // Ignore
+        }
+
+        // 2. Try proxy configs
+        const proxyConfigs = [
+          { type: "raw", url: `https://api.allorigins.win/raw?url=${encodeURIComponent(currentUrl)}` },
+          { type: "json_allorigins", url: `https://api.allorigins.win/get?url=${encodeURIComponent(currentUrl)}` },
+          { type: "raw", url: `https://corsproxy.io/?${encodeURIComponent(currentUrl)}` },
+          { type: "raw", url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(currentUrl)}` },
+          { type: "raw", url: `https://r.jina.ai/${currentUrl}` },
         ];
 
-        for (const proxyUrl of proxyUrls) {
+        for (const cfg of proxyConfigs) {
           try {
-            const proxyRes = await fetch(proxyUrl, {
+            const proxyRes = await fetch(cfg.url, {
               headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" }
             });
             if (proxyRes.ok) {
-              const proxyText = await proxyRes.text();
-              if (proxyText && proxyText.length > 50 && !proxyText.includes("Cloudflare Access") && !proxyText.includes("403 Forbidden")) {
+              let proxyText = await proxyRes.text();
+              if (cfg.type === "json_allorigins") {
+                try {
+                  const parsed = JSON.parse(proxyText);
+                  proxyText = parsed.contents || "";
+                } catch {
+                  // ignore JSON parse error
+                }
+              }
+              if (proxyText && proxyText.length > 50 && !isBlockedOrFailed(200, proxyText)) {
                 return {
                   status: 200,
                   statusText: "OK (via Proxy)",
@@ -106,7 +156,7 @@ async function fetchUrlContent(targetUrl: string, maxRedirects = 5): Promise<{ s
               }
             }
           } catch (proxyErr) {
-            console.warn(`Proxy ${proxyUrl} failed:`, proxyErr);
+            console.warn(`Proxy ${cfg.url} failed:`, proxyErr);
           }
         }
       }
@@ -114,26 +164,46 @@ async function fetchUrlContent(targetUrl: string, maxRedirects = 5): Promise<{ s
       return result;
     } catch (err: any) {
       // Fallback to proxy or fetch if https module request failed
-      try {
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(currentUrl)}`;
-        const proxyRes = await fetch(proxyUrl);
-        if (proxyRes.ok) {
-          const text = await proxyRes.text();
-          return {
-            status: 200,
-            statusText: "OK (via Proxy Fallback)",
-            text,
-            finalUrl: currentUrl,
-          };
+      const proxyConfigs = [
+        { type: "raw", url: `https://api.allorigins.win/raw?url=${encodeURIComponent(currentUrl)}` },
+        { type: "json_allorigins", url: `https://api.allorigins.win/get?url=${encodeURIComponent(currentUrl)}` },
+        { type: "raw", url: `https://corsproxy.io/?${encodeURIComponent(currentUrl)}` },
+        { type: "raw", url: `https://r.jina.ai/${currentUrl}` },
+      ];
+
+      for (const cfg of proxyConfigs) {
+        try {
+          const proxyRes = await fetch(cfg.url, {
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" }
+          });
+          if (proxyRes.ok) {
+            let proxyText = await proxyRes.text();
+            if (cfg.type === "json_allorigins") {
+              try {
+                const parsed = JSON.parse(proxyText);
+                proxyText = parsed.contents || "";
+              } catch {
+                // ignore
+              }
+            }
+            if (proxyText && proxyText.length > 50 && !isBlockedOrFailed(200, proxyText)) {
+              return {
+                status: 200,
+                statusText: "OK (via Proxy Fallback)",
+                text: proxyText,
+                finalUrl: currentUrl,
+              };
+            }
+          }
+        } catch {
+          // ignore
         }
-      } catch {
-        // Continue to throwing error
       }
 
       try {
         const fetchRes = await fetch(currentUrl, {
           headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
           },
           redirect: "follow",
@@ -197,7 +267,7 @@ app.post("/api/ai/generate", async (req, res) => {
       : "You are an expert web development assistant. Return production-ready clean code matching the prompt without preamble.";
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents: prompt,
       config: {
         systemInstruction,
