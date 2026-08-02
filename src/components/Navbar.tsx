@@ -19,7 +19,9 @@ import {
   Moon,
   Type,
   Undo2,
-  Redo2
+  Redo2,
+  Keyboard,
+  Globe
 } from 'lucide-react';
 import { ViewMode, DeviceMode, ProjectFile, ThemeMode } from '../types';
 
@@ -36,6 +38,9 @@ interface NavbarProps {
   onOpenAI: () => void;
   onOpenDrawIo: () => void;
   onOpenFonts?: () => void;
+  onOpenShortcuts?: () => void;
+  onOpenHostedPreview?: () => void;
+  onOpenImportUrl?: () => void;
   onOpenNewProject: () => void;
   onExportZst: () => void;
   activeRoomId: string | null;
@@ -60,6 +65,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAI,
   onOpenDrawIo,
   onOpenFonts,
+  onOpenShortcuts,
+  onOpenHostedPreview,
+  onOpenImportUrl,
   onOpenNewProject,
   onExportZst,
   activeRoomId,
@@ -243,6 +251,46 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Action Tools & Integration Buttons */}
       <div className="flex items-center space-x-2">
+        {/* Directly Import Webpage by URL Trigger */}
+        {onOpenImportUrl && (
+          <button
+            onClick={onOpenImportUrl}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 border border-teal-500/40 rounded-lg text-xs font-semibold shadow-xs shadow-teal-500/20 transition-all cursor-pointer"
+            title="Directly import any external webpage by URL, check HTML/JS, & parse all linked media"
+          >
+            <Globe className="w-3.5 h-3.5 text-teal-400" />
+            <span>Import URL</span>
+          </button>
+        )}
+
+        {/* Hosted Webpage Preview Trigger */}
+        {onOpenHostedPreview && (
+          <button
+            onClick={onOpenHostedPreview}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-semibold shadow-xs shadow-emerald-500/20 transition-all cursor-pointer"
+            title="Preview webpage as if it were hosted live in production"
+          >
+            <Globe className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+            <span>Hosted View</span>
+          </button>
+        )}
+
+        {/* Keyboard Shortcuts Helper Trigger */}
+        {onOpenShortcuts && (
+          <button
+            onClick={onOpenShortcuts}
+            className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+              isDark
+                ? 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border-slate-700'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 shadow-2xs'
+            }`}
+            title="Keyboard Shortcuts & IDE Hotkeys (?)"
+          >
+            <Keyboard className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="hidden xl:inline">Hotkeys</span>
+          </button>
+        )}
+
         {/* Google Fonts Studio Trigger */}
         {onOpenFonts && (
           <button

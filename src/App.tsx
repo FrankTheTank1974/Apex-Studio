@@ -26,6 +26,9 @@ import { ExportDeployModal } from './components/ExportDeployModal';
 import { AIAssistantModal } from './components/AIAssistantModal';
 import { NewProjectModal } from './components/NewProjectModal';
 import { GoogleFontsModal } from './components/GoogleFontsModal';
+import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
+import { HostedPreviewModal } from './components/HostedPreviewModal';
+import { ImportUrlModal } from './components/ImportUrlModal';
 import { downloadTarZstd } from './utils/tarZstd';
 import { normalizeSvgContent, serializeDocumentOrBody } from './utils/svgUtils';
 
@@ -56,6 +59,9 @@ export default function App() {
   const [isCollabOpen, setIsCollabOpen] = useState(false);
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
   const [isFontsOpen, setIsFontsOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isHostedPreviewOpen, setIsHostedPreviewOpen] = useState(false);
+  const [isImportUrlOpen, setIsImportUrlOpen] = useState(false);
 
   // Active Draw.io diagram state
   const [activeDiagram, setActiveDiagram] = useState<DrawIoDiagram | null>(null);
@@ -309,7 +315,7 @@ export default function App() {
     }
   };
 
-  // Keyboard shortcut listener for Delete/Backspace key and Ctrl+Z / Cmd+Z Undo/Redo
+  // Keyboard shortcut listener for Delete/Backspace key, Ctrl+Z / Cmd+Z Undo/Redo, and global hotkeys
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
@@ -324,6 +330,35 @@ export default function App() {
         activeEl?.closest('textarea') ||
         activeEl?.closest('.monaco-editor') ||
         activeEl?.closest('[contenteditable="true"]');
+
+      // Global hotkey: '?' to toggle keyboard shortcuts modal
+      if ((e.key === '?' || (isCmdOrCtrl && key === '/')) && !isInputOrEditable) {
+        e.preventDefault();
+        setIsShortcutsOpen((prev) => !prev);
+        return;
+      }
+
+      // Global hotkey: Ctrl/Cmd + K for AI Copilot
+      if (isCmdOrCtrl && key === 'k') {
+        e.preventDefault();
+        setIsAIOpen((prev) => !prev);
+        return;
+      }
+
+      // Global hotkey: Alt + H or Ctrl/Cmd + Shift + H for Hosted Webpage Preview
+      if ((e.altKey && key === 'h') || (isCmdOrCtrl && e.shiftKey && key === 'h')) {
+        e.preventDefault();
+        setIsHostedPreviewOpen((prev) => !prev);
+        return;
+      }
+
+      // View mode switching: Alt + 1/2/3/4
+      if (e.altKey && !isCmdOrCtrl && !e.shiftKey) {
+        if (key === '1') { e.preventDefault(); setViewMode('wysiwyg'); return; }
+        if (key === '2') { e.preventDefault(); setViewMode('split'); return; }
+        if (key === '3') { e.preventDefault(); setViewMode('code'); return; }
+        if (key === '4') { e.preventDefault(); setViewMode('preview'); return; }
+      }
 
       if (isCmdOrCtrl && (key === 'z' || key === 'y')) {
         if (!isInputOrEditable) {
@@ -462,6 +497,29 @@ export default function App() {
     }
   };
 
+  // Import webpage by URL handler
+  const handleImportWebpage = (htmlContent: string, cssContent: string, jsContent: string) => {
+    if (activeHtmlFile) {
+      setHistoryPast((prev) => [...prev, activeHtmlFile.content]);
+      setHistoryFuture([]);
+    }
+
+    const updatedFiles = files.map((f) => {
+      if (f.id === 'index-html' || f.type === 'html') {
+        return { ...f, content: htmlContent };
+      }
+      if ((f.id === 'styles-css' || f.type === 'css') && cssContent) {
+        return { ...f, content: cssContent };
+      }
+      if ((f.id === 'script-js' || f.type === 'js') && jsContent) {
+        return { ...f, content: jsContent };
+      }
+      return f;
+    });
+
+    broadcastFileUpdate(updatedFiles);
+  };
+
   // Initialize / Create new project
   const handleCreateNewProject = (newTitle: string, newFiles: ProjectFile[]) => {
     setProjectName(newTitle);
@@ -501,11 +559,18 @@ export default function App() {
         onOpenAI={() => setIsAIOpen(true)}
         onOpenDrawIo={() => setIsDrawIoOpen(true)}
         onOpenFonts={() => setIsFontsOpen(true)}
+        onOpenShortcuts={() => setIsShortcutsOpen(true)}
+        onOpenHostedPreview={() => setIsHostedPreviewOpen(true)}
+        onOpenImportUrl={() => setIsImportUrlOpen(true)}
         onOpenNewProject={() => setIsNewProjectOpen(true)}
         onExportZst={handleExportZstArchive}
         activeRoomId={activeRoomId}
         onToggleCollab={() => setIsCollabOpen(!isCollabOpen)}
         collaboratorCount={collaborators.length}
+        canUndo={historyPast.length > 0}
+        canRedo={historyFuture.length > 0}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
       />
 
       {/* Main Studio Workbench Area */}
@@ -533,6 +598,11 @@ export default function App() {
               onOpenDrawIoWithDiagram={handleOpenDrawIoWithDiagram}
               collaboratorCursors={remoteCursors}
               themeMode={themeMode}
+              canUndo={historyPast.length > 0}
+              canRedo={historyFuture.length > 0}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              onOpenHostedPreview={() => setIsHostedPreviewOpen(true)}
             />
           )}
 
@@ -622,6 +692,31 @@ export default function App() {
         isOpen={isNewProjectOpen}
         onClose={() => setIsNewProjectOpen(false)}
         onCreateProject={handleCreateNewProject}
+      />
+
+      {/* Keyboard Shortcuts Helper Modal */}
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
+        themeMode={themeMode}
+      />
+
+      {/* Hosted Webpage Live Production Preview Modal */}
+      <HostedPreviewModal
+        isOpen={isHostedPreviewOpen}
+        onClose={() => setIsHostedPreviewOpen(false)}
+        htmlContent={activeHtmlFile?.content || ''}
+        cssContent={activeCssFile?.content || ''}
+        jsContent={activeJsFile?.content || ''}
+        themeMode={themeMode}
+      />
+
+      {/* Directly Import Webpage by URL Modal */}
+      <ImportUrlModal
+        isOpen={isImportUrlOpen}
+        onClose={() => setIsImportUrlOpen(false)}
+        onImportWebpage={handleImportWebpage}
+        themeMode={themeMode}
       />
     </div>
   );

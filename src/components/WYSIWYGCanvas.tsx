@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { DeviceMode, SelectedElementInfo, ThemeMode } from '../types';
-import { RotateCw, Undo2, Redo2 } from 'lucide-react';
+import { RotateCw, Undo2, Redo2, Globe } from 'lucide-react';
 import { extractCanvasBodyHtml } from '../utils/svgUtils';
 
 interface WYSIWYGCanvasProps {
@@ -18,6 +18,7 @@ interface WYSIWYGCanvasProps {
   canRedo?: boolean;
   onUndo?: () => void;
   onRedo?: () => void;
+  onOpenHostedPreview?: () => void;
 }
 
 export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
@@ -35,6 +36,7 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
   canRedo = false,
   onUndo,
   onRedo,
+  onOpenHostedPreview,
 }) => {
   const isDark = themeMode === 'dark';
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -671,6 +673,17 @@ export const WYSIWYGCanvas: React.FC<WYSIWYGCanvasProps> = ({
           <RotateCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />
           <span>{isRefreshing ? 'Reloading...' : 'Reload Canvas'}</span>
         </button>
+
+        {onOpenHostedPreview && (
+          <button
+            onClick={onOpenHostedPreview}
+            className="flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 transition-all cursor-pointer"
+            title="Preview webpage like when it is hosted in production"
+          >
+            <Globe className="w-3 h-3 text-emerald-400" />
+            <span>Hosted View</span>
+          </button>
+        )}
       </div>
 
       {/* Remote Collaborator Cursors Overlay */}
