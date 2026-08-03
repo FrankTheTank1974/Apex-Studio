@@ -36,8 +36,19 @@
 - **POSIX USTAR + Zstandard Compression**: Export complete projects into high-ratio compressed `.tar.zst` archives.
 - **Offline Archiving**: Download raw or compressed archives directly in browser or generate via server API (`/api/export/zst`).
 
-### 7. 🤖 Gemini 2.5 Flash AI Copilot
-- **Server-side Proxy (`/api/ai/generate`)**: Prompt Gemini to generate custom Tailwind HTML components or full sections and insert them directly onto the canvas.
+### 7. 🤖 Gemini 3.6 Flash AI Copilot
+- **Server-side Proxy (`/api/ai/generate`)**: Prompt Gemini 3.6 Flash to generate custom Tailwind HTML components, layout blocks, or full pages and insert them directly onto the canvas.
+
+### 8. 🛡️ WCAG 2.1 AA Accessibility Auditor
+- **Automated Compliance Engine**: Analyzes HTML structure, heading hierarchy, image `alt` attributes, color contrast ratios, form labels, and landmark regions.
+- **One-Click Quick Fixes**: Automatically repair missing labels, heading skips, low contrast pairs, and invalid attributes.
+
+### 9. 🖼️ Image Optimization Studio
+- **Client-Side Compression & Conversion**: Convert images to high-efficiency WebP format, adjust dimensions, tune quality, and apply focal point crops directly before inserting into your projects.
+
+### 10. 🎨 Animation, Shadow & Visual Style Designer
+- **Keyframe & Transition Builder**: Generate pure Tailwind CSS entry, hover, pulse, and custom keyframe animations.
+- **Shadow & Border Controls**: Intuitively adjust box shadows, colored glows, outline borders, and corner radii with instant CSS output.
 
 ---
 
@@ -45,7 +56,7 @@
 
 - **Frontend**: React 19, TypeScript, Tailwind CSS v4, Lucide Icons, Vite
 - **Backend / Server**: Node.js, Express, `ws` (WebSockets), `zstd-codec`
-- **AI Engine**: `@google/genai` (Gemini 2.5 Flash)
+- **AI Engine**: `@google/genai` (Gemini 3.6 Flash)
 - **Diagramming**: Draw.io Embed Protocol (`embed.diagrams.net`)
 
 ---
@@ -83,6 +94,11 @@ npm start
 │   │   ├── ComponentLibrary.tsx # Drag-and-drop component palette
 │   │   ├── WYSIWYGCanvas.tsx    # Interactive rendering stage & drag drop target
 │   │   ├── InspectorPanel.tsx   # Live DOM & Tailwind CSS style inspector
+│   │   ├── A11yAuditorPanel.tsx # WCAG 2.1 AA accessibility auditing & auto-fixes
+│   │   ├── ImageOptimizerModal.tsx # WebP image optimization & cropping studio
+│   │   ├── AnimationBuilder.tsx # Custom Tailwind CSS animation & keyframe generator
+│   │   ├── ShadowBorderControlPanel.tsx # Visual shadow, border & glow studio
+│   │   ├── VersionHistoryPanel.tsx # Granular revision history timeline
 │   │   ├── CodeEditor.tsx       # Raw multi-file code editor with syntax tabs
 │   │   ├── DrawIoEditor.tsx     # Embedded Draw.io iframe modal
 │   │   ├── CollaborationBar.tsx # Real-time WebSocket room & chat drawer
@@ -91,6 +107,9 @@ npm start
 │   ├── data/
 │   │   └── componentsData.ts    # Pre-built component templates & starter files
 │   ├── utils/
+│   │   ├── a11yAuditor.ts       # WCAG 2.1 AA rule checker & quick-fix engine
+│   │   ├── imageOptimizer.ts    # Client-side WebP canvas compressor & cropper
+│   │   ├── animationPresets.ts  # Tailwind CSS animation presets & keyframes
 │   │   └── tarZstd.ts           # POSIX TAR & Zstandard compression binary exporter
 │   └── types.ts                 # Global TypeScript definitions
 └── metadata.json                # Application permissions & capabilities
