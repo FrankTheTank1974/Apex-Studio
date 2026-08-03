@@ -113,4 +113,4 @@ APP_URL="YOUR_APP_URL"
 ---
 
 ## 📄 License
-Apache-2.0 License. Built for seamless web creation and rapid cloud deployment.
+MIT License. Built for seamless web creation and rapid cloud deployment.
