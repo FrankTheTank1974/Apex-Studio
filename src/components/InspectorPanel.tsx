@@ -1,6 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { SelectedElementInfo, ThemeMode } from '../types';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { SelectedElementInfo, ThemeMode, ProjectFile } from '../types';
 import { GradientBuilder } from './GradientBuilder';
+import { CssVarAutoSuggestInput, DiscoveredCssVariable } from './CssVarAutoSuggestInput';
+import { AnimationBuilder } from './AnimationBuilder';
+import { VersionHistoryPanel } from './VersionHistoryPanel';
+import { ShadowBorderControlPanel } from './ShadowBorderControlPanel';
+import { A11yAuditorPanel } from './A11yAuditorPanel';
 import { 
   Type, 
   Palette, 
@@ -22,6 +27,7 @@ import {
   Play,
   Volume2,
   HelpCircle,
+  Zap,
   FileText,
   AlignLeft,
   AlignCenter,
@@ -31,8 +37,183 @@ import {
   ExternalLink,
   Anchor,
   Globe,
-  Plus
+  Plus,
+  RotateCcw,
+  Paintbrush,
+  History,
+  ShieldCheck
 } from 'lucide-react';
+
+export interface ThemeVariables {
+  primaryColor: string;
+  secondaryColor: string;
+  bgColor: string;
+  textColor: string;
+  surfaceColor: string;
+  borderColor: string;
+  fontHeading: string;
+  fontBody: string;
+  fontSizeBase: string;
+  borderRadiusBase: string;
+}
+
+export const DEFAULT_THEME_VARS: ThemeVariables = {
+  primaryColor: '#6366f1',
+  secondaryColor: '#a855f7',
+  bgColor: '#ffffff',
+  textColor: '#0f172a',
+  surfaceColor: '#f8fafc',
+  borderColor: '#e2e8f0',
+  fontHeading: "system-ui, -apple-system, sans-serif",
+  fontBody: "system-ui, -apple-system, sans-serif",
+  fontSizeBase: '16px',
+  borderRadiusBase: '12px'
+};
+
+export const PRESET_THEMES: Array<{ name: string; vars: ThemeVariables; previewColor: string }> = [
+  {
+    name: 'Modern SaaS (Indigo)',
+    previewColor: '#6366f1',
+    vars: {
+      primaryColor: '#6366f1',
+      secondaryColor: '#a855f7',
+      bgColor: '#ffffff',
+      textColor: '#0f172a',
+      surfaceColor: '#f8fafc',
+      borderColor: '#e2e8f0',
+      fontHeading: "system-ui, -apple-system, sans-serif",
+      fontBody: "system-ui, -apple-system, sans-serif",
+      fontSizeBase: '16px',
+      borderRadiusBase: '12px'
+    }
+  },
+  {
+    name: 'Emerald & Teal Tech',
+    previewColor: '#10b981',
+    vars: {
+      primaryColor: '#10b981',
+      secondaryColor: '#06b6d4',
+      bgColor: '#f8fafc',
+      textColor: '#022c22',
+      surfaceColor: '#ffffff',
+      borderColor: '#cbd5e1',
+      fontHeading: "'Plus Jakarta Sans', system-ui, sans-serif",
+      fontBody: "'Outfit', system-ui, sans-serif",
+      fontSizeBase: '16px',
+      borderRadiusBase: '8px'
+    }
+  },
+  {
+    name: 'Cyberpunk Neon Dark',
+    previewColor: '#06b6d4',
+    vars: {
+      primaryColor: '#06b6d4',
+      secondaryColor: '#f43f5e',
+      bgColor: '#090d16',
+      textColor: '#f8fafc',
+      surfaceColor: '#1e293b',
+      borderColor: '#334155',
+      fontHeading: "'JetBrains Mono', monospace",
+      fontBody: "system-ui, sans-serif",
+      fontSizeBase: '15px',
+      borderRadiusBase: '16px'
+    }
+  },
+  {
+    name: 'Sunset Amber & Rose',
+    previewColor: '#f59e0b',
+    vars: {
+      primaryColor: '#f59e0b',
+      secondaryColor: '#f43f5e',
+      bgColor: '#fff8f6',
+      textColor: '#1c1917',
+      surfaceColor: '#ffffff',
+      borderColor: '#fed7aa',
+      fontHeading: "'Playfair Display', Georgia, serif",
+      fontBody: "system-ui, sans-serif",
+      fontSizeBase: '16px',
+      borderRadiusBase: '14px'
+    }
+  },
+  {
+    name: 'Luxury Slate & Purple',
+    previewColor: '#8b5cf6',
+    vars: {
+      primaryColor: '#8b5cf6',
+      secondaryColor: '#ec4899',
+      bgColor: '#0f172a',
+      textColor: '#f8fafc',
+      surfaceColor: '#1e293b',
+      borderColor: '#334155',
+      fontHeading: "'Plus Jakarta Sans', system-ui, sans-serif",
+      fontBody: "system-ui, sans-serif",
+      fontSizeBase: '16px',
+      borderRadiusBase: '20px'
+    }
+  }
+];
+
+export function parseThemeFromCss(css: string): ThemeVariables {
+  if (!css) return DEFAULT_THEME_VARS;
+  const getVar = (name: string, fallback: string) => {
+    const match = css.match(new RegExp(`${name}:\\s*([^;]+);`));
+    return match ? match[1].trim() : fallback;
+  };
+
+  return {
+    primaryColor: getVar('--primary-color', DEFAULT_THEME_VARS.primaryColor),
+    secondaryColor: getVar('--secondary-color', DEFAULT_THEME_VARS.secondaryColor),
+    bgColor: getVar('--bg-color', DEFAULT_THEME_VARS.bgColor),
+    textColor: getVar('--text-color', DEFAULT_THEME_VARS.textColor),
+    surfaceColor: getVar('--surface-color', DEFAULT_THEME_VARS.surfaceColor),
+    borderColor: getVar('--border-color', DEFAULT_THEME_VARS.borderColor),
+    fontHeading: getVar('--font-heading', DEFAULT_THEME_VARS.fontHeading),
+    fontBody: getVar('--font-body', DEFAULT_THEME_VARS.fontBody),
+    fontSizeBase: getVar('--font-size-base', DEFAULT_THEME_VARS.fontSizeBase),
+    borderRadiusBase: getVar('--border-radius-base', DEFAULT_THEME_VARS.borderRadiusBase),
+  };
+}
+
+export function updateThemeInCss(css: string, vars: ThemeVariables): string {
+  const themeHeader = `/* === Tailwind Theme Variables & Global Styles === */`;
+  const newBlock = `${themeHeader}
+:root {
+  --primary-color: ${vars.primaryColor};
+  --secondary-color: ${vars.secondaryColor};
+  --bg-color: ${vars.bgColor};
+  --text-color: ${vars.textColor};
+  --surface-color: ${vars.surfaceColor};
+  --border-color: ${vars.borderColor};
+  --font-heading: ${vars.fontHeading};
+  --font-body: ${vars.fontBody};
+  --font-size-base: ${vars.fontSizeBase};
+  --border-radius-base: ${vars.borderRadiusBase};
+}
+
+/* Global Theme Helper Utilities */
+.bg-theme-primary { background-color: var(--primary-color) !important; }
+.text-theme-primary { color: var(--primary-color) !important; }
+.bg-theme-secondary { background-color: var(--secondary-color) !important; }
+.text-theme-secondary { color: var(--secondary-color) !important; }
+.bg-theme-surface { background-color: var(--surface-color) !important; }
+.text-theme-body { color: var(--text-color) !important; }
+.border-theme { border-color: var(--border-color) !important; }
+.rounded-theme { border-radius: var(--border-radius-base) !important; }`;
+
+  if (css.includes('/* === Tailwind Theme Variables & Global Styles === */')) {
+    const themeRegex = /\/\* === Tailwind Theme Variables & Global Styles === \*\/[\s\S]*?(?=\n\/\*|\nbody|\n\.|\n#|$)/;
+    if (themeRegex.test(css)) {
+      return css.replace(themeRegex, newBlock);
+    }
+  }
+
+  if (css.includes(':root {')) {
+    const rootRegex = /:root\s*\{[\s\S]*?\}/;
+    return css.replace(rootRegex, `:root {\n  --primary-color: ${vars.primaryColor};\n  --secondary-color: ${vars.secondaryColor};\n  --bg-color: ${vars.bgColor};\n  --text-color: ${vars.textColor};\n  --surface-color: ${vars.surfaceColor};\n  --border-color: ${vars.borderColor};\n  --font-heading: ${vars.fontHeading};\n  --font-body: ${vars.fontBody};\n  --font-size-base: ${vars.fontSizeBase};\n  --border-radius-base: ${vars.borderRadiusBase};\n}`);
+  }
+
+  return `${newBlock}\n\n${css}`;
+}
 
 interface InspectorPanelProps {
   selectedElement: SelectedElementInfo | null;
@@ -43,6 +224,13 @@ interface InspectorPanelProps {
   onOpenDrawIoWithDiagram?: (diagramId?: string) => void;
   onOpenFonts?: () => void;
   onOpenQuickLinkModal?: () => void;
+  onOpenIconPicker?: () => void;
+  cssContent?: string;
+  activeHtmlContent?: string;
+  files?: ProjectFile[];
+  onUpdateCssContent?: (newCss: string) => void;
+  onUpdateHtmlContent?: (newHtml: string) => void;
+  onRestoreFiles?: (restoredFiles: ProjectFile[]) => void;
   themeMode?: ThemeMode;
 }
 
@@ -55,64 +243,130 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   onOpenDrawIoWithDiagram,
   onOpenFonts,
   onOpenQuickLinkModal,
+  onOpenIconPicker,
+  cssContent = '',
+  activeHtmlContent = '',
+  files,
+  onUpdateCssContent,
+  onUpdateHtmlContent,
+  onRestoreFiles,
   themeMode = 'dark'
 }) => {
   const isDark = themeMode === 'dark';
+  const [activeTab, setActiveTab] = useState<'element' | 'animations' | 'theme' | 'history' | 'a11y'>('element');
+  const [themeVars, setThemeVars] = useState<ThemeVariables>(() => parseThemeFromCss(cssContent));
+  const [copiedThemeCss, setCopiedThemeCss] = useState(false);
 
-  if (!selectedElement) {
-    return (
-      <div className={`w-80 border-l p-6 flex flex-col items-center justify-center text-center text-xs transition-colors ${
-        isDark ? 'bg-slate-900 border-slate-800 text-slate-500' : 'bg-white border-slate-200 text-slate-500'
-      }`}>
-        <Sliders className={`w-8 h-8 mb-3 stroke-1 ${isDark ? 'text-slate-700' : 'text-slate-300'}`} />
-        <p className={`font-semibold mb-1 ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>No Element Selected</p>
-        <p className={`max-w-[200px] leading-relaxed mb-6 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
-          Click on any text, button, container or image in the visual canvas to inspect and edit its styles & HTML attributes.
-        </p>
+  // Extract CSS custom properties defined across project stylesheets
+  const availableCssVars = useMemo<DiscoveredCssVariable[]>(() => {
+    const varsMap = new Map<string, DiscoveredCssVariable>();
 
-        <div className="w-full max-w-[220px] space-y-2">
-          {/* Quick Link Creator Shortcut */}
-          {onOpenQuickLinkModal && (
-            <button
-              type="button"
-              onClick={onOpenQuickLinkModal}
-              className="w-full p-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 dark:text-cyan-300 font-semibold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
-            >
-              <LinkIcon className="w-4 h-4 text-cyan-400" />
-              <span>Quick Link & Anchor Creator</span>
-            </button>
-          )}
+    const cssSources: { content: string; filename: string }[] = [];
+    if (cssContent) {
+      cssSources.push({ content: cssContent, filename: 'styles.css' });
+    }
+    if (files) {
+      for (const f of files) {
+        if (f.type === 'css' && f.content && f.name !== 'styles.css') {
+          cssSources.push({ content: f.content, filename: f.name });
+        }
+      }
+    }
 
-          {/* Global Google Fonts Utility Shortcut */}
-          {onOpenFonts && (
-            <button
-              type="button"
-              onClick={onOpenFonts}
-              className="w-full p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 font-semibold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
-            >
-              <Type className="w-4 h-4 text-indigo-400" />
-              <span>Google Fonts Studio</span>
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
+    for (const src of cssSources) {
+      const regex = /(--[a-zA-Z0-9_-]+)\s*:\s*([^;}\n]+)/g;
+      let match;
+      while ((match = regex.exec(src.content)) !== null) {
+        const name = match[1].trim();
+        const value = match[2].trim();
+        const isColor =
+          /^#([0-9a-f]{3,8})$/i.test(value) ||
+          /^rgba?\(.*?\)/i.test(value) ||
+          /^hsla?\(.*?\)/i.test(value) ||
+          ['red', 'blue', 'green', 'black', 'white', 'transparent', 'indigo', 'cyan', 'purple', 'emerald', 'amber', 'slate', 'rose'].some((c) =>
+            value.toLowerCase().includes(c)
+          );
 
-  const [textContent, setTextContent] = useState(selectedElement.textContent || '');
-  const [classList, setClassList] = useState(selectedElement.classList?.join(' ') || '');
+        if (!varsMap.has(name)) {
+          varsMap.set(name, {
+            name,
+            value,
+            varRef: `var(${name})`,
+            sourceFile: src.filename,
+            isColor,
+          });
+        }
+      }
+    }
+
+    return Array.from(varsMap.values());
+  }, [cssContent, files]);
+
+  const [textContent, setTextContent] = useState(selectedElement?.textContent || '');
+  const [classList, setClassList] = useState(selectedElement?.classList?.join(' ') || '');
   const [newClass, setNewClass] = useState('');
-  const [attributes, setAttributes] = useState<Record<string, string>>(selectedElement.attributes || {});
+  const [attributes, setAttributes] = useState<Record<string, string>>(selectedElement?.attributes || {});
   const [showFormatDocs, setShowFormatDocs] = useState(true);
   const [copiedClasses, setCopiedClasses] = useState(false);
   const [chipCopied, setChipCopied] = useState<string | null>(null);
   const classTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    setTextContent(selectedElement.textContent || '');
-    setClassList(selectedElement.classList?.join(' ') || '');
-    setAttributes(selectedElement.attributes || {});
+    if (selectedElement) {
+      setTextContent(selectedElement.textContent || '');
+      setClassList(selectedElement.classList?.join(' ') || '');
+      setAttributes(selectedElement.attributes || {});
+    }
   }, [selectedElement]);
+
+  useEffect(() => {
+    if (cssContent) {
+      setThemeVars(parseThemeFromCss(cssContent));
+    }
+  }, [cssContent]);
+
+  const handleUpdateThemeVar = (key: keyof ThemeVariables, value: string) => {
+    const updated = { ...themeVars, [key]: value };
+    setThemeVars(updated);
+    if (onUpdateCssContent) {
+      const newCss = updateThemeInCss(cssContent, updated);
+      onUpdateCssContent(newCss);
+    }
+  };
+
+  const handleApplyPreset = (presetVars: ThemeVariables) => {
+    setThemeVars(presetVars);
+    if (onUpdateCssContent) {
+      const newCss = updateThemeInCss(cssContent, presetVars);
+      onUpdateCssContent(newCss);
+    }
+  };
+
+  const handleResetTheme = () => {
+    handleApplyPreset(DEFAULT_THEME_VARS);
+  };
+
+  const handleCopyThemeCss = () => {
+    const rootCss = `:root {
+  --primary-color: ${themeVars.primaryColor};
+  --secondary-color: ${themeVars.secondaryColor};
+  --bg-color: ${themeVars.bgColor};
+  --text-color: ${themeVars.textColor};
+  --surface-color: ${themeVars.surfaceColor};
+  --border-color: ${themeVars.borderColor};
+  --font-heading: ${themeVars.fontHeading};
+  --font-body: ${themeVars.fontBody};
+  --font-size-base: ${themeVars.fontSizeBase};
+  --border-radius-base: ${themeVars.borderRadiusBase};
+}`;
+    try {
+      navigator.clipboard.writeText(rootCss);
+    } catch {
+      // ignore
+    }
+    setCopiedThemeCss(true);
+    setTimeout(() => setCopiedThemeCss(false), 2000);
+  };
 
   const tagNameLower = selectedElement?.tagName?.toLowerCase() || '';
 
@@ -148,7 +402,9 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     );
 
   const handleApplyText = () => {
-    onUpdateElement({ textContent });
+    if (selectedElement) {
+      onUpdateElement({ textContent });
+    }
   };
 
   const cleanClassString = (rawText: string) => {
@@ -194,7 +450,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     try {
       navigator.clipboard.writeText(textToCopy);
     } catch {
-      // Fallback ignore if clipboard permission restricted
+      // Fallback
     }
     if (customText) {
       setChipCopied(customText);
@@ -220,10 +476,9 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         }
       }
     } catch {
-      // Browser permission policy blocked Clipboard API inside iframe preview
+      // Ignore restriction
     }
 
-    // Direct fallback: focus the textarea and guide user to press Ctrl+V / Cmd+V
     if (classTextareaRef.current) {
       classTextareaRef.current.focus();
       classTextareaRef.current.select();
@@ -302,922 +557,1010 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     <div className={`w-80 border-l flex flex-col h-full text-xs select-none transition-colors ${
       isDark ? 'bg-slate-900 border-slate-800 text-slate-300' : 'bg-white border-slate-200 text-slate-700'
     }`}>
-      {/* Header & Element Breadcrumb */}
-      <div className={`p-3 border-b flex items-center justify-between ${
+      {/* Top Tab Bar Switcher */}
+      <div className={`flex items-center border-b p-1.5 space-x-1 shrink-0 ${
         isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
       }`}>
-        <div className="flex items-center space-x-2">
-          <span className="px-2 py-0.5 bg-indigo-600/30 text-indigo-400 dark:text-indigo-300 rounded font-mono font-bold uppercase text-[11px]">
-            &lt;{selectedElement.tagName.toLowerCase()}&gt;
-          </span>
-          {isSvgOrDiagram && (
-            <span className="px-2 py-0.5 bg-amber-500/20 text-amber-500 rounded font-semibold text-[10px] flex items-center space-x-1 border border-amber-500/30">
-              <Workflow className="w-3 h-3 text-amber-500" />
-              <span>SVG Diagram</span>
-            </span>
-          )}
-          <span className={`font-mono text-[11px] truncate max-w-[120px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            {selectedElement.id ? `#${selectedElement.id}` : ''}
-          </span>
-        </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab('element')}
+          className={`flex-1 py-1.5 px-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer ${
+            activeTab === 'element'
+              ? isDark
+                ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                : 'bg-white text-slate-900 shadow-xs border border-slate-200'
+              : isDark
+                ? 'text-slate-400 hover:text-slate-200'
+                : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Sliders className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Element</span>
+        </button>
 
-        {/* Quick Toolbar */}
-        <div className="flex items-center space-x-1">
-          <button
-            onClick={() => onMoveElement('up')}
-            className={`p-1 rounded ${isDark ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-200 text-slate-600 hover:text-slate-900'}`}
-            title="Move Up"
-          >
-            <ArrowUp className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => onMoveElement('down')}
-            className={`p-1 rounded ${isDark ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-200 text-slate-600 hover:text-slate-900'}`}
-            title="Move Down"
-          >
-            <ArrowDown className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={onDuplicateElement}
-            className={`p-1 rounded ${isDark ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-200 text-slate-600 hover:text-slate-900'}`}
-            title="Duplicate Element"
-          >
-            <Copy className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={onDeleteElement}
-            className="p-1 hover:bg-red-950/50 rounded text-red-400 hover:text-red-300"
-            title="Delete Element (Del / Backspace)"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab('animations')}
+          className={`flex-1 py-1.5 px-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer ${
+            activeTab === 'animations'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : isDark
+                ? 'text-slate-400 hover:text-slate-200'
+                : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Zap className="w-3.5 h-3.5 text-amber-400" />
+          <span>Animations</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('theme')}
+          className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer ${
+            activeTab === 'theme'
+              ? isDark
+                ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                : 'bg-white text-slate-900 shadow-xs border border-slate-200'
+              : isDark
+                ? 'text-slate-400 hover:text-slate-200'
+                : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Palette className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+          <span>Theme</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('a11y')}
+          className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer ${
+            activeTab === 'a11y'
+              ? isDark
+                ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                : 'bg-white text-slate-900 shadow-xs border border-slate-200'
+              : isDark
+                ? 'text-slate-400 hover:text-slate-200'
+                : 'text-slate-600 hover:text-slate-900'
+          }`}
+          title="Accessibility Auditor & WCAG WCAG Compliance"
+        >
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span>A11y</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('history')}
+          className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer ${
+            activeTab === 'history'
+              ? isDark
+                ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                : 'bg-white text-slate-900 shadow-xs border border-slate-200'
+              : isDark
+                ? 'text-slate-400 hover:text-slate-200'
+                : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <History className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+          <span>History</span>
+        </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-4">
-        {/* Draw.io Embedded Diagram Helper */}
-        {isSvgOrDiagram && (
-          <div className={`p-3 border rounded-xl space-y-2 ${
-            isDark ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-900'
+      {/* ACCESSIBILITY AUDITOR TAB */}
+      {activeTab === 'a11y' ? (
+        <A11yAuditorPanel
+          files={files || []}
+          activeHtmlContent={activeHtmlContent}
+          onUpdateHtmlContent={onUpdateHtmlContent}
+          themeMode={themeMode}
+        />
+      ) : activeTab === 'history' ? (
+        <div className="flex-1 overflow-y-auto p-3">
+          <VersionHistoryPanel
+            files={files || []}
+            onRestoreFiles={(restored) => {
+              if (onRestoreFiles) {
+                onRestoreFiles(restored);
+              }
+            }}
+            isDark={isDark}
+          />
+        </div>
+      ) : activeTab === 'animations' ? (
+        <div className="flex-1 overflow-y-auto p-3">
+          <AnimationBuilder
+            selectedElement={selectedElement}
+            onUpdateElement={onUpdateElement}
+            cssContent={cssContent}
+            onUpdateCssContent={onUpdateCssContent}
+            isDark={isDark}
+          />
+        </div>
+      ) : activeTab === 'theme' ? (
+        <div className="flex-1 overflow-y-auto p-4 space-y-5">
+          {/* Header banner */}
+          <div className={`p-3.5 rounded-xl border ${
+            isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
           }`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Workflow className="w-4 h-4 text-amber-500" />
-                <span className="font-bold text-xs">Draw.io / SVG Vector Diagram</span>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold flex items-center space-x-1.5 text-indigo-500">
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <span>Tailwind Theme Variables</span>
+              </span>
+              <div className="flex items-center space-x-1">
+                <button
+                  type="button"
+                  onClick={handleCopyThemeCss}
+                  className={`p-1.5 rounded text-[10px] font-semibold border flex items-center space-x-1 transition-all cursor-pointer ${
+                    copiedThemeCss
+                      ? 'bg-emerald-500 text-white border-emerald-400'
+                      : isDark
+                        ? 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
+                        : 'bg-white border-slate-300 text-slate-700 hover:text-slate-900'
+                  }`}
+                  title="Copy CSS :root Variables"
+                >
+                  {copiedThemeCss ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedThemeCss ? 'Copied' : 'Copy CSS'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetTheme}
+                  className={`p-1.5 rounded text-[10px] font-semibold border transition-all cursor-pointer ${
+                    isDark ? 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white' : 'bg-white border-slate-300 text-slate-600 hover:text-slate-900'
+                  }`}
+                  title="Reset to Default Theme"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                </button>
               </div>
-              <span className="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-600 dark:text-amber-300 rounded-full font-mono font-semibold">
-                Vector Block
-              </span>
             </div>
-            <p className="text-[11px] leading-relaxed opacity-90">
-              Double-click diagram on the canvas or click below to launch the Draw.io vector diagram editor.
+            <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+              Customize root CSS custom properties and theme colors. Changes update live in canvas & <code className="text-indigo-400 font-mono text-[10px]">styles.css</code>.
             </p>
-            {onOpenDrawIoWithDiagram && (
-              <button
-                type="button"
-                onClick={() => {
-                  const id = selectedElement.attributes?.['data-diagram-id'] || 'diagram-1';
-                  onOpenDrawIoWithDiagram(id);
-                }}
-                className="w-full py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all shadow-xs cursor-pointer"
-              >
-                <Workflow className="w-3.5 h-3.5" />
-                <span>Open Draw.io Canvas Editor</span>
-              </button>
-            )}
           </div>
-        )}
 
-        {/* MEDIA & VIDEO ASSET MANAGER */}
-        {isMediaAsset && (
-          <div className={`p-3 border rounded-xl space-y-3 ${
-            isDark ? 'bg-purple-950/20 border-purple-500/30' : 'bg-purple-50/70 border-purple-200'
-          }`}>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center space-x-1.5 font-bold text-xs text-purple-600 dark:text-purple-400">
-                <Film className="w-4 h-4" />
-                <span>Media & Video Asset Manager</span>
-              </span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                selectedElement.tagName.toLowerCase() === 'video'
-                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                  : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-              }`}>
-                {selectedElement.tagName.toUpperCase()} Tag
-              </span>
-            </div>
-
-            {/* Drag and Drop / Local File Upload Zone */}
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
+          {/* Live Theme Preview Component */}
+          <div className="space-y-1.5">
+            <label className={`text-xs font-semibold flex items-center justify-between ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+              <span>Live Theme Preview</span>
+              <span className="text-[10px] text-indigo-400 font-mono">CSS Variables Active</span>
+            </label>
+            <div 
+              className="p-3.5 rounded-xl border shadow-sm transition-all space-y-2.5"
+              style={{
+                backgroundColor: themeVars.surfaceColor,
+                borderColor: themeVars.borderColor,
+                borderRadius: themeVars.borderRadiusBase,
+                color: themeVars.textColor,
+                fontFamily: themeVars.fontBody
               }}
-              onDrop={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const file = e.dataTransfer.files?.[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onload = (evt) => {
-                    const dataUrl = evt.target?.result as string;
-                    const isVid = file.type.startsWith('video/');
-                    const targetTag = isVid ? 'video' : (selectedElement.tagName.toLowerCase() === 'video' ? 'video' : 'img');
-                    const updatedAttrs = { ...attributes, src: dataUrl };
-                    if (isVid) updatedAttrs.controls = 'true';
-                    setAttributes(updatedAttrs);
-                    onUpdateElement({ tagName: targetTag, attributes: updatedAttrs });
-                  };
-                  reader.readAsDataURL(file);
-                }
-              }}
-              className={`border-2 border-dashed rounded-xl p-3 text-center transition-all cursor-pointer group ${
-                isDark 
-                  ? 'border-purple-500/40 hover:border-purple-400 bg-slate-950/60 hover:bg-slate-900/80' 
-                  : 'border-purple-300 hover:border-purple-500 bg-white hover:bg-purple-50/50'
-              }`}
             >
-              <input
-                type="file"
-                id="media-file-input"
-                accept="image/*,video/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (evt) => {
-                      const dataUrl = evt.target?.result as string;
-                      const isVid = file.type.startsWith('video/');
-                      const targetTag = isVid ? 'video' : (selectedElement.tagName.toLowerCase() === 'video' ? 'video' : 'img');
-                      const updatedAttrs = { ...attributes, src: dataUrl };
-                      if (isVid) updatedAttrs.controls = 'true';
-                      setAttributes(updatedAttrs);
-                      onUpdateElement({ tagName: targetTag, attributes: updatedAttrs });
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
-              />
-              <label htmlFor="media-file-input" className="cursor-pointer block space-y-1">
-                <div className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Upload className="w-4 h-4" />
-                </div>
-                <p className={`text-xs font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-                  Upload Image or Video
-                </p>
-                <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Drag & drop file here or click to browse (.mp4, .webm, .png, .jpg, .jxl)
-                </p>
-              </label>
-            </div>
-
-            {/* Media Type Switcher: Image vs Video */}
-            <div className="flex space-x-1">
-              <button
-                type="button"
-                onClick={() => {
-                  const updated = { ...attributes };
-                  onUpdateElement({ tagName: 'img', attributes: updated });
-                }}
-                className={`flex-1 py-1 px-2 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 border transition-all cursor-pointer ${
-                  selectedElement.tagName.toLowerCase() === 'img'
-                    ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
-                    : isDark ? 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white' : 'bg-slate-100 text-slate-600 border-slate-200'
-                }`}
-              >
-                <ImageIcon className="w-3.5 h-3.5" />
-                <span>Image (&lt;img&gt;)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const updated = {
-                    ...attributes,
-                    src: attributes.src || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-                    controls: 'true'
-                  };
-                  setAttributes(updated);
-                  onUpdateElement({ tagName: 'video', attributes: updated });
-                }}
-                className={`flex-1 py-1 px-2 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 border transition-all cursor-pointer ${
-                  selectedElement.tagName.toLowerCase() === 'video'
-                    ? 'bg-purple-600 text-white border-purple-500 shadow-xs'
-                    : isDark ? 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white' : 'bg-slate-100 text-slate-600 border-slate-200'
-                }`}
-              >
-                <VideoIcon className="w-3.5 h-3.5" />
-                <span>Video (&lt;video&gt;)</span>
-              </button>
-            </div>
-
-            {/* Video Playback Controls (when video tag selected) */}
-            {selectedElement.tagName.toLowerCase() === 'video' && (
-              <div className={`p-2.5 rounded-lg space-y-2 border ${
-                isDark ? 'bg-slate-950 border-purple-900/40 text-slate-300' : 'bg-white border-purple-200 text-slate-700'
-              }`}>
-                <span className="text-[11px] font-bold text-purple-400 flex items-center space-x-1">
-                  <Play className="w-3 h-3" />
-                  <span>Video Options & Controls</span>
+              <div className="flex items-center justify-between">
+                <span 
+                  className="text-xs font-bold truncate max-w-[170px]"
+                  style={{ fontFamily: themeVars.fontHeading, color: themeVars.textColor }}
+                >
+                  Sample UI Component
                 </span>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <label className="flex items-center space-x-1.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={attributes.controls !== 'false' && attributes.controls !== undefined}
-                      onChange={(e) => handleAttributeChange('controls', e.target.checked ? 'true' : 'false')}
-                      className="rounded accent-purple-600"
-                    />
-                    <span>Player Controls</span>
-                  </label>
+                <span 
+                  className="px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider"
+                  style={{ backgroundColor: themeVars.secondaryColor, color: '#ffffff', borderRadius: '4px' }}
+                >
+                  Badge
+                </span>
+              </div>
+              <p className="text-[11px] opacity-80 leading-relaxed">
+                Primary action buttons, backgrounds, and borders automatically inherit these values.
+              </p>
+              <div className="flex items-center space-x-2 pt-1">
+                <button
+                  type="button"
+                  className="px-3 py-1.5 text-xs font-bold text-white transition-all shadow-xs cursor-pointer"
+                  style={{
+                    backgroundColor: themeVars.primaryColor,
+                    borderRadius: themeVars.borderRadiusBase
+                  }}
+                >
+                  Button
+                </button>
+                <button
+                  type="button"
+                  className="px-3 py-1.5 text-xs font-semibold border transition-all cursor-pointer"
+                  style={{
+                    borderColor: themeVars.borderColor,
+                    color: themeVars.textColor,
+                    borderRadius: themeVars.borderRadiusBase
+                  }}
+                >
+                  Outline
+                </button>
+              </div>
+            </div>
+          </div>
 
-                  <label className="flex items-center space-x-1.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={attributes.autoplay === 'true' || attributes.autoplay === ''}
-                      onChange={(e) => handleAttributeChange('autoplay', e.target.checked ? 'true' : 'false')}
-                      className="rounded accent-purple-600"
-                    />
-                    <span>Autoplay</span>
-                  </label>
+          {/* Color Palettes Presets */}
+          <div className="space-y-2">
+            <label className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+              Color Swatch Presets
+            </label>
+            <div className="grid grid-cols-1 gap-1.5">
+              {PRESET_THEMES.map((preset) => {
+                const isActive = themeVars.primaryColor === preset.vars.primaryColor && themeVars.secondaryColor === preset.vars.secondaryColor;
+                return (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => handleApplyPreset(preset.vars)}
+                    className={`p-2 rounded-xl border text-xs font-medium flex items-center justify-between transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                        : isDark
+                          ? 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span className="w-3.5 h-3.5 rounded-full border border-white/20 shadow-xs shrink-0" style={{ backgroundColor: preset.previewColor }} />
+                      <span className="text-[11px] font-semibold">{preset.name}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <span className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ backgroundColor: preset.vars.bgColor }} />
+                      <span className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ backgroundColor: preset.vars.primaryColor }} />
+                      <span className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ backgroundColor: preset.vars.secondaryColor }} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-                  <label className="flex items-center space-x-1.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={attributes.loop === 'true' || attributes.loop === ''}
-                      onChange={(e) => handleAttributeChange('loop', e.target.checked ? 'true' : 'false')}
-                      className="rounded accent-purple-600"
-                    />
-                    <span>Loop Playback</span>
-                  </label>
+          {/* Color Picker UI Section with Auto-Suggest */}
+          <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+            <label className={`text-xs font-semibold flex items-center justify-between ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+              <span className="flex items-center space-x-1.5">
+                <Palette className="w-3.5 h-3.5 text-purple-400" />
+                <span>Theme Color Pickers</span>
+              </span>
+              <span className="text-[10px] text-indigo-400 font-mono font-semibold flex items-center space-x-1">
+                <Sparkles className="w-3 h-3 text-indigo-400" />
+                <span>Auto-Suggest Active</span>
+              </span>
+            </label>
 
-                  <label className="flex items-center space-x-1.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={attributes.muted === 'true' || attributes.muted === ''}
-                      onChange={(e) => handleAttributeChange('muted', e.target.checked ? 'true' : 'false')}
-                      className="rounded accent-purple-600"
-                    />
-                    <span>Muted Audio</span>
-                  </label>
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* Primary Brand Color */}
+              <div className={`p-2 rounded-lg border ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+                <CssVarAutoSuggestInput
+                  label="Primary Brand"
+                  value={themeVars.primaryColor}
+                  onChange={(val) => handleUpdateThemeVar('primaryColor', val)}
+                  colorPickerValue={themeVars.primaryColor}
+                  onColorPickerChange={(val) => handleUpdateThemeVar('primaryColor', val)}
+                  availableVars={availableCssVars}
+                  typeFilter="color"
+                  isDark={isDark}
+                  placeholder="#6366f1 or var(...)"
+                />
+              </div>
+
+              {/* Secondary Accent Color */}
+              <div className={`p-2 rounded-lg border ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+                <CssVarAutoSuggestInput
+                  label="Secondary Accent"
+                  value={themeVars.secondaryColor}
+                  onChange={(val) => handleUpdateThemeVar('secondaryColor', val)}
+                  colorPickerValue={themeVars.secondaryColor}
+                  onColorPickerChange={(val) => handleUpdateThemeVar('secondaryColor', val)}
+                  availableVars={availableCssVars}
+                  typeFilter="color"
+                  isDark={isDark}
+                  placeholder="#a855f7 or var(...)"
+                />
+              </div>
+
+              {/* Canvas Background Color */}
+              <div className={`p-2 rounded-lg border ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+                <CssVarAutoSuggestInput
+                  label="Canvas Background"
+                  value={themeVars.bgColor}
+                  onChange={(val) => handleUpdateThemeVar('bgColor', val)}
+                  colorPickerValue={themeVars.bgColor}
+                  onColorPickerChange={(val) => handleUpdateThemeVar('bgColor', val)}
+                  availableVars={availableCssVars}
+                  typeFilter="color"
+                  isDark={isDark}
+                  placeholder="#ffffff or var(...)"
+                />
+              </div>
+
+              {/* Body Text Color */}
+              <div className={`p-2 rounded-lg border ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+                <CssVarAutoSuggestInput
+                  label="Body Text Color"
+                  value={themeVars.textColor}
+                  onChange={(val) => handleUpdateThemeVar('textColor', val)}
+                  colorPickerValue={themeVars.textColor}
+                  onColorPickerChange={(val) => handleUpdateThemeVar('textColor', val)}
+                  availableVars={availableCssVars}
+                  typeFilter="color"
+                  isDark={isDark}
+                  placeholder="#0f172a or var(...)"
+                />
+              </div>
+
+              {/* Surface / Card Color */}
+              <div className={`p-2 rounded-lg border ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+                <CssVarAutoSuggestInput
+                  label="Card / Surface BG"
+                  value={themeVars.surfaceColor}
+                  onChange={(val) => handleUpdateThemeVar('surfaceColor', val)}
+                  colorPickerValue={themeVars.surfaceColor}
+                  onColorPickerChange={(val) => handleUpdateThemeVar('surfaceColor', val)}
+                  availableVars={availableCssVars}
+                  typeFilter="color"
+                  isDark={isDark}
+                  placeholder="#f8fafc or var(...)"
+                />
+              </div>
+
+              {/* Border Color */}
+              <div className={`p-2 rounded-lg border ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+                <CssVarAutoSuggestInput
+                  label="Border / Line Color"
+                  value={themeVars.borderColor}
+                  onChange={(val) => handleUpdateThemeVar('borderColor', val)}
+                  colorPickerValue={themeVars.borderColor}
+                  onColorPickerChange={(val) => handleUpdateThemeVar('borderColor', val)}
+                  availableVars={availableCssVars}
+                  typeFilter="color"
+                  isDark={isDark}
+                  placeholder="#e2e8f0 or var(...)"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Typography & Fonts Section */}
+          <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+            <label className={`text-xs font-semibold flex items-center justify-between ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+              <span className="flex items-center space-x-1.5">
+                <Type className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Typography & Fonts</span>
+              </span>
+              {onOpenFonts && (
+                <button
+                  type="button"
+                  onClick={onOpenFonts}
+                  className="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold underline cursor-pointer"
+                >
+                  Google Fonts Studio
+                </button>
+              )}
+            </label>
+
+            <div className="space-y-2 text-xs">
+              <div>
+                <CssVarAutoSuggestInput
+                  label="Heading Font Family"
+                  value={themeVars.fontHeading}
+                  onChange={(val) => handleUpdateThemeVar('fontHeading', val)}
+                  availableVars={availableCssVars}
+                  typeFilter="font"
+                  isDark={isDark}
+                  placeholder="e.g. 'Plus Jakarta Sans', sans-serif"
+                  presetOptions={[
+                    { label: 'System Sans-Serif', value: 'system-ui, -apple-system, sans-serif' },
+                    { label: 'Plus Jakarta Sans', value: "'Plus Jakarta Sans', system-ui, sans-serif" },
+                    { label: 'Playfair Display (Serif)', value: "'Playfair Display', Georgia, serif" },
+                    { label: 'JetBrains Mono (Code)', value: "'JetBrains Mono', monospace" }
+                  ]}
+                />
+              </div>
+
+              <div>
+                <CssVarAutoSuggestInput
+                  label="Body Font Family"
+                  value={themeVars.fontBody}
+                  onChange={(val) => handleUpdateThemeVar('fontBody', val)}
+                  availableVars={availableCssVars}
+                  typeFilter="font"
+                  isDark={isDark}
+                  placeholder="e.g. 'Outfit', sans-serif"
+                  presetOptions={[
+                    { label: 'System Sans-Serif', value: 'system-ui, -apple-system, sans-serif' },
+                    { label: 'Outfit', value: "'Outfit', system-ui, sans-serif" },
+                    { label: 'Roboto', value: "'Roboto', sans-serif" },
+                    { label: 'Monospace', value: "monospace" }
+                  ]}
+                />
+              </div>
+
+              <div>
+                <label className={`text-[10px] font-medium block mb-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Base Font Size
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {['14px', '16px', '18px'].map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => handleUpdateThemeVar('fontSizeBase', size)}
+                      className={`py-1 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                        themeVars.fontSizeBase === size
+                          ? 'bg-indigo-600 text-white border-indigo-500'
+                          : isDark
+                            ? 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
                 </div>
+              </div>
+            </div>
+          </div>
 
-                <div>
-                  <label className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Poster Thumbnail URL</label>
+          {/* Border Radius Section */}
+          <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+            <label className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+              Border Radius Theme Variable
+            </label>
+            <div className="grid grid-cols-4 gap-1.5 text-xs">
+              {[
+                { label: '0px Sharp', value: '0px' },
+                { label: '6px Small', value: '6px' },
+                { label: '12px Std', value: '12px' },
+                { label: '20px Round', value: '20px' }
+              ].map((r) => (
+                <button
+                  key={r.value}
+                  type="button"
+                  onClick={() => handleUpdateThemeVar('borderRadiusBase', r.value)}
+                  className={`py-1.5 px-1 rounded-lg text-[11px] font-semibold border text-center transition-all cursor-pointer ${
+                    themeVars.borderRadiusBase === r.value
+                      ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                      : isDark
+                        ? 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Cheatsheet for Tailwind Theme Utilities */}
+          <div className={`p-3 rounded-xl border text-[10px] space-y-1 font-mono ${
+            isDark ? 'bg-slate-950 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'
+          }`}>
+            <div className="font-bold text-indigo-400">Available Theme Utilities:</div>
+            <div>.bg-theme-primary / .text-theme-primary</div>
+            <div>.bg-theme-secondary / .text-theme-secondary</div>
+            <div>.bg-theme-surface / .border-theme</div>
+          </div>
+        </div>
+      ) : (
+        /* ELEMENT INSPECTOR TAB */
+        !selectedElement ? (
+          <div className="flex-1 p-6 flex flex-col items-center justify-center text-center text-xs overflow-y-auto">
+            <Sliders className={`w-8 h-8 mb-3 stroke-1 ${isDark ? 'text-slate-700' : 'text-slate-300'}`} />
+            <p className={`font-semibold mb-1 ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>No Element Selected</p>
+            <p className={`max-w-[200px] leading-relaxed mb-6 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+              Click on any text, button, container or image in the visual canvas to inspect and edit its styles & HTML attributes.
+            </p>
+
+            <div className="w-full max-w-[220px] space-y-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('theme')}
+                className="w-full p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 font-semibold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-sm mb-2"
+              >
+                <Palette className="w-4 h-4 text-indigo-400" />
+                <span>Edit Global Styles & Colors</span>
+              </button>
+
+              {/* Quick Link Creator Shortcut */}
+              {onOpenQuickLinkModal && (
+                <button
+                  type="button"
+                  onClick={onOpenQuickLinkModal}
+                  className="w-full p-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 dark:text-cyan-300 font-semibold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
+                >
+                  <LinkIcon className="w-4 h-4 text-cyan-400" />
+                  <span>Quick Link & Anchor Creator</span>
+                </button>
+              )}
+
+              {/* Global Google Fonts Utility Shortcut */}
+              {onOpenFonts && (
+                <button
+                  type="button"
+                  onClick={onOpenFonts}
+                  className="w-full p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 font-semibold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
+                >
+                  <Type className="w-4 h-4 text-indigo-400" />
+                  <span>Google Fonts Studio</span>
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Header & Element Breadcrumb */}
+            <div className={`p-3 rounded-xl border flex items-center justify-between ${
+              isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div className="flex items-center space-x-2">
+                <span className="px-2 py-0.5 bg-indigo-600/30 text-indigo-400 dark:text-indigo-300 rounded font-mono font-bold uppercase text-[11px]">
+                  &lt;{selectedElement.tagName.toLowerCase()}&gt;
+                </span>
+                <span className={`truncate max-w-[120px] ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  {selectedElement.id ? `#${selectedElement.id}` : (selectedElement.classList?.[0] ? `.${selectedElement.classList[0]}` : 'Element')}
+                </span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <button
+                  type="button"
+                  onClick={() => onMoveElement('up')}
+                  className={`p-1 rounded hover:bg-slate-800 ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+                  title="Move Up"
+                >
+                  <ArrowUp className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onMoveElement('down')}
+                  className={`p-1 rounded hover:bg-slate-800 ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+                  title="Move Down"
+                >
+                  <ArrowDown className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onDuplicateElement}
+                  className={`p-1 rounded hover:bg-slate-800 ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+                  title="Duplicate"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onDeleteElement}
+                  className="p-1 rounded text-red-400 hover:bg-red-500/20 hover:text-red-300"
+                  title="Delete"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Placement & Align Tool */}
+            <div className={`space-y-1.5 p-2.5 rounded-xl border ${isDark ? 'bg-slate-950/50 border-slate-800/80' : 'bg-slate-50 border-slate-200'}`}>
+              <span className={`text-[11px] font-semibold flex items-center justify-between ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                <span className="flex items-center space-x-1">
+                  <MoveHorizontal className="w-3 h-3 text-indigo-400" />
+                  <span>Align & Positioning</span>
+                </span>
+              </span>
+              <div className="grid grid-cols-4 gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleSetPlacement('left')}
+                  className={`py-1 px-1.5 rounded text-[10px] font-semibold border flex items-center justify-center space-x-1 transition-all ${
+                    isDark ? 'bg-slate-900 border-slate-800 text-slate-300 hover:border-indigo-500' : 'bg-white border-slate-200 text-slate-700 hover:border-indigo-500'
+                  }`}
+                  title="Align Left (mr-auto text-left)"
+                >
+                  <AlignLeft className="w-3 h-3 text-indigo-400" />
+                  <span>Left</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetPlacement('center')}
+                  className={`py-1 px-1.5 rounded text-[10px] font-semibold border flex items-center justify-center space-x-1 transition-all ${
+                    isDark ? 'bg-slate-900 border-slate-800 text-slate-300 hover:border-indigo-500' : 'bg-white border-slate-200 text-slate-700 hover:border-indigo-500'
+                  }`}
+                  title="Center (mx-auto text-center)"
+                >
+                  <AlignCenter className="w-3 h-3 text-indigo-400" />
+                  <span>Center</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetPlacement('right')}
+                  className={`py-1 px-1.5 rounded text-[10px] font-semibold border flex items-center justify-center space-x-1 transition-all ${
+                    isDark ? 'bg-slate-900 border-slate-800 text-slate-300 hover:border-indigo-500' : 'bg-white border-slate-200 text-slate-700 hover:border-indigo-500'
+                  }`}
+                  title="Align Right (ml-auto text-right)"
+                >
+                  <AlignRight className="w-3 h-3 text-indigo-400" />
+                  <span>Right</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSetPlacement('full')}
+                  className={`py-1 px-1.5 rounded text-[10px] font-semibold border flex items-center justify-center space-x-1 transition-all ${
+                    isDark ? 'bg-slate-900 border-slate-800 text-slate-300 hover:border-indigo-500' : 'bg-white border-slate-200 text-slate-700 hover:border-indigo-500'
+                  }`}
+                  title="Full Width (w-full)"
+                >
+                  <Maximize2 className="w-3 h-3 text-indigo-400" />
+                  <span>Full</span>
+                </button>
+              </div>
+            </div>
+
+            {/* DRAW.IO VECTOR DIAGRAM CONTROLS */}
+            {isSvgOrDiagram && (
+              <div className="p-3 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent rounded-xl border border-amber-500/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-amber-300 flex items-center space-x-1.5 text-xs">
+                    <Workflow className="w-4 h-4 text-amber-400" />
+                    <span>Draw.io Vector Diagram</span>
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded-full font-semibold border border-amber-500/40">
+                    Live Vector
+                  </span>
+                </div>
+                <p className="text-[11px] text-amber-200/80 leading-relaxed">
+                  This vector graphic or flowchart is connected to the Draw.io engine. Edit node geometry, connections, or layout visually.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const diagramId = selectedElement.attributes?.['data-diagram-id'] || 'main-flow';
+                    if (onOpenDrawIoWithDiagram) {
+                      onOpenDrawIoWithDiagram(diagramId);
+                    }
+                  }}
+                  className="w-full py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold rounded-lg shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer text-xs"
+                >
+                  <Workflow className="w-3.5 h-3.5" />
+                  <span>Open in Draw.io Studio</span>
+                </button>
+              </div>
+            )}
+
+            {/* QUICK LINK CREATOR */}
+            {isButtonOrLink && onOpenQuickLinkModal && (
+              <div className="p-3 bg-cyan-500/10 rounded-xl border border-cyan-500/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-cyan-300 flex items-center space-x-1 text-xs">
+                    <LinkIcon className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Link & Anchor Navigation</span>
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 bg-cyan-500/20 text-cyan-300 rounded font-mono font-semibold">a / button</span>
+                </div>
+                <p className="text-[11px] text-cyan-200/80 leading-relaxed">
+                  Quickly attach smooth scroll anchor links, external URLs, or section targets to this button or link.
+                </p>
+                <button
+                  type="button"
+                  onClick={onOpenQuickLinkModal}
+                  className="w-full py-1.5 bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 cursor-pointer text-xs"
+                >
+                  <LinkIcon className="w-3.5 h-3.5" />
+                  <span>Launch Link & Anchor Creator</span>
+                </button>
+              </div>
+            )}
+
+            {/* MEDIA ASSET IMAGE/VIDEO REPLACER */}
+            {isMediaAsset && (
+              <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/30 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-purple-300 flex items-center space-x-1 text-xs">
+                    <ImageIcon className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Media File & Format Replacer</span>
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded font-semibold border border-purple-500/30">
+                    JXL / WebP / SVG
+                  </span>
+                </div>
+                <p className="text-[11px] text-purple-200/80 leading-relaxed">
+                  Replace image/video source with local files or high-efficiency next-gen media formats (JXL, AVIF, WebP, SVG, MP4).
+                </p>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-purple-300 font-semibold block">Quick URL Source</label>
                   <input
                     type="text"
-                    value={attributes.poster || ''}
-                    onChange={(e) => handleAttributeChange('poster', e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
+                    value={attributes.src || ''}
+                    onChange={(e) => handleAttributeChange('src', e.target.value)}
+                    placeholder="https://..."
                     className={`w-full px-2 py-1 border rounded text-[11px] focus:outline-none focus:border-purple-500 ${
-                      isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                      isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
                     }`}
                   />
                 </div>
               </div>
             )}
 
-            {/* Supported Video & Image Formats Documentation Guide */}
-            <div className={`pt-2 border-t ${isDark ? 'border-purple-900/40' : 'border-purple-200'}`}>
-              <button
-                type="button"
-                onClick={() => setShowFormatDocs(!showFormatDocs)}
-                className="w-full flex items-center justify-between text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline py-1 cursor-pointer"
-              >
-                <span className="flex items-center space-x-1.5">
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>Supported Media Formats Documentation</span>
-                </span>
-                <span className="text-[10px] opacity-75">{showFormatDocs ? '▲ Hide' : '▼ View Docs'}</span>
-              </button>
+            {/* TEXT CONTENT EDIT */}
+            {!isSvgOrDiagram && selectedElement.textContent !== undefined && (
+              <div className="space-y-1.5">
+                <label className={`font-semibold flex items-center space-x-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  <Type className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Text Content</span>
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={textContent}
+                    onChange={(e) => setTextContent(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleApplyText()}
+                    className={`flex-1 px-2.5 py-1.5 border rounded-lg text-xs focus:outline-none focus:border-indigo-500 ${
+                      isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyText}
+                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-all text-xs"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            )}
 
-              {showFormatDocs && (
-                <div className={`mt-2 p-3 rounded-xl border text-[11px] space-y-2.5 transition-all ${
-                  isDark ? 'bg-slate-950/80 border-purple-900/40 text-slate-300' : 'bg-white border-purple-200 text-slate-700'
-                }`}>
-                  <div>
-                    <div className="flex items-center space-x-1 text-purple-500 font-bold mb-1">
-                      <VideoIcon className="w-3.5 h-3.5" />
-                      <span>Supported Video Formats & Codecs</span>
-                    </div>
-                    <ul className="list-disc list-inside space-y-0.5 text-[10px] text-slate-400 dark:text-slate-400 pl-1">
-                      <li><strong className="text-purple-400">MP4 (.mp4)</strong>: H.264 video + AAC audio (Universal web standard)</li>
-                      <li><strong className="text-purple-400">WebM (.webm)</strong>: VP8 / VP9 / AV1 (Optimized HTML5 web video)</li>
-                      <li><strong className="text-purple-400">Ogg (.ogg, .ogv)</strong>: Theora video + Vorbis audio</li>
-                      <li><strong className="text-purple-400">QuickTime (.mov, .m4v)</strong>: MPEG-4 container video</li>
-                      <li><strong className="text-purple-400">URLs & Data</strong>: Direct HTTP/HTTPS video links & Base64 Data URLs</li>
-                    </ul>
-                  </div>
+            {/* GRADIENT BUILDER */}
+            <div className={`pt-2 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+              <GradientBuilder
+                onApplyGradient={handleApplyGradient}
+                themeMode={themeMode}
+              />
+            </div>
 
-                  <div className={`pt-2 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-                    <div className="flex items-center space-x-1 text-indigo-500 font-bold mb-1">
-                      <ImageIcon className="w-3.5 h-3.5" />
-                      <span>Supported Image Formats</span>
-                    </div>
-                    <ul className="list-disc list-inside space-y-0.5 text-[10px] text-slate-400 dark:text-slate-400 pl-1">
-                      <li><strong className="text-indigo-400">JPEG XL (.jxl)</strong>: Next-gen high efficiency & lossless image format</li>
-                      <li><strong className="text-indigo-400">JPEG 2000 (.jp2, .j2k)</strong>: Supported natively in Safari / WebKit browsers</li>
-                      <li><strong className="text-indigo-400">PNG (.png)</strong>: High quality, full alpha transparency</li>
-                      <li><strong className="text-indigo-400">JPEG (.jpg, .jpeg)</strong>: Web photos & compressed imagery</li>
-                      <li><strong className="text-indigo-400">WebP (.webp)</strong>: Next-gen high compression format</li>
-                      <li><strong className="text-indigo-400">SVG (.svg)</strong>: Vector graphics with crisp zoom scaling</li>
-                      <li><strong className="text-indigo-400">GIF (.gif)</strong>: Animated motion graphics</li>
-                      <li><strong className="text-indigo-400">AVIF, BMP, ICO</strong>: Modern AV1 image & icon formats</li>
-                    </ul>
-                  </div>
+            {/* SHADOW & BORDER CONTROL PANEL */}
+            <div className={`pt-2 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+              <ShadowBorderControlPanel
+                selectedElement={selectedElement}
+                classList={classList}
+                onApplyClasses={handleApplyClasses}
+                attributes={attributes}
+                onUpdateAttribute={handleAttributeChange}
+                isDark={isDark}
+              />
+            </div>
 
-                  <div className={`pt-2 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'} text-[10px] text-slate-400`}>
-                    <p className="leading-snug">
-                      💡 <strong>How to insert:</strong> Click <strong>"📁 Upload / Drop Media"</strong> on any canvas card, drag & drop a file directly over a media element, or select file in this panel.
-                    </p>
-                  </div>
+            {/* TAILWIND CLASSES EDIT */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className={`font-semibold flex items-center space-x-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  <Palette className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Tailwind Classes</span>
+                </label>
+                <div className="flex items-center space-x-1">
+                  <button
+                    type="button"
+                    onClick={handlePasteClasses}
+                    className={`px-2 py-0.5 border rounded text-[10px] font-semibold flex items-center space-x-1 transition-all ${
+                      isDark ? 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>Paste</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyClasses()}
+                    className={`px-2 py-0.5 border rounded text-[10px] font-semibold flex items-center space-x-1 transition-all ${
+                      copiedClasses
+                        ? 'bg-emerald-600 text-white border-emerald-500'
+                        : isDark
+                          ? 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    {copiedClasses ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedClasses ? 'Copied!' : 'Copy'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearClasses}
+                    className="px-2 py-0.5 border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded text-[10px] font-semibold transition-all"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              {chipCopied && (
+                <div className="p-2 bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/40 text-[11px] font-medium animate-fade-in flex items-center space-x-1">
+                  <Check className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                  <span className="truncate">{chipCopied}</span>
                 </div>
               )}
-            </div>
-          </div>
-        )}
 
-        {/* TEXT CONTENT EDIT */}
-        <div className="space-y-1.5">
-          <div className={`flex items-center justify-between font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-            <span className="flex items-center space-x-1">
-              <Type className="w-3.5 h-3.5 text-indigo-500" />
-              <span>Text Content</span>
-            </span>
-            {onOpenFonts && (
-              <button
-                type="button"
-                onClick={onOpenFonts}
-                className="text-[10px] text-indigo-400 hover:text-indigo-300 hover:underline font-semibold flex items-center space-x-1 cursor-pointer"
-                title="Browse and apply Google Fonts"
-              >
-                <span>Google Fonts</span>
-                <span>→</span>
-              </button>
-            )}
-          </div>
-          <textarea
-            rows={2}
-            value={textContent}
-            onChange={(e) => setTextContent(e.target.value)}
-            onBlur={handleApplyText}
-            placeholder="Inner text content..."
-            className={`w-full p-2 border rounded-lg font-mono text-[11px] focus:outline-none focus:border-indigo-500 transition-colors ${
-              isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
-            }`}
-          />
-        </div>
-
-        {/* TAILWIND & CSS CLASSES MANAGER */}
-        <div className="space-y-2.5">
-          <div className={`flex items-center justify-between font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-            <span className="flex items-center space-x-1">
-              <Layers className="w-3.5 h-3.5 text-purple-500" />
-              <span>Tailwind CSS Classes</span>
-            </span>
-
-            {/* Quick Action Buttons */}
-            <div className="flex items-center space-x-1">
-              <button
-                type="button"
-                onClick={() => handleCopyClasses()}
-                className={`flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-semibold transition-all cursor-pointer ${
-                  copiedClasses
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                    : isDark
-                      ? 'bg-indigo-600/30 text-indigo-300 hover:bg-indigo-600 hover:text-white'
-                      : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-600 hover:text-white'
-                }`}
-                title="Copy all Tailwind classes to clipboard"
-              >
-                {copiedClasses ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                <span>{copiedClasses ? 'Copied!' : 'Copy'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handlePasteClasses}
-                className={`px-1.5 py-0.5 rounded text-[10px] font-semibold transition-all cursor-pointer ${
-                  isDark
-                    ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
-                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                }`}
-                title="Paste Tailwind classes from clipboard"
-              >
-                📋 Paste
-              </button>
-
-              <button
-                type="button"
-                onClick={handleClearClasses}
-                className="px-1.5 py-0.5 rounded text-[10px] font-semibold text-slate-400 hover:text-red-400 hover:bg-red-950/30 transition-all cursor-pointer"
-                title="Clear all classes"
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-
-          {/* Full Raw Class String Textarea (Direct Copy & Paste Box) */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-[10px]">
-              <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>Full class string (paste or copy below):</span>
-              {chipCopied && (
-                <span className="text-emerald-400 font-mono font-bold animate-fade-in">
-                  Copied "{chipCopied}"!
-                </span>
-              )}
-            </div>
-            <textarea
-              ref={classTextareaRef}
-              rows={2}
-              value={classList}
-              onChange={(e) => handleApplyClasses(e.target.value)}
-              onPaste={handleTextareaPaste}
-              placeholder="Paste Tailwind classes here (e.g. bg-indigo-600 text-white font-bold p-4 rounded-xl)..."
-              className={`w-full p-2 border rounded-lg font-mono text-[11px] focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed ${
-                isDark ? 'bg-slate-950 border-slate-800 text-indigo-300' : 'bg-indigo-50/50 border-indigo-200 text-indigo-900'
-              }`}
-            />
-          </div>
-
-          {/* Active Class Chips with Copy & Delete */}
-          <div className="space-y-1">
-            <span className={`text-[10px] font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-              Individual Class Chips ({classList.split(' ').filter(Boolean).length}):
-            </span>
-            <div className={`flex flex-wrap gap-1 max-h-28 overflow-y-auto p-1.5 border rounded-lg ${
-              isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
-            }`}>
-              {classList.split(' ').filter(Boolean).length === 0 ? (
-                <span className={`text-[10px] italic p-1 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
-                  No classes applied yet. Type or paste classes above.
-                </span>
-              ) : (
-                classList.split(' ').filter(Boolean).map((cls, idx) => (
+              {/* Class Pills */}
+              <div className={`p-2 border rounded-lg min-h-[50px] max-h-[100px] overflow-y-auto flex flex-wrap gap-1 ${
+                isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+              }`}>
+                {classList.split(' ').filter(Boolean).map((cls, idx) => (
                   <span
-                    key={idx}
-                    className={`inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-mono group transition-all ${
-                      isDark ? 'bg-slate-800 text-indigo-300 hover:bg-slate-700' : 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100'
-                    }`}
+                    key={`${cls}-${idx}`}
+                    className="inline-flex items-center space-x-1 px-2 py-0.5 bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 text-[11px] font-mono rounded-md group transition-all"
                   >
                     <span 
                       onClick={() => handleCopyClasses(cls)}
                       className="cursor-pointer hover:underline"
-                      title="Click to copy single class"
+                      title="Click to copy class"
                     >
                       {cls}
                     </span>
                     <button
                       type="button"
-                      onClick={() => handleCopyClasses(cls)}
-                      className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-indigo-400 transition-opacity p-0.5"
-                      title={`Copy '${cls}'`}
-                    >
-                      <Copy className="w-2.5 h-2.5" />
-                    </button>
-                    <button
-                      type="button"
                       onClick={() => handleRemoveClass(cls)}
-                      className="text-slate-400 hover:text-red-500 font-bold ml-0.5"
-                      title="Remove class"
+                      className="text-indigo-400 hover:text-red-400 focus:outline-none"
                     >
                       ×
                     </button>
                   </span>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Quick Add Class Field */}
-          <div className="flex space-x-1 pt-0.5">
-            <input
-              type="text"
-              placeholder="Add class e.g. shadow-lg hover:scale-105"
-              value={newClass}
-              onChange={(e) => setNewClass(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && newClass.trim()) {
-                  handleAddQuickClass(newClass.trim());
-                  setNewClass('');
-                }
-              }}
-              className={`flex-1 px-2.5 py-1 border rounded text-[11px] focus:outline-none focus:border-indigo-500 ${
-                isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
-              }`}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                if (newClass.trim()) {
-                  handleAddQuickClass(newClass.trim());
-                  setNewClass('');
-                }
-              }}
-              className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-medium text-[11px] cursor-pointer"
-            >
-              Add
-            </button>
-          </div>
-        </div>
-
-        {/* QUICK STYLE PRESET BUTTONS */}
-        <div className="space-y-2">
-          <span className={`font-semibold flex items-center space-x-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-            <Palette className="w-3.5 h-3.5 text-amber-500" />
-            <span>Quick Visual Styles</span>
-          </span>
-
-          {/* Typography Presets */}
-          <div className="space-y-1">
-            <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Text Size & Weight</span>
-            <div className="grid grid-cols-4 gap-1">
-              <button onClick={() => handleAddQuickClass('text-xs')} className={buttonPresetStyle}>xs</button>
-              <button onClick={() => handleAddQuickClass('text-sm')} className={buttonPresetStyle}>sm</button>
-              <button onClick={() => handleAddQuickClass('text-xl')} className={buttonPresetStyle}>xl</button>
-              <button onClick={() => handleAddQuickClass('text-3xl')} className={buttonPresetStyle}>3xl</button>
-            </div>
-            <div className="grid grid-cols-3 gap-1">
-              <button onClick={() => handleAddQuickClass('font-normal')} className={buttonPresetStyle}>Normal</button>
-              <button onClick={() => handleAddQuickClass('font-semibold')} className={buttonPresetStyle}>Semibold</button>
-              <button onClick={() => handleAddQuickClass('font-extrabold')} className={buttonPresetStyle}>Bold</button>
-            </div>
-          </div>
-
-          {/* Color Presets */}
-          <div className="space-y-1">
-            <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Color Highlights</span>
-            <div className="grid grid-cols-5 gap-1">
-              <button onClick={() => handleAddQuickClass('bg-indigo-600')} className="h-6 bg-indigo-600 rounded border border-indigo-400" title="Indigo BG" />
-              <button onClick={() => handleAddQuickClass('bg-emerald-600')} className="h-6 bg-emerald-600 rounded border border-emerald-400" title="Emerald BG" />
-              <button onClick={() => handleAddQuickClass('bg-purple-600')} className="h-6 bg-purple-600 rounded border border-purple-400" title="Purple BG" />
-              <button onClick={() => handleAddQuickClass('bg-amber-600')} className="h-6 bg-amber-600 rounded border border-amber-400" title="Amber BG" />
-              <button onClick={() => handleAddQuickClass('bg-slate-900')} className="h-6 bg-slate-900 rounded border border-slate-700" title="Dark BG" />
-            </div>
-          </div>
-
-          {/* Dedicated Tailwind Gradient Studio & Mixer */}
-          <div className="pt-1">
-            <GradientBuilder
-              onApplyGradient={handleApplyGradient}
-              themeMode={themeMode}
-            />
-          </div>
-
-          {/* Spacing & Rounded Presets */}
-          <div className="space-y-1">
-            <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Border Radius & Padding</span>
-            <div className="grid grid-cols-3 gap-1">
-              <button onClick={() => handleAddQuickClass('rounded-none')} className={buttonPresetStyle}>Square</button>
-              <button onClick={() => handleAddQuickClass('rounded-xl')} className={buttonPresetStyle}>Rounded</button>
-              <button onClick={() => handleAddQuickClass('rounded-full')} className={buttonPresetStyle}>Pill</button>
-            </div>
-          </div>
-
-          {/* 2D & 3D Button Styling Presets (Only shown for Buttons / Links) */}
-          {isButtonOrLink && (
-            <>
-              <div className="space-y-1 pt-1 border-t border-slate-700/40">
-                <span className={`text-[10px] font-semibold flex items-center justify-between ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>
-                  <span>🎨 2D Button Presets</span>
-                  <span className="text-[9px] opacity-75">Flat & Clean</span>
-                </span>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleAddQuickClass('bg-indigo-600 hover:bg-indigo-700 text-white shadow-none rounded-xl font-semibold')}
-                    className={buttonPresetStyle}
-                    title="2D Flat Solid"
-                  >
-                    ⬛ 2D Flat Solid
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAddQuickClass('bg-transparent border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-xl font-semibold')}
-                    className={buttonPresetStyle}
-                    title="2D Bordered Outline"
-                  >
-                    🔲 2D Outline
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAddQuickClass('bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-xl font-medium')}
-                    className={buttonPresetStyle}
-                    title="2D Soft Tint / Ghost"
-                  >
-                    👻 2D Soft Ghost
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAddQuickClass('border-2 border-slate-900 dark:border-white bg-amber-400 text-slate-900 font-bold rounded-none')}
-                    className={buttonPresetStyle}
-                    title="2D Neo-Brutalist"
-                  >
-                    🎨 2D Neo-Brutalist
-                  </button>
-                </div>
-              </div>
-
-              {/* 3D Button Styling Presets */}
-              <div className="space-y-1 pt-1">
-                <span className={`text-[10px] font-semibold flex items-center justify-between ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                  <span>✨ 3D Button Presets</span>
-                  <span className="text-[9px] opacity-75">Tactile push</span>
-                </span>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleAddQuickClass('border-b-4 border-indigo-800 active:translate-y-1 active:border-b-0 transition-all')}
-                    className={`px-2 py-1.5 rounded-lg text-[10px] font-bold border-b-2 border-indigo-700 active:translate-y-0.5 transition-all cursor-pointer ${
-                      isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-500 text-white'
-                    }`}
-                    title="3D Tactile Push (Indigo)"
-                  >
-                    🎮 3D Indigo Push
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAddQuickClass('border-b-4 border-emerald-800 active:translate-y-1 active:border-b-0 transition-all')}
-                    className={`px-2 py-1.5 rounded-lg text-[10px] font-bold border-b-2 border-emerald-700 active:translate-y-0.5 transition-all cursor-pointer ${
-                      isDark ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-white'
-                    }`}
-                    title="3D Tactile Push (Emerald)"
-                  >
-                    🟩 3D Emerald Push
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAddQuickClass('shadow-[0_6px_0_0_rgba(15,23,42,1)] active:translate-y-1 active:shadow-[0_2px_0_0_rgba(15,23,42,1)] transition-all')}
-                    className={buttonPresetStyle}
-                    title="3D Shadow Lift"
-                  >
-                    📦 3D Lift Shadow
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAddQuickClass('border-t-2 border-l-2 border-slate-300 border-b-4 border-r-4 border-slate-900 bg-slate-200 text-slate-900 active:border-2')}
-                    className={buttonPresetStyle}
-                    title="Retro 3D Arcade Bevel"
-                  >
-                    👾 Retro 3D Arcade
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* ACTION BUTTON & ELEMENT PLACEMENT (LEFT, CENTER, RIGHT, FULL) */}
-        <div className={`p-3 border rounded-xl space-y-2.5 ${
-          isDark ? 'bg-indigo-950/20 border-indigo-500/30' : 'bg-indigo-50/70 border-indigo-200'
-        }`}>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center space-x-1.5 font-bold text-xs text-indigo-600 dark:text-indigo-400">
-              <MoveHorizontal className="w-4 h-4" />
-              <span>Action Button Placement</span>
-            </span>
-            <span className="text-[10px] text-indigo-400 font-medium">Left / Center / Right</span>
-          </div>
-
-          <p className={`text-[11px] leading-snug ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-            Click to instantly reposition selected button or element on the canvas:
-          </p>
-
-          <div className="grid grid-cols-4 gap-1">
-            <button
-              type="button"
-              onClick={() => handleSetPlacement('left')}
-              className={`py-1.5 px-1 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 border transition-all cursor-pointer ${
-                classList.includes('mr-auto') || classList.includes('text-left') || classList.includes('justify-start')
-                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
-                  : isDark ? 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-              }`}
-              title="Align Left (mr-auto ml-0 text-left)"
-            >
-              <AlignLeft className="w-3.5 h-3.5" />
-              <span>Left</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSetPlacement('center')}
-              className={`py-1.5 px-1 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 border transition-all cursor-pointer ${
-                classList.includes('mx-auto') || classList.includes('text-center') || classList.includes('justify-center')
-                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
-                  : isDark ? 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-              }`}
-              title="Align Center (mx-auto text-center)"
-            >
-              <AlignCenter className="w-3.5 h-3.5" />
-              <span>Center</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSetPlacement('right')}
-              className={`py-1.5 px-1 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 border transition-all cursor-pointer ${
-                classList.includes('ml-auto') || classList.includes('text-right') || classList.includes('justify-end')
-                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
-                  : isDark ? 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-              }`}
-              title="Align Right (ml-auto mr-0 text-right)"
-            >
-              <AlignRight className="w-3.5 h-3.5" />
-              <span>Right</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSetPlacement('full')}
-              className={`py-1.5 px-1 rounded-lg text-[10px] font-semibold flex items-center justify-center border transition-all cursor-pointer ${
-                classList.includes('w-full')
-                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
-                  : isDark ? 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-              }`}
-              title="Full Width (w-full)"
-            >
-              <span>Full</span>
-            </button>
-          </div>
-        </div>
-
-        {/* DEDICATED LINK & ANCHOR SETTINGS CARD */}
-        <div className={`p-3 border rounded-xl space-y-2.5 transition-all ${
-          tagNameLower === 'a' || attributes.href !== undefined
-            ? isDark ? 'bg-indigo-950/30 border-indigo-500/40' : 'bg-indigo-50 border-indigo-300'
-            : isDark ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-50 border-slate-200'
-        }`}>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center space-x-1.5 font-bold text-xs text-indigo-500 dark:text-indigo-400">
-              <LinkIcon className="w-4 h-4 text-indigo-400" />
-              <span>Link & Anchor Settings (href)</span>
-            </span>
-            <span className="text-[10px] text-slate-400 font-mono">&lt;a&gt; tag</span>
-          </div>
-
-          <div className="space-y-2">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className={`text-[10px] font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                  Href Destination URL / Anchor:
-                </label>
-                {tagNameLower !== 'a' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onUpdateElement({ tagName: 'a', attributes: { ...attributes, href: attributes.href || '#' } });
-                    }}
-                    className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 hover:underline flex items-center space-x-1 cursor-pointer"
-                    title="Change element HTML tag to <a> link"
-                  >
-                    <span>Convert to &lt;a&gt; Link</span>
-                    <span>→</span>
-                  </button>
+                ))}
+                {!classList.trim() && (
+                  <span className={`text-[11px] italic ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+                    No classes applied
+                  </span>
                 )}
               </div>
-              <input
-                type="text"
-                value={attributes.href || ''}
-                onChange={(e) => handleAttributeChange('href', e.target.value)}
-                placeholder="e.g. https://example.com or #features or mailto:user@domain.com"
-                className={`w-full px-2.5 py-1.5 border rounded-lg text-xs focus:outline-none focus:border-indigo-500 transition-colors ${
-                  isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
-                }`}
-              />
-            </div>
 
-            {/* Quick Href Preset Shortcuts */}
-            <div className="space-y-1">
-              <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Quick Shortcuts:</span>
-              <div className="flex flex-wrap gap-1">
-                {['#hero', '#features', '#pricing', '#contact', '#faq', 'https://google.com', 'mailto:contact@example.com'].map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => handleAttributeChange('href', preset)}
-                    className={`px-1.5 py-0.5 rounded text-[10px] font-mono border transition-all cursor-pointer ${
-                      attributes.href === preset
-                        ? 'bg-indigo-600 text-white border-indigo-500 font-bold'
-                        : isDark ? 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    {preset}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Target Options & Link Formatting */}
-            <div className="flex items-center justify-between pt-1 border-t border-slate-800/40">
-              <label className="flex items-center space-x-1.5 text-[10px] cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={attributes.target === '_blank'}
-                  onChange={(e) => {
-                    const isNewTab = e.target.checked;
-                    const updated = { ...attributes };
-                    if (isNewTab) {
-                      updated.target = '_blank';
-                      updated.rel = 'noopener noreferrer';
-                    } else {
-                      delete updated.target;
-                      delete updated.rel;
-                    }
-                    setAttributes(updated);
-                    onUpdateElement({ attributes: updated });
-                  }}
-                  className="rounded accent-indigo-600 cursor-pointer"
-                />
-                <span className={isDark ? 'text-slate-300' : 'text-slate-700'}>Open in new tab (<code className="text-indigo-400">target="_blank"</code>)</span>
-              </label>
-
-              {onOpenQuickLinkModal && (
-                <button
-                  type="button"
-                  onClick={onOpenQuickLinkModal}
-                  className="text-[10px] text-cyan-400 hover:text-cyan-300 hover:underline font-semibold flex items-center space-x-1 cursor-pointer"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Insert New Link</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* HTML ATTRIBUTES EDIT */}
-        <div className={`space-y-2 pt-2 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-          <span className={`font-semibold flex items-center space-x-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-            <Box className="w-3.5 h-3.5 text-cyan-500" />
-            <span>Attributes (ID, Href, Src, Alt)</span>
-          </span>
-
-          <div className="space-y-1.5">
-            <div>
-              <label className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Element ID</label>
-              <input
-                type="text"
-                value={attributes.id || ''}
-                onChange={(e) => handleAttributeChange('id', e.target.value)}
-                placeholder="e.g. hero-title"
-                className={`w-full px-2 py-1 border rounded text-[11px] focus:outline-none focus:border-indigo-500 font-mono ${
-                  isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
-                }`}
-              />
-            </div>
-            {selectedElement.tagName.toLowerCase() === 'a' && (
-              <div>
-                <label className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Href URL</label>
-                <input
-                  type="text"
-                  value={attributes.href || ''}
-                  onChange={(e) => handleAttributeChange('href', e.target.value)}
-                  placeholder="https://..."
-                  className={`w-full px-2 py-1 border rounded text-[11px] focus:outline-none focus:border-indigo-500 ${
+              {/* Editable Classes Raw Input */}
+              <div className="space-y-1">
+                <textarea
+                  ref={classTextareaRef}
+                  value={classList}
+                  onChange={(e) => setClassList(e.target.value)}
+                  onPaste={handleTextareaPaste}
+                  placeholder="Paste or type Tailwind classes (e.g. bg-indigo-600 text-white p-4 rounded-xl)..."
+                  rows={2}
+                  className={`w-full px-2.5 py-1.5 border rounded-lg text-xs font-mono focus:outline-none focus:border-indigo-500 ${
                     isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
                   }`}
                 />
+                <button
+                  type="button"
+                  onClick={() => handleApplyClasses(classList)}
+                  className="w-full py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-all text-xs"
+                >
+                  Apply All Classes
+                </button>
               </div>
-            )}
-            {selectedElement.tagName.toLowerCase() === 'img' && (
-              <>
+
+              {/* Quick Class Adders */}
+              <div className="space-y-2 pt-2">
+                <span className={`text-[10px] font-semibold block ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                  QUICK ADD PRESETS
+                </span>
+
+                <div className="space-y-1.5">
+                  <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Colors</span>
+                  <div className="grid grid-cols-4 gap-1">
+                    {[
+                      { name: 'Indigo', class: 'bg-indigo-600 text-white' },
+                      { name: 'Emerald', class: 'bg-emerald-600 text-white' },
+                      { name: 'Rose', class: 'bg-rose-600 text-white' },
+                      { name: 'Amber', class: 'bg-amber-600 text-slate-950' },
+                      { name: 'Slate Dark', class: 'bg-slate-900 text-slate-100' },
+                      { name: 'Slate Light', class: 'bg-slate-100 text-slate-900' },
+                      { name: 'Cyan Glow', class: 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' },
+                      { name: 'Purple Glow', class: 'bg-purple-500/20 text-purple-300 border border-purple-500/40' },
+                    ].map((preset) => (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => handleAddQuickClass(preset.class)}
+                        className={buttonPresetStyle}
+                      >
+                        {preset.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Spacing & Padding</span>
+                  <div className="grid grid-cols-4 gap-1">
+                    {['p-2', 'p-4', 'p-6', 'p-8', 'px-4 py-2', 'py-12', 'space-y-4', 'gap-4'].map((cls) => (
+                      <button
+                        key={cls}
+                        type="button"
+                        onClick={() => handleAddQuickClass(cls)}
+                        className={buttonPresetStyle}
+                      >
+                        {cls}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Border Radius & Shadows</span>
+                  <div className="grid grid-cols-4 gap-1">
+                    {['rounded-none', 'rounded-lg', 'rounded-xl', 'rounded-full', 'shadow-sm', 'shadow-md', 'shadow-xl', 'border border-slate-700'].map((cls) => (
+                      <button
+                        key={cls}
+                        type="button"
+                        onClick={() => handleAddQuickClass(cls)}
+                        className={buttonPresetStyle}
+                      >
+                        {cls.replace('rounded-', 'r-').replace('shadow-', 's-')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* HTML ATTRIBUTES EDIT */}
+            <div className={`space-y-2 pt-2 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+              <span className={`font-semibold flex items-center space-x-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                <Box className="w-3.5 h-3.5 text-cyan-500" />
+                <span>Attributes (ID, Href, Src, Alt)</span>
+              </span>
+
+              <div className="space-y-1.5">
                 <div>
-                  <label className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Image Source (src)</label>
+                  <label className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Element ID</label>
                   <input
                     type="text"
-                    value={attributes.src || ''}
-                    onChange={(e) => handleAttributeChange('src', e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className={`w-full px-2 py-1 border rounded text-[11px] focus:outline-none focus:border-indigo-500 ${
+                    value={attributes.id || ''}
+                    onChange={(e) => handleAttributeChange('id', e.target.value)}
+                    placeholder="e.g. hero-title"
+                    className={`w-full px-2 py-1 border rounded text-[11px] focus:outline-none focus:border-indigo-500 font-mono ${
                       isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
                     }`}
                   />
                 </div>
-                <div>
-                  <label className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Alt Text</label>
-                  <input
-                    type="text"
-                    value={attributes.alt || ''}
-                    onChange={(e) => handleAttributeChange('alt', e.target.value)}
-                    placeholder="Image description"
-                    className={`w-full px-2 py-1 border rounded text-[11px] focus:outline-none focus:border-indigo-500 ${
-                      isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
-                    }`}
-                  />
-                </div>
-              </>
-            )}
+                {selectedElement.tagName.toLowerCase() === 'a' && (
+                  <div>
+                    <label className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Href URL</label>
+                    <input
+                      type="text"
+                      value={attributes.href || ''}
+                      onChange={(e) => handleAttributeChange('href', e.target.value)}
+                      placeholder="https://..."
+                      className={`w-full px-2 py-1 border rounded text-[11px] focus:outline-none focus:border-indigo-500 ${
+                        isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                      }`}
+                    />
+                  </div>
+                )}
+                {selectedElement.tagName.toLowerCase() === 'img' && (
+                  <>
+                    <div>
+                      <label className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Image Source (src)</label>
+                      <input
+                        type="text"
+                        value={attributes.src || ''}
+                        onChange={(e) => handleAttributeChange('src', e.target.value)}
+                        placeholder="https://images.unsplash.com/..."
+                        className={`w-full px-2 py-1 border rounded text-[11px] focus:outline-none focus:border-indigo-500 ${
+                          isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Alt Text</label>
+                      <input
+                        type="text"
+                        value={attributes.alt || ''}
+                        onChange={(e) => handleAttributeChange('alt', e.target.value)}
+                        placeholder="Image description"
+                        className={`w-full px-2 py-1 border rounded text-[11px] focus:outline-none focus:border-indigo-500 ${
+                          isDark ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                        }`}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        )
+      )}
     </div>
   );
 };

@@ -12,8 +12,11 @@ import {
   SelectedElementInfo, 
   Collaborator, 
   ChatMessage, 
-  DrawIoDiagram 
+  DrawIoDiagram,
+  FileType
 } from './types';
+import { transpileTypeScript } from './utils/tsTranspiler';
+import { transpileGroovyToJS } from './utils/groovyEngine';
 import { INITIAL_DEFAULT_FILES } from './data/componentsData';
 import { Navbar } from './components/Navbar';
 import { ComponentLibrary } from './components/ComponentLibrary';
@@ -31,6 +34,8 @@ import { HostedPreviewModal } from './components/HostedPreviewModal';
 import { ImportUrlModal } from './components/ImportUrlModal';
 import { MediaListModal } from './components/MediaListModal';
 import { QuickLinkModal } from './components/QuickLinkModal';
+import { HeadTagsSEOModal } from './components/HeadTagsSEOModal';
+import { IconPickerModal } from './components/IconPickerModal';
 import { downloadTarZstd } from './utils/tarZstd';
 import { normalizeSvgContent, serializeDocumentOrBody } from './utils/svgUtils';
 
@@ -66,6 +71,8 @@ export default function App() {
   const [isImportUrlOpen, setIsImportUrlOpen] = useState(false);
   const [isMediaOpen, setIsMediaOpen] = useState(false);
   const [isQuickLinkOpen, setIsQuickLinkOpen] = useState(false);
+  const [isSEOOpen, setIsSEOOpen] = useState(false);
+  const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
 
   // Active Draw.io diagram state
   const [activeDiagram, setActiveDiagram] = useState<DrawIoDiagram | null>(null);
@@ -483,9 +490,9 @@ export default function App() {
   };
 
   // Add Custom File to project
-  const handleAddNewFile = (name: string, type: 'html' | 'css' | 'js') => {
-    const rawTitle = name.replace(/\.html$/i, '').split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-    const pageTitle = rawTitle || 'New Page';
+  const handleAddNewFile = (name: string, type: FileType) => {
+    const rawTitle = name.replace(/\.(html|css|js|ts|groovy)$/i, '').split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+    const pageTitle = rawTitle || 'New File';
 
     let defaultContent = '';
     if (type === 'html') {
@@ -534,8 +541,12 @@ export default function App() {
 </html>`;
     } else if (type === 'css') {
       defaultContent = '/* Custom Stylesheet */';
-    } else {
+    } else if (type === 'js') {
       defaultContent = '// Custom JavaScript';
+    } else if (type === 'ts') {
+      defaultContent = `// TypeScript Module\nexport interface AppConfig {\n  id: string;\n  enabled: boolean;\n}\n\nexport class Service {\n  static init(cfg: AppConfig): void {\n    console.log(\`[TS] Initialized service \${cfg.id}\`);\n  }\n}\n\nService.init({ id: 'srv-1', enabled: true });`;
+    } else if (type === 'groovy') {
+      defaultContent = `// GroovyScript Logic\ndef user = "Developer"\ndef range = (1..5)\n\nprintln "⚡ GroovyScript initialized for \${user}"\nprintln "Range: \${range}"\nprintln "Sum: \${range.sum()}"`;
     }
 
     const newFile: ProjectFile = {
@@ -625,6 +636,8 @@ export default function App() {
         onOpenImportUrl={() => setIsImportUrlOpen(true)}
         onOpenMedia={() => setIsMediaOpen(true)}
         onOpenQuickLinkModal={() => setIsQuickLinkOpen(true)}
+        onOpenSEOModal={() => setIsSEOOpen(true)}
+        onOpenIconPicker={() => setIsIconPickerOpen(true)}
         onOpenNewProject={() => setIsNewProjectOpen(true)}
         onExportZst={handleExportZstArchive}
         activeRoomId={activeRoomId}
@@ -642,6 +655,7 @@ export default function App() {
         {(viewMode === 'wysiwyg' || viewMode === 'split') && (
           <ComponentLibrary
             onInsertComponent={handleInsertComponentHtml}
+            onOpenIconPicker={() => setIsIconPickerOpen(true)}
             themeMode={themeMode}
           />
         )}
@@ -649,25 +663,39 @@ export default function App() {
         {/* Center Canvas / Code Split Views */}
         <div className="flex-1 flex overflow-hidden relative">
           {/* WYSIWYG Visual View (Visible in WYSIWYG, Split, Preview) */}
-          {viewMode !== 'code' && (
-            <WYSIWYGCanvas
-              htmlContent={activeHtmlFile?.content || ''}
-              cssContent={activeCssFile?.content || ''}
-              jsContent={activeJsFile?.content || ''}
-              deviceMode={viewMode === 'preview' ? 'desktop' : deviceMode}
-              onSelectElement={setSelectedElement}
-              onUpdateHtmlFromCanvas={handleUpdateHtml}
-              onDeleteSelectedElement={handleDeleteElement}
-              onOpenDrawIoWithDiagram={handleOpenDrawIoWithDiagram}
-              collaboratorCursors={remoteCursors}
-              themeMode={themeMode}
-              canUndo={historyPast.length > 0}
-              canRedo={historyFuture.length > 0}
-              onUndo={handleUndo}
-              onRedo={handleRedo}
-              onOpenHostedPreview={() => setIsHostedPreviewOpen(true)}
-            />
-          )}
+          {viewMode !== 'code' && (() => {
+            const activeJs = activeJsFile?.content || '';
+            const tsTranspiled = files
+              .filter((f) => f.type === 'ts')
+              .map((f) => `/* ${f.name} (Transpiled TS) */\n${transpileTypeScript(f.content).code}`)
+              .join('\n\n');
+            const groovyTranspiled = files
+              .filter((f) => f.type === 'groovy')
+              .map((f) => `/* ${f.name} (Transpiled Groovy) */\n${transpileGroovyToJS(f.content)}`)
+              .join('\n\n');
+
+            const effectiveJsContent = [activeJs, tsTranspiled, groovyTranspiled].filter(Boolean).join('\n\n');
+
+            return (
+              <WYSIWYGCanvas
+                htmlContent={activeHtmlFile?.content || ''}
+                cssContent={activeCssFile?.content || ''}
+                jsContent={effectiveJsContent}
+                deviceMode={viewMode === 'preview' ? 'desktop' : deviceMode}
+                onSelectElement={setSelectedElement}
+                onUpdateHtmlFromCanvas={handleUpdateHtml}
+                onDeleteSelectedElement={handleDeleteElement}
+                onOpenDrawIoWithDiagram={handleOpenDrawIoWithDiagram}
+                collaboratorCursors={remoteCursors}
+                themeMode={themeMode}
+                canUndo={historyPast.length > 0}
+                canRedo={historyFuture.length > 0}
+                onUndo={handleUndo}
+                onRedo={handleRedo}
+                onOpenHostedPreview={() => setIsHostedPreviewOpen(true)}
+              />
+            );
+          })()}
 
           {/* Code Editors View (Visible in Code or Split mode) */}
           {(viewMode === 'code' || viewMode === 'split') && (
@@ -694,6 +722,12 @@ export default function App() {
             onOpenDrawIoWithDiagram={handleOpenDrawIoWithDiagram}
             onOpenFonts={() => setIsFontsOpen(true)}
             onOpenQuickLinkModal={() => setIsQuickLinkOpen(true)}
+            cssContent={activeCssFile?.content || ''}
+            activeHtmlContent={activeHtmlFile?.content || ''}
+            files={files}
+            onUpdateCssContent={(newCss) => handleFileContentChange(activeCssFile?.id || 'styles-css', newCss)}
+            onUpdateHtmlContent={(newHtml) => handleUpdateHtml(newHtml)}
+            onRestoreFiles={(restoredFiles) => broadcastFileUpdate(restoredFiles)}
             themeMode={themeMode}
           />
         )}
@@ -801,6 +835,28 @@ export default function App() {
         files={files}
         activeFileId={activeFileId}
         onInsertLinkHtml={handleInsertComponentHtml}
+        themeMode={themeMode}
+      />
+
+      {/* SEO & Head Tags Manager Modal */}
+      <HeadTagsSEOModal
+        isOpen={isSEOOpen}
+        onClose={() => setIsSEOOpen(false)}
+        htmlContent={activeHtmlFile?.content || ''}
+        onUpdateHtml={(newHtml) => {
+          if (activeHtmlFile) {
+            handleFileContentChange(activeHtmlFile.id, newHtml);
+          }
+        }}
+        activeFileName={activeHtmlFile?.name || 'index.html'}
+        themeMode={themeMode}
+      />
+
+      {/* Icon Picker & Vector Graphics Studio Modal */}
+      <IconPickerModal
+        isOpen={isIconPickerOpen}
+        onClose={() => setIsIconPickerOpen(false)}
+        onInsertIcon={handleInsertComponentHtml}
         themeMode={themeMode}
       />
     </div>

@@ -23,7 +23,9 @@ import {
   Keyboard,
   Globe,
   Film,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Search,
+  Smile
 } from 'lucide-react';
 import { ViewMode, DeviceMode, ProjectFile, ThemeMode } from '../types';
 
@@ -45,6 +47,8 @@ interface NavbarProps {
   onOpenImportUrl?: () => void;
   onOpenMedia?: () => void;
   onOpenQuickLinkModal?: () => void;
+  onOpenSEOModal?: () => void;
+  onOpenIconPicker?: () => void;
   onOpenNewProject: () => void;
   onExportZst: () => void;
   activeRoomId: string | null;
@@ -74,6 +78,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenImportUrl,
   onOpenMedia,
   onOpenQuickLinkModal,
+  onOpenSEOModal,
+  onOpenIconPicker,
   onOpenNewProject,
   onExportZst,
   activeRoomId,
@@ -257,6 +263,30 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Action Tools & Integration Buttons */}
       <div className="flex items-center space-x-2">
+        {/* Icon Picker Modal Trigger */}
+        {onOpenIconPicker && (
+          <button
+            onClick={onOpenIconPicker}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-pink-500/15 hover:bg-pink-500/25 text-pink-300 border border-pink-500/40 rounded-lg text-xs font-semibold shadow-xs shadow-pink-500/20 transition-all cursor-pointer"
+            title="Browse, customize, & insert icons from Lucide SVG & FontAwesome libraries into canvas"
+          >
+            <Smile className="w-3.5 h-3.5 text-pink-400" />
+            <span>Icons</span>
+          </button>
+        )}
+
+        {/* SEO & Head Tags Manager Trigger */}
+        {onOpenSEOModal && (
+          <button
+            onClick={onOpenSEOModal}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-semibold shadow-xs shadow-emerald-500/20 transition-all cursor-pointer"
+            title="Edit meta title, description, viewport, Open Graph & social tags for SEO"
+          >
+            <Search className="w-3.5 h-3.5 text-emerald-400" />
+            <span>SEO Tags</span>
+          </button>
+        )}
+
         {/* Quick Link & Anchor Creator Trigger */}
         {onOpenQuickLinkModal && (
           <button

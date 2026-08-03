@@ -1,4 +1,4 @@
-export type FileType = 'html' | 'css' | 'js' | 'xml' | 'json' | 'asset';
+export type FileType = 'html' | 'css' | 'js' | 'ts' | 'groovy' | 'xml' | 'json' | 'asset';
 
 export interface ProjectFile {
   id: string;
@@ -10,6 +10,16 @@ export interface ProjectFile {
   size?: number;
   lastModified?: number;
   mediaType?: 'image' | 'video' | 'audio' | 'svg';
+}
+
+export interface SmartAssetMetadata {
+  tags?: string[];
+  suggestedAltText?: string;
+  category?: string;
+  accessibilityScore?: number;
+  accessibilityStatus?: 'compliant' | 'needs-improvement' | 'missing';
+  accessibilityTip?: string;
+  analyzedAt?: number;
 }
 
 export interface IncludedMediaItem {
@@ -27,6 +37,7 @@ export interface IncludedMediaItem {
   altText?: string;
   isAssetFile?: boolean;
   fileId?: string;
+  smartMetadata?: SmartAssetMetadata;
 }
 
 export interface SelectedElementInfo {
@@ -41,6 +52,15 @@ export interface SelectedElementInfo {
 
 export type ComponentCategory = 'layout' | 'typography' | 'ui' | 'forms' | 'media' | 'drawio' | 'custom';
 
+export interface ComponentVariant {
+  id: string;
+  name: string;
+  description: string;
+  html: string;
+  icon?: string;
+  tags?: string[];
+}
+
 export interface ComponentTemplate {
   id: string;
   name: string;
@@ -50,6 +70,7 @@ export interface ComponentTemplate {
   html: string;
   defaultCss?: string;
   tags?: string[];
+  variants?: ComponentVariant[];
 }
 
 export interface Collaborator {

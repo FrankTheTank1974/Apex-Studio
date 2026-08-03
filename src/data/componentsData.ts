@@ -4,10 +4,10 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
   // LAYOUT
   {
     id: 'hero-modern',
-    name: 'Modern SaaS Hero',
+    name: 'Hero Section Layouts',
     category: 'layout',
     icon: 'Sparkles',
-    description: 'Hero header with title, subtext, CTA buttons and preview card',
+    description: 'Hero header layouts with multiple style variants: Modern SaaS, Split 2-Column Showcase, Minimalist Editorial, and Dark Cyberpunk',
     html: `<section class="py-16 px-6 max-w-6xl mx-auto text-center">
   <span class="inline-block px-4 py-1.5 mb-6 text-xs font-semibold tracking-wider text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-full border border-indigo-200 dark:border-indigo-800">
     ⚡ NEXT GENERATION BUILDER
@@ -26,14 +26,164 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
       Watch Interactive Demo
     </a>
   </div>
+</section>`,
+    variants: [
+      {
+        id: 'hero-modern-saas',
+        name: 'Modern SaaS Centered',
+        description: 'Centered title with gradient text, badge, dual CTA buttons, and spacious margin',
+        html: `<section class="py-16 px-6 max-w-6xl mx-auto text-center">
+  <span class="inline-block px-4 py-1.5 mb-6 text-xs font-semibold tracking-wider text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 dark:text-indigo-400 rounded-full border border-indigo-200 dark:border-indigo-800">
+    ⚡ NEXT GENERATION BUILDER
+  </span>
+  <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6 leading-tight">
+    Build & Deploy Web Apps <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">Faster Than Ever</span>
+  </h1>
+  <p class="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-8">
+    Visual drag-and-drop HTML editor, real-time collaboration, instant diagramming, and automated multi-cloud deployments to Vercel, Netlify, and GitHub.
+  </p>
+  <div class="flex flex-wrap items-center justify-center gap-4">
+    <a href="#get-started" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5">
+      Start Building Free
+    </a>
+    <a href="#demo" class="px-6 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-medium rounded-xl border border-slate-200 dark:border-slate-700 transition-all">
+      Watch Interactive Demo
+    </a>
+  </div>
 </section>`
+      },
+      {
+        id: 'hero-split-showcase',
+        name: 'Split 2-Column Showcase',
+        description: '2-Column layout with headline & feature checkmarks on left, terminal/dashboard preview on right',
+        html: `<section class="py-16 px-6 max-w-7xl mx-auto">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <div>
+      <div class="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-full text-xs font-semibold mb-4">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Version 3.0 Live Now</span>
+      </div>
+      <h1 class="text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-4">
+        Empower Your Development Workflow with Visual IDE
+      </h1>
+      <p class="text-base text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+        Seamlessly blend visual WYSIWYG editing, draw.io diagrams, code editing, and instant archive management into one powerful workspace.
+      </p>
+      <ul class="space-y-3 mb-8 text-sm text-slate-700 dark:text-slate-300 font-medium">
+        <li class="flex items-center space-x-2.5">
+          <span class="w-5 h-5 rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs font-bold">✓</span>
+          <span>Instant drag-and-drop element positioning & live sync</span>
+        </li>
+        <li class="flex items-center space-x-2.5">
+          <span class="w-5 h-5 rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs font-bold">✓</span>
+          <span>Multi-cloud one-click deployments (Vercel, Netlify, Cloud Run)</span>
+        </li>
+        <li class="flex items-center space-x-2.5">
+          <span class="w-5 h-5 rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs font-bold">✓</span>
+          <span>Real-time multi-user editing with cursor presence</span>
+        </li>
+      </ul>
+      <div class="flex items-center space-x-4">
+        <button class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-indigo-500/20 transition-all">Launch Editor</button>
+        <button class="px-6 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-sm rounded-xl border border-slate-200 dark:border-slate-700 transition-all">Explore Docs</button>
+      </div>
+    </div>
+    <div class="relative">
+      <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl relative overflow-hidden">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+          <div class="flex space-x-2">
+            <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+            <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+          </div>
+          <span class="text-xs font-mono text-slate-500">app.apexstudio.dev</span>
+        </div>
+        <div class="space-y-3 font-mono text-xs">
+          <div class="p-3 bg-slate-950/80 rounded-lg text-emerald-400 border border-slate-800">
+            $ apex deploy --provider vercel --env production
+          </div>
+          <div class="text-slate-400 text-[11px] leading-relaxed">
+            ✔ Building production bundle (HTML, Tailwind CSS, JS)...<br/>
+            ✔ Deploying 24 static assets to edge network...<br/>
+            ✔ SSL Certificate auto-provisioned.<br/>
+            <span class="text-indigo-400 font-bold">🚀 Deployment Live: https://apex-studio-pro.vercel.app</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>`
+      },
+      {
+        id: 'hero-minimal-editorial',
+        name: 'Minimalist Editorial',
+        description: 'Clean typography, high contrast, elegant spacing, single CTA',
+        html: `<section class="py-20 px-6 max-w-4xl mx-auto text-center font-sans">
+  <p class="text-xs uppercase tracking-widest text-indigo-500 font-semibold mb-3">Simple & Purposeful</p>
+  <h1 class="text-5xl md:text-7xl font-light text-slate-900 dark:text-white mb-6 tracking-tight leading-none">
+    Design without <span class="font-bold underline decoration-indigo-500 decoration-wavy">friction</span>.
+  </h1>
+  <p class="text-lg md:text-xl text-slate-600 dark:text-slate-400 font-light max-w-2xl mx-auto mb-10 leading-relaxed">
+    Create breathtaking digital experiences with zero boilerplate overhead. Clean code output, pure standard HTML & CSS.
+  </p>
+  <div>
+    <a href="#start" class="inline-block px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-sm rounded-full hover:opacity-90 transition-opacity shadow-lg">
+      Start Creating Now →
+    </a>
+  </div>
+</section>`
+      },
+      {
+        id: 'hero-dark-cyberpunk',
+        name: 'Dark Cyberpunk Tech',
+        description: 'Glowing dark theme backdrop with search bar CTA and live metrics stat counters',
+        html: `<section class="py-20 px-6 max-w-6xl mx-auto text-center bg-slate-950 text-white rounded-3xl border border-indigo-900/40 shadow-2xl relative overflow-hidden my-6">
+  <div class="absolute inset-0 bg-gradient-to-b from-indigo-500/10 via-purple-500/5 to-transparent pointer-events-none"></div>
+  <div class="relative z-10">
+    <span class="inline-flex items-center space-x-2 px-3 py-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full text-xs font-mono font-semibold mb-6">
+      <span>⚡ CLOUD NATIVE PLATFORM</span>
+    </span>
+    <h1 class="text-4xl md:text-6xl font-black tracking-tight text-white mb-6 leading-tight">
+      Deploy Fullstack Apps <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400">At Warp Speed</span>
+    </h1>
+    <p class="text-base md:text-lg text-slate-400 max-w-2xl mx-auto mb-8 font-mono text-xs">
+      Instant serverless endpoints, automated Git syncing, and real-time collaborative preview canvases.
+    </p>
+
+    <!-- Search / CTA Input -->
+    <div class="max-w-md mx-auto flex items-center bg-slate-900 border border-slate-800 rounded-2xl p-1.5 shadow-xl mb-12">
+      <input type="text" placeholder="Enter project name..." class="flex-1 bg-transparent px-4 py-2 text-xs text-white focus:outline-none placeholder-slate-500 font-mono" />
+      <button class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-md cursor-pointer">
+        Create App
+      </button>
+    </div>
+
+    <!-- Live Metrics Counter Row -->
+    <div class="grid grid-cols-3 gap-6 max-w-3xl mx-auto pt-8 border-t border-slate-900/80 font-mono">
+      <div>
+        <div class="text-2xl md:text-3xl font-black text-cyan-400">99.99%</div>
+        <div class="text-[11px] text-slate-500 uppercase mt-1">Uptime SLA</div>
+      </div>
+      <div>
+        <div class="text-2xl md:text-3xl font-black text-indigo-400">10M+</div>
+        <div class="text-[11px] text-slate-500 uppercase mt-1">Daily Requests</div>
+      </div>
+      <div>
+        <div class="text-2xl md:text-3xl font-black text-purple-400">&lt;50ms</div>
+        <div class="text-[11px] text-slate-500 uppercase mt-1">Global Latency</div>
+      </div>
+    </div>
+  </div>
+</section>`
+      }
+    ]
   },
   {
     id: 'navbar-sleek',
-    name: 'Responsive Navigation Bar',
+    name: 'Navigation Bar Styles',
     category: 'layout',
     icon: 'Navigation',
-    description: 'Header with brand logo, nav links, and CTA button',
+    description: 'Header navigation templates with multiple variants: Sleek Centered, Search + Actions, Dark Floating Glass, and Mega-Menu',
     html: `<header class="w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4 sticky top-0 z-50">
   <div class="max-w-7xl mx-auto flex items-center justify-between">
     <div class="flex items-center space-x-3">
@@ -53,14 +203,128 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
       <button class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md shadow-indigo-500/20 transition-all">Get Started</button>
     </div>
   </div>
+</header>`,
+    variants: [
+      {
+        id: 'navbar-sleek-centered',
+        name: 'Sleek Centered Nav',
+        description: 'Brand logo on left, centered navigation links, Sign In & Get Started actions on right',
+        html: `<header class="w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4 sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-500/20">
+        A
+      </div>
+      <span class="font-bold text-xl text-slate-900 dark:text-white tracking-tight">ApexStudio</span>
+    </div>
+    <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-600 dark:text-slate-300">
+      <a href="#features" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Features</a>
+      <a href="#components" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Components</a>
+      <a href="#pricing" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Pricing</a>
+      <a href="#docs" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Documentation</a>
+    </nav>
+    <div class="flex items-center space-x-4">
+      <button class="px-4 py-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors">Sign In</button>
+      <button class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md shadow-indigo-500/20 transition-all">Get Started</button>
+    </div>
+  </div>
 </header>`
+      },
+      {
+        id: 'navbar-search-actions',
+        name: 'Brand Left + Search Bar',
+        description: 'Header with integrated search input box, quick documentation links, and user profile avatar',
+        html: `<header class="w-full bg-slate-900 text-white border-b border-slate-800 px-6 py-3 sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <div class="flex items-center space-x-6">
+      <div class="flex items-center space-x-2.5">
+        <span class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white shadow-sm">⚡</span>
+        <span class="font-bold text-lg tracking-tight">ApexCloud</span>
+      </div>
+      <div class="hidden md:flex items-center bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 w-72">
+        <span class="text-slate-500 text-xs mr-2">🔍</span>
+        <input type="text" placeholder="Search docs, APIs, components..." class="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none" />
+        <span class="text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded font-mono">⌘K</span>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <a href="#docs" class="text-xs text-slate-300 hover:text-white font-medium">Documentation</a>
+      <a href="#status" class="text-xs text-emerald-400 font-medium flex items-center space-x-1.5 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>All Systems Operational</span>
+      </a>
+      <button class="w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center shadow-md">
+        JS
+      </button>
+    </div>
+  </div>
+</header>`
+      },
+      {
+        id: 'navbar-floating-pill',
+        name: 'Dark Floating Glassmorphism',
+        description: 'Rounded floating navbar pill with backdrop blur, shadow, and status indicator',
+        html: `<div class="w-full py-4 px-6 sticky top-2 z-50">
+  <header class="max-w-5xl mx-auto bg-slate-900/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-full px-6 py-3 shadow-2xl flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-md">
+        ★
+      </div>
+      <span class="font-bold text-sm text-white tracking-tight">Apex Studio</span>
+    </div>
+    <nav class="hidden md:flex items-center space-x-6 text-xs font-semibold text-slate-300">
+      <a href="#overview" class="hover:text-white transition-colors">Overview</a>
+      <a href="#showcase" class="hover:text-white transition-colors">Showcase</a>
+      <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
+      <a href="#changelog" class="hover:text-white transition-colors">Changelog</a>
+    </nav>
+    <div class="flex items-center space-x-3">
+      <button class="px-3.5 py-1.5 text-xs font-medium text-slate-300 hover:text-white">Log In</button>
+      <button class="px-4 py-1.5 text-xs font-bold text-slate-900 bg-white hover:bg-slate-100 rounded-full shadow-md transition-all">Try Free</button>
+    </div>
+  </header>
+</div>`
+      },
+      {
+        id: 'navbar-mega-menu',
+        name: 'Mega-Menu Header',
+        description: 'Navigation header with dropdown menu link categories, notifications, and status badge',
+        html: `<header class="w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-3">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <div class="flex items-center space-x-8">
+      <div class="font-extrabold text-indigo-600 dark:text-indigo-400 text-xl tracking-tight">ApexStudio Pro</div>
+      <nav class="hidden md:flex items-center space-x-6 text-xs font-semibold text-slate-700 dark:text-slate-300">
+        <div class="relative group cursor-pointer py-2">
+          <span class="flex items-center space-x-1 group-hover:text-indigo-600">
+            <span>Products</span>
+            <span>▾</span>
+          </span>
+        </div>
+        <div class="relative group cursor-pointer py-2">
+          <span class="flex items-center space-x-1 group-hover:text-indigo-600">
+            <span>Solutions</span>
+            <span>▾</span>
+          </span>
+        </div>
+        <a href="#pricing" class="hover:text-indigo-600">Pricing</a>
+        <a href="#enterprise" class="hover:text-indigo-600">Enterprise</a>
+      </nav>
+    </div>
+    <div class="flex items-center space-x-3 text-xs">
+      <button class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">🔔</button>
+      <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm">Dashboard</button>
+    </div>
+  </div>
+</header>`
+      }
+    ]
   },
   {
     id: 'feature-3col',
-    name: '3-Column Feature Cards',
+    name: 'Feature Section Layouts',
     category: 'layout',
     icon: 'LayoutGrid',
-    description: 'Grid layout highlighting key platform capabilities',
+    description: 'Feature display sections with multiple variants: 3-Column Cards, Bento Grid Layout, and Alternating Zig-Zag Rows',
     html: `<section class="py-12 px-6 max-w-6xl mx-auto">
   <div class="text-center mb-12">
     <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Everything You Need To Deliver</h2>
@@ -83,14 +347,121 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
       <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Real-time team presence, multi-user visual element locking, and instant state sync.</p>
     </div>
   </div>
+</section>`,
+    variants: [
+      {
+        id: 'feature-3col-classic',
+        name: 'Classic 3-Column Grid',
+        description: '3-Column equal width grid cards with icons, title, description and subtle border hover',
+        html: `<section class="py-12 px-6 max-w-6xl mx-auto">
+  <div class="text-center mb-12">
+    <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Everything You Need To Deliver</h2>
+    <p class="text-slate-500 dark:text-slate-400 mt-2">Engineered for modern developers and visual design teams.</p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+      <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-950/80 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4 font-bold text-xl">⚡</div>
+      <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">WYSIWYG Editing</h3>
+      <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Direct visual canvas manipulation with real-time HTML, CSS, and JS code synchronization.</p>
+    </div>
+    <div class="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+      <div class="w-12 h-12 bg-purple-100 dark:bg-purple-950/80 rounded-xl flex items-center justify-center text-purple-600 dark:text-purple-400 mb-4 font-bold text-xl">🌐</div>
+      <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Multi-Cloud Deploy</h3>
+      <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Deploy directly to Vercel, Netlify, GitHub, GitLab, Bitbucket, or Codeberg in one click.</p>
+    </div>
+    <div class="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+      <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/80 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-4 font-bold text-xl">👥</div>
+      <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Live Collaboration</h3>
+      <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Real-time team presence, multi-user visual element locking, and instant state sync.</p>
+    </div>
+  </div>
 </section>`
+      },
+      {
+        id: 'feature-bento-grid',
+        name: 'Asymmetric Bento Box',
+        description: 'Modern bento grid with 1 primary feature box and 3 compact stat cards',
+        html: `<section class="py-12 px-6 max-w-6xl mx-auto">
+  <div class="mb-10">
+    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">PLATFORM HIGHLIGHTS</span>
+    <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">Bento Grid Feature Matrix</h2>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="md:col-span-2 p-8 bg-gradient-to-br from-indigo-900 to-slate-900 text-white rounded-3xl border border-indigo-800/50 shadow-xl flex flex-col justify-between min-h-[260px]">
+      <div>
+        <span class="px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-xs font-mono font-semibold">FLAGSHIP</span>
+        <h3 class="text-2xl font-bold mt-4 mb-2">Bi-Directional Code & Canvas Sync</h3>
+        <p class="text-sm text-slate-300 max-w-md leading-relaxed">
+          Edits made in the WYSIWYG canvas instantly update HTML files, while manual code edits render in real-time in the canvas.
+        </p>
+      </div>
+      <div class="pt-6 font-mono text-xs text-indigo-400 flex items-center space-x-2">
+        <span>● Live AST Synchronizer Active</span>
+      </div>
+    </div>
+    <div class="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+      <div class="text-3xl font-black text-indigo-600 dark:text-indigo-400">0.02s</div>
+      <div>
+        <h4 class="font-bold text-slate-900 dark:text-white text-sm">Instant Refresh</h4>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Zero latency hot module reloads.</p>
+      </div>
+    </div>
+    <div class="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+      <div class="text-3xl font-black text-emerald-500">25+</div>
+      <div>
+        <h4 class="font-bold text-slate-900 dark:text-white text-sm">Deploy Providers</h4>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Vercel, Netlify, Cloud Run & Git.</p>
+      </div>
+    </div>
+    <div class="md:col-span-2 p-6 bg-slate-900 text-white rounded-3xl border border-slate-800 shadow-sm flex items-center justify-between">
+      <div>
+        <h4 class="font-bold text-sm">Tar.zst Compressed Export</h4>
+        <p class="text-xs text-slate-400 mt-0.5">Full multi-file workspace compression in one click.</p>
+      </div>
+      <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-md">Export Now</button>
+    </div>
+  </div>
+</section>`
+      },
+      {
+        id: 'feature-zigzag-rows',
+        name: 'Zig-Zag Alternating Rows',
+        description: 'Row-by-row feature breakdown with alternating left/right layout',
+        html: `<section class="py-16 px-6 max-w-6xl mx-auto space-y-16">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+    <div>
+      <span class="text-xs font-bold text-indigo-500 uppercase tracking-wider">VISUAL CANVAS</span>
+      <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1 mb-3">Drag-and-Drop Component Library</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+        Select from dozens of pre-designed Tailwind components or drag custom variants straight into your active HTML canvas.
+      </p>
+    </div>
+    <div class="p-6 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-center text-xs font-mono text-slate-500">
+      [ Visual Canvas Preview Placeholder ]
+    </div>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+    <div class="order-2 md:order-1 p-6 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-center text-xs font-mono text-slate-500">
+      [ Draw.io Editor Integration Placeholder ]
+    </div>
+    <div class="order-1 md:order-2">
+      <span class="text-xs font-bold text-purple-500 uppercase tracking-wider">DIAGRAMMING</span>
+      <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1 mb-3">Native Draw.io Architecture Editor</h3>
+      <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+        Embed XML/SVG flowcharts directly in your web app with instant double-click editing.
+      </p>
+    </div>
+  </div>
+</section>`
+      }
+    ]
   },
   {
     id: 'footer-clean',
-    name: 'Clean Modern Footer',
+    name: 'Footer Section Layouts',
     category: 'layout',
     icon: 'PanelBottom',
-    description: 'Footer with column links and copyright text',
+    description: 'Footer layouts with multiple variants: 4-Column SaaS Footer, Centered Minimalist, and Newsletter Subscription Footer',
     html: `<footer class="bg-slate-900 text-slate-400 py-12 px-6 border-t border-slate-800">
   <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
     <div>
@@ -125,7 +496,94 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
   <div class="max-w-6xl mx-auto pt-8 border-t border-slate-800 text-xs text-center text-slate-500">
     © 2026 ApexStudio. All rights reserved. Built with precision.
   </div>
+</footer>`,
+    variants: [
+      {
+        id: 'footer-4col-saas',
+        name: '4-Column Modern SaaS',
+        description: 'Brand column with description + 3 category link columns + copyright divider',
+        html: `<footer class="bg-slate-900 text-slate-400 py-12 px-6 border-t border-slate-800">
+  <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+    <div>
+      <span class="text-white font-bold text-lg">ApexStudio</span>
+      <p class="mt-2 text-sm text-slate-400">The premier visual Web IDE & deployment platform.</p>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold text-sm mb-3">Product</h4>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#" class="hover:text-white transition-colors">Visual Editor</a></li>
+        <li><a href="#" class="hover:text-white transition-colors">Draw.io Diagrams</a></li>
+        <li><a href="#" class="hover:text-white transition-colors">Tar.zst Archiver</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold text-sm mb-3">Integrations</h4>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#" class="hover:text-white transition-colors">GitHub & GitLab</a></li>
+        <li><a href="#" class="hover:text-white transition-colors">Vercel & Netlify</a></li>
+        <li><a href="#" class="hover:text-white transition-colors">Codeberg & Bitbucket</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold text-sm mb-3">Company</h4>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+        <li><a href="#" class="hover:text-white transition-colors">Documentation</a></li>
+        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="max-w-6xl mx-auto pt-8 border-t border-slate-800 text-xs text-center text-slate-500">
+    © 2026 ApexStudio. All rights reserved. Built with precision.
+  </div>
 </footer>`
+      },
+      {
+        id: 'footer-centered-minimal',
+        name: 'Centered Minimalist',
+        description: 'Centered brand logo, single row horizontal navigation links, social icons',
+        html: `<footer class="bg-slate-950 text-slate-400 py-10 px-6 border-t border-slate-900 text-center font-sans">
+  <div class="max-w-4xl mx-auto space-y-6">
+    <div class="font-extrabold text-white text-xl tracking-tight">ApexStudio</div>
+    <div class="flex flex-wrap justify-center gap-6 text-xs font-medium text-slate-300">
+      <a href="#about" class="hover:text-white">About</a>
+      <a href="#features" class="hover:text-white">Features</a>
+      <a href="#docs" class="hover:text-white">Docs</a>
+      <a href="#privacy" class="hover:text-white">Privacy</a>
+      <a href="#terms" class="hover:text-white">Terms</a>
+    </div>
+    <div class="text-[11px] text-slate-500">
+      © 2026 ApexStudio Technologies Inc. All rights reserved.
+    </div>
+  </div>
+</footer>`
+      },
+      {
+        id: 'footer-newsletter-split',
+        name: 'Newsletter Subscription',
+        description: 'Split footer with email newsletter signup input box and status badge',
+        html: `<footer class="bg-slate-900 text-slate-300 py-12 px-6 border-t border-slate-800">
+  <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 pb-8 border-b border-slate-800 items-center">
+    <div>
+      <h3 class="text-xl font-bold text-white">Subscribe to platform updates</h3>
+      <p class="text-xs text-slate-400 mt-1">Get monthly updates on new components, cloud integrations, and feature releases.</p>
+    </div>
+    <div class="flex items-center space-x-2">
+      <input type="email" placeholder="Enter your email address..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500" />
+      <button class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-md whitespace-nowrap">Subscribe</button>
+    </div>
+  </div>
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+    <div>© 2026 ApexStudio. Built for high-performance web engineering.</div>
+    <div class="flex items-center space-x-4">
+      <a href="#terms" class="hover:text-slate-300">Terms</a>
+      <a href="#privacy" class="hover:text-slate-300">Privacy</a>
+      <a href="#security" class="hover:text-slate-300">Security</a>
+    </div>
+  </div>
+</footer>`
+      }
+    ]
   },
   {
     id: 'impressum-footer',
