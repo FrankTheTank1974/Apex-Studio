@@ -2050,5 +2050,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });`
+  },
+  {
+    id: 'config-xml',
+    name: 'config.xml',
+    type: 'xml' as const,
+    path: '/config.xml',
+    content: `<?xml version="1.0" encoding="UTF-8"?>
+<!-- ApexStudio Project Configuration -->
+<app-config xmlns:xs="http://www.w3.org/2001/XMLSchema-instance">
+  <metadata>
+    <title>ApexStudio Engine</title>
+    <version>3.6.0</version>
+    <environment>production</environment>
+  </metadata>
+  <features>
+    <feature name="GroovyEngine" enabled="true" />
+    <feature name="XmlLinter" enabled="true" />
+    <feature name="DrawIoEmbed" enabled="true" />
+  </features>
+</app-config>`
   }
 ];

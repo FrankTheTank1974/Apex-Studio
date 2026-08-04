@@ -26,6 +26,7 @@ export function highlightCodeToHTML(code: string, type: string, isDark: boolean 
     cssVal: 'text-amber-300',
     cssSel: 'text-yellow-300 font-semibold',
     operator: 'text-pink-300',
+    annotation: 'text-amber-400 font-bold',
   } : {
     keyword: 'text-purple-700 font-semibold',
     string: 'text-emerald-700',
@@ -40,6 +41,7 @@ export function highlightCodeToHTML(code: string, type: string, isDark: boolean 
     cssVal: 'text-amber-700',
     cssSel: 'text-amber-800 font-semibold',
     operator: 'text-pink-600',
+    annotation: 'text-amber-600 font-bold',
   };
 
   // Placeholders mapping for matched tokens to avoid double replacement
@@ -52,19 +54,34 @@ export function highlightCodeToHTML(code: string, type: string, isDark: boolean 
     return tokenMarker(idx);
   };
 
-  if (type === 'html') {
+  if (type === 'xml' || type === 'html') {
     // 1. Comments
     safe = safe.replace(/&lt;!--[\s\S]*?--&gt;/g, (match) => {
       return saveToken(`<span class="${colors.comment}">${match}</span>`);
     });
 
-    // 2. HTML Tags & attributes
-    safe = safe.replace(/(&lt;\/?)([a-zA-Z0-9\-]+)((?:\s+[a-zA-Z0-9\-]+(?:=(?:"[^"]*"|'[^']*'|[^\s&gt;]+))?)*\s*)(\/?&gt;)/g, (match, open, tag, attrs, close) => {
+    // 2. XML Processing Instructions & Declarations (<?xml ... ?>, <?target ... ?>)
+    safe = safe.replace(/&lt;\?[a-zA-Z0-9_\-:]*[\s\S]*?\?&gt;/g, (match) => {
+      return saveToken(`<span class="${colors.annotation}">${match}</span>`);
+    });
+
+    // 3. CDATA Sections (<![CDATA[ ... ]])
+    safe = safe.replace(/&lt;!\[CDATA\[[\s\S]*?\]\]&gt;/g, (match) => {
+      return saveToken(`<span class="${colors.type}">${match}</span>`);
+    });
+
+    // 4. DOCTYPE / DTD Declarations (<!DOCTYPE ...>)
+    safe = safe.replace(/&lt;!DOCTYPE[\s\S]*?&gt;/gi, (match) => {
+      return saveToken(`<span class="${colors.keyword}">${match}</span>`);
+    });
+
+    // 5. XML/HTML Tags & attributes (handles XML namespaces like <xs:schema>, <ns:element>)
+    safe = safe.replace(/(&lt;\/?)([a-zA-Z0-9_\-:]+)((?:\s+[a-zA-Z0-9_\-:]+(?:=(?:"[^"]*"|'[^']*'|[^\s&gt;]+))?)*\s*)(\/?&gt;)/g, (match, open, tag, attrs, close) => {
       let highlightedAttrs = attrs;
-      highlightedAttrs = highlightedAttrs.replace(/([a-zA-Z0-9\-]+)=("[^"]*"|'[^']*'|[^\s&gt;]+)/g, (_m: string, aName: string, aVal: string) => {
+      highlightedAttrs = highlightedAttrs.replace(/([a-zA-Z0-9_\-:]+)=("[^"]*"|'[^']*'|[^\s&gt;]+)/g, (_m: string, aName: string, aVal: string) => {
         return `<span class="${colors.attrName}">${aName}</span>=<span class="${colors.attrVal}">${aVal}</span>`;
       });
-      highlightedAttrs = highlightedAttrs.replace(/\s+([a-zA-Z0-9\-]+)(?=\s|\/|&gt;|$)/g, (_m: string, aName: string) => {
+      highlightedAttrs = highlightedAttrs.replace(/\s+([a-zA-Z0-9_\-:]+)(?=\s|\/|&gt;|$)/g, (_m: string, aName: string) => {
         return ` <span class="${colors.attrName}">${aName}</span>`;
       });
 
@@ -92,8 +109,59 @@ export function highlightCodeToHTML(code: string, type: string, isDark: boolean 
       return saveToken(`<span class="${colors.cssSel}">${match}</span>`);
     });
 
+  } else if (type === 'groovy') {
+    // 1. Comments (including Shebang #!)
+    safe = safe.replace(/(#![^\n]*|\/\/[^\n]*|\/\*[\s\S]*?\*\/)/g, (match) => {
+      return saveToken(`<span class="${colors.comment}">${match}</span>`);
+    });
+
+    // 2. Groovy Annotations (e.g. @CompileStatic, @ToString)
+    safe = safe.replace(/(@[a-zA-Z_]\w*)/g, (match) => {
+      return saveToken(`<span class="${colors.annotation}">${match}</span>`);
+    });
+
+    // 3. Triple-quoted & Single/Double Quoted Strings (and GString interpolation)
+    safe = safe.replace(/("""""[\s\S]*?"""""|'''[\s\S]*?'''|"[^"\\]*(?:\\.[^"\\]*)*"|'[^'\\]*(?:\\.[^'\\]*)*'|\/[^\/\n]+\/)/g, (match) => {
+      return saveToken(`<span class="${colors.string}">${match}</span>`);
+    });
+
+    // 4. Groovy Keywords & Builtin Extensions
+    const groovyKeywords = [
+      'def', 'class', 'interface', 'trait', 'enum', 'package', 'import', 'extends', 'implements',
+      'public', 'private', 'protected', 'static', 'final', 'synchronized', 'volatile', 'transient',
+      'return', 'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'break', 'continue',
+      'try', 'catch', 'finally', 'throw', 'throws', 'new', 'this', 'super', 'instanceof',
+      'as', 'in', 'boolean', 'byte', 'char', 'short', 'int', 'long', 'float', 'double',
+      'void', 'true', 'false', 'null', 'println', 'print', 'assert', 'each', 'collect',
+      'findAll', 'sum', 'find', 'groupBy', 'inject', 'it'
+    ];
+    const kwRegex = new RegExp(`\\b(${groovyKeywords.join('|')})\\b`, 'g');
+    safe = safe.replace(kwRegex, (match) => {
+      if (['def', 'println', 'print', 'assert', 'each', 'collect', 'findAll', 'sum', 'find', 'groupBy', 'inject', 'it'].includes(match)) {
+        return saveToken(`<span class="${colors.groovyExt}">${match}</span>`);
+      }
+      return saveToken(`<span class="${colors.keyword}">${match}</span>`);
+    });
+
+    // 5. Common Groovy / Java Types
+    const groovyTypes = ['String', 'Integer', 'Double', 'Boolean', 'Float', 'Long', 'List', 'Map', 'Set', 'Object', 'Closure', 'GString', 'BigDecimal', 'BigInteger', 'File', 'Date', 'GroovyRuntime'];
+    const typeRegex = new RegExp(`\\b(${groovyTypes.join('|')})\\b`, 'g');
+    safe = safe.replace(typeRegex, (match) => {
+      return saveToken(`<span class="${colors.type}">${match}</span>`);
+    });
+
+    // 6. Numbers
+    safe = safe.replace(/\b(\d+(?:\.\d+)?)\b/g, (match) => {
+      return saveToken(`<span class="${colors.number}">${match}</span>`);
+    });
+
+    // 7. Groovy Specific Operators (?:, ?., <=>, *., .., ->, .&, =~, ==~)
+    safe = safe.replace(/(\?:\s*|\?\.|&lt;=&gt;|\*\.|\.\.|-&gt;|\.&amp;|=~|==~|=&gt;|&gt;|&lt;|==|!=|&amp;&amp;|\|\|)/g, (match) => {
+      return saveToken(`<span class="${colors.operator}">${match}</span>`);
+    });
+
   } else {
-    // JS, TS, GROOVY
+    // JS & TS
 
     // 1. Single and multi-line comments
     safe = safe.replace(/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)/g, (match) => {

@@ -12,8 +12,11 @@
 - **Inspector Panel**: Easily adjust typography, background colors, padding, borders, HTML attributes (`id`, `href`, `src`, `alt`), duplicate, or re-order DOM nodes.
 - **Responsive Viewports**: Seamlessly toggle between Desktop (100%), Tablet (768px), and Mobile (375px) device preview frames.
 
-### 2. ⚡ Real-Time Code Sync & Multi-File Editor
-- **Multi-File Tab Bar**: Edit raw `index.html`, `styles.css`, and `script.js`, or create custom files on the fly.
+### 2. ⚡ Real-Time Code Sync, Multi-File Editor, Groovy & XML Runtimes
+- **Multi-File Tab Bar**: Edit raw `index.html`, `styles.css`, `script.js`, `GroovyScript (.groovy)`, and `XML (.xml)`, or create custom files on the fly.
+- **GroovyScript Syntax Highlighting & Execution Engine**: Dedicated Groovy syntax highlighter for annotations (`@CompileStatic`), keywords (`def`, `trait`, `as`), GStrings, and Groovy operators with an in-browser execution runner (`runGroovyScript`).
+- **Real-Time Groovy Linter**: Detects unclosed quotes/brackets, Java-style `System.out.println` anti-patterns, redundant `def` keywords with explicit types, malformed Elvis operators `?:`, conditional assignments `if (a = b)`, and unnecessary semicolons with automated quick fixes.
+- **XML Syntax Highlighting & Linter Engine**: Highlights XML processing instructions (`<?xml ?>`), namespaces (`xmlns:xs`), CDATA blocks (`<![CDATA[ ]]>`), DOCTYPE declarations, and tags with strict case-sensitive well-formedness validation. Detects unclosed CDATA/comments, duplicate XML attributes, unclosed quotes, and multi-root element violations with instant quick fixes.
 - **Split & Full View Modes**: Switch between **Visual Canvas**, **Split View**, **Code Editor**, and **Live Preview**.
 - **Instant Code Reflection**: Changes in code immediately re-render on the visual canvas, and visual canvas edits synchronize back to source files.
 
@@ -107,6 +110,10 @@ npm start
 │   ├── data/
 │   │   └── componentsData.ts    # Pre-built component templates & starter files
 │   ├── utils/
+│   │   ├── xmlLinter.ts         # Real-time XML linter & well-formedness quick-fix engine
+│   │   ├── groovyLinter.ts      # Real-time GroovyScript linter & quick-fix engine
+│   │   ├── groovyEngine.ts      # GroovyScript transpiler & execution runtime
+│   │   ├── syntaxHighlighter.ts # Multilanguage HTML, CSS, JS, TS, Groovy & XML syntax highlighter
 │   │   ├── a11yAuditor.ts       # WCAG 2.1 AA rule checker & quick-fix engine
 │   │   ├── imageOptimizer.ts    # Client-side WebP canvas compressor & cropper
 │   │   ├── animationPresets.ts  # Tailwind CSS animation presets & keyframes

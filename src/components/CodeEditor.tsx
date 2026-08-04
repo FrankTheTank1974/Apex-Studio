@@ -25,8 +25,10 @@ import { highlightCodeToHTML } from '../utils/syntaxHighlighter';
 import { lintCss, applyCssQuickFix, CssLintIssue } from '../utils/cssLinter';
 import { lintHtml, applyHtmlQuickFix, HtmlLintIssue } from '../utils/htmlLinter';
 import { lintJs, applyJsQuickFix, JsLintIssue } from '../utils/jsLinter';
+import { lintGroovy, applyGroovyQuickFix, GroovyLintIssue } from '../utils/groovyLinter';
+import { lintXml, applyXmlQuickFix, XmlLintIssue } from '../utils/xmlLinter';
 
-export type UnifiedLintIssue = (CssLintIssue | HtmlLintIssue | JsLintIssue) & {
+export type UnifiedLintIssue = (CssLintIssue | HtmlLintIssue | JsLintIssue | GroovyLintIssue | XmlLintIssue) & {
   id: string;
   line: number;
   column?: number;
@@ -87,6 +89,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     if (activeFile.type === 'css') return lintCss(activeFile.content) as UnifiedLintIssue[];
     if (activeFile.type === 'html') return lintHtml(activeFile.content) as UnifiedLintIssue[];
     if (activeFile.type === 'js' || activeFile.type === 'ts') return lintJs(activeFile.content) as UnifiedLintIssue[];
+    if (activeFile.type === 'groovy') return lintGroovy(activeFile.content) as UnifiedLintIssue[];
+    if (activeFile.type === 'xml') return lintXml(activeFile.content) as UnifiedLintIssue[];
     return [];
   }, [activeFile?.content, activeFile?.type]);
 
@@ -156,6 +160,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       updatedContent = applyHtmlQuickFix(activeFile.content, issue as HtmlLintIssue);
     } else if (activeFile.type === 'js' || activeFile.type === 'ts') {
       updatedContent = applyJsQuickFix(activeFile.content, issue as JsLintIssue);
+    } else if (activeFile.type === 'groovy') {
+      updatedContent = applyGroovyQuickFix(activeFile.content, issue as GroovyLintIssue);
+    } else if (activeFile.type === 'xml') {
+      updatedContent = applyXmlQuickFix(activeFile.content, issue as XmlLintIssue);
     }
 
     onFileContentChange(activeFile.id, updatedContent);
@@ -172,6 +180,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         currentContent = applyHtmlQuickFix(currentContent, issue as HtmlLintIssue);
       } else if (activeFile.type === 'js' || activeFile.type === 'ts') {
         currentContent = applyJsQuickFix(currentContent, issue as JsLintIssue);
+      } else if (activeFile.type === 'groovy') {
+        currentContent = applyGroovyQuickFix(currentContent, issue as GroovyLintIssue);
+      } else if (activeFile.type === 'xml') {
+        currentContent = applyXmlQuickFix(currentContent, issue as XmlLintIssue);
       }
     }
     onFileContentChange(activeFile.id, currentContent);
@@ -198,6 +210,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       case 'js': return 'text-yellow-400';
       case 'ts': return 'text-sky-400';
       case 'groovy': return 'text-emerald-400';
+      case 'xml': return 'text-orange-400';
       default: return 'text-slate-400';
     }
   };
@@ -260,7 +273,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             className={`p-1.5 rounded transition-colors ml-1 ${
               isDark ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
             }`}
-            title="Create New Project File (.html, .css, .js, .ts, .groovy)"
+            title="Create New Project File (.html, .css, .js, .ts, .groovy, .xml)"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
@@ -269,7 +282,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         {/* Toolbar Controls */}
         <div className="flex items-center space-x-2 py-1">
           {/* Real-time Multi-language Linter Indicator Toggle */}
-          {['html', 'css', 'js', 'ts'].includes(activeFile?.type || '') && (
+          {['html', 'css', 'js', 'ts', 'groovy', 'xml'].includes(activeFile?.type || '') && (
             <button
               onClick={() => {
                 setIsLinterOpen(!isLinterOpen);
@@ -361,7 +374,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             }`}>
               {Array.from({ length: lineCount }).map((_, i) => {
                 const lineNum = i + 1;
-                const lineIssues = ['html', 'css', 'js', 'ts'].includes(activeFile.type) ? issuesByLine.get(lineNum) : undefined;
+                const lineIssues = ['html', 'css', 'js', 'ts', 'groovy', 'xml'].includes(activeFile.type) ? issuesByLine.get(lineNum) : undefined;
                 const hasError = lineIssues?.some(iss => iss.severity === 'error');
                 const hasWarning = lineIssues?.some(iss => iss.severity === 'warning');
 
@@ -468,7 +481,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
 
           {/* Real-Time Multi-Language Diagnostics / Linter Drawer */}
-          {['html', 'css', 'js', 'ts'].includes(activeFile?.type || '') && isLinterOpen && (
+          {['html', 'css', 'js', 'ts', 'groovy', 'xml'].includes(activeFile?.type || '') && isLinterOpen && (
             <div className={`border-t h-56 flex flex-col shadow-2xl transition-all ${
               isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-slate-900 border-slate-700 text-slate-100'
             }`}>
@@ -722,6 +735,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                   <option value="js">JavaScript (.js)</option>
                   <option value="ts">TypeScript (.ts)</option>
                   <option value="groovy">GroovyScript (.groovy)</option>
+                  <option value="xml">XML Document (.xml)</option>
                 </select>
               </div>
 
