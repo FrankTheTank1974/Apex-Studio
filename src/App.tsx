@@ -36,6 +36,7 @@ import { MediaListModal } from './components/MediaListModal';
 import { QuickLinkModal } from './components/QuickLinkModal';
 import { HeadTagsSEOModal } from './components/HeadTagsSEOModal';
 import { IconPickerModal } from './components/IconPickerModal';
+import { SqlDatabaseExplorerModal } from './components/SqlDatabaseExplorerModal';
 import { downloadTarZstd } from './utils/tarZstd';
 import { normalizeSvgContent, serializeDocumentOrBody } from './utils/svgUtils';
 
@@ -73,6 +74,7 @@ export default function App() {
   const [isQuickLinkOpen, setIsQuickLinkOpen] = useState(false);
   const [isSEOOpen, setIsSEOOpen] = useState(false);
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
+  const [isSqlDbOpen, setIsSqlDbOpen] = useState(false);
 
   // Active Draw.io diagram state
   const [activeDiagram, setActiveDiagram] = useState<DrawIoDiagram | null>(null);
@@ -490,13 +492,14 @@ export default function App() {
   };
 
   // Add Custom File to project
-  const handleAddNewFile = (name: string, type: FileType) => {
-    const rawTitle = name.replace(/\.(html|css|js|ts|groovy)$/i, '').split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+  const handleAddNewFile = (name: string, type: FileType, initialContent?: string) => {
+    const rawTitle = name.replace(/\.(html|css|js|ts|groovy|xml|json)$/i, '').split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
     const pageTitle = rawTitle || 'New File';
 
-    let defaultContent = '';
-    if (type === 'html') {
-      defaultContent = `<!DOCTYPE html>
+    let defaultContent = initialContent || '';
+    if (!initialContent) {
+      if (type === 'html') {
+        defaultContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -539,14 +542,19 @@ export default function App() {
   </main>
 </body>
 </html>`;
-    } else if (type === 'css') {
-      defaultContent = '/* Custom Stylesheet */';
-    } else if (type === 'js') {
-      defaultContent = '// Custom JavaScript';
-    } else if (type === 'ts') {
-      defaultContent = `// TypeScript Module\nexport interface AppConfig {\n  id: string;\n  enabled: boolean;\n}\n\nexport class Service {\n  static init(cfg: AppConfig): void {\n    console.log(\`[TS] Initialized service \${cfg.id}\`);\n  }\n}\n\nService.init({ id: 'srv-1', enabled: true });`;
-    } else if (type === 'groovy') {
-      defaultContent = `// GroovyScript Logic\ndef user = "Developer"\ndef range = (1..5)\n\nprintln "⚡ GroovyScript initialized for \${user}"\nprintln "Range: \${range}"\nprintln "Sum: \${range.sum()}"`;
+      } else if (type === 'css') {
+        defaultContent = '/* Custom Stylesheet */';
+      } else if (type === 'js') {
+        defaultContent = '// Custom JavaScript';
+      } else if (type === 'ts') {
+        defaultContent = `// TypeScript Module\nexport interface AppConfig {\n  id: string;\n  enabled: boolean;\n}\n\nexport class Service {\n  static init(cfg: AppConfig): void {\n    console.log(\`[TS] Initialized service \${cfg.id}\`);\n  }\n}\n\nService.init({ id: 'srv-1', enabled: true });`;
+      } else if (type === 'groovy') {
+        defaultContent = `// GroovyScript Logic\ndef user = "Developer"\ndef range = (1..5)\n\nprintln "⚡ GroovyScript initialized for \${user}"\nprintln "Range: \${range}"\nprintln "Sum: \${range.sum()}"`;
+      } else if (type === 'xml') {
+        defaultContent = `<?xml version="1.0" encoding="UTF-8"?>\n<config>\n  <name>${pageTitle}</name>\n</config>`;
+      } else if (type === 'json') {
+        defaultContent = `{\n  "title": "${pageTitle}",\n  "status": "active"\n}`;
+      }
     }
 
     const newFile: ProjectFile = {
@@ -638,6 +646,7 @@ export default function App() {
         onOpenQuickLinkModal={() => setIsQuickLinkOpen(true)}
         onOpenSEOModal={() => setIsSEOOpen(true)}
         onOpenIconPicker={() => setIsIconPickerOpen(true)}
+        onOpenSqlDb={() => setIsSqlDbOpen(true)}
         onOpenNewProject={() => setIsNewProjectOpen(true)}
         onExportZst={handleExportZstArchive}
         activeRoomId={activeRoomId}
@@ -706,6 +715,7 @@ export default function App() {
               onFileContentChange={handleFileContentChange}
               onAddNewFile={handleAddNewFile}
               onDeleteFile={handleDeleteFile}
+              onOpenSqlDb={() => setIsSqlDbOpen(true)}
               themeMode={themeMode}
             />
           )}
@@ -858,6 +868,16 @@ export default function App() {
         onClose={() => setIsIconPickerOpen(false)}
         onInsertIcon={handleInsertComponentHtml}
         themeMode={themeMode}
+      />
+
+      {/* SQL Database Studio Modal */}
+      <SqlDatabaseExplorerModal
+        isOpen={isSqlDbOpen}
+        onClose={() => setIsSqlDbOpen(false)}
+        isDark={themeMode === 'dark'}
+        onExportSqlToProject={(filename, sqlContent) => {
+          handleAddNewFile(filename, 'xml', sqlContent);
+        }}
       />
     </div>
   );

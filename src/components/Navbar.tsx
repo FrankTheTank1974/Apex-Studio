@@ -25,7 +25,8 @@ import {
   Film,
   Link as LinkIcon,
   Search,
-  Smile
+  Smile,
+  Database
 } from 'lucide-react';
 import { ViewMode, DeviceMode, ProjectFile, ThemeMode } from '../types';
 
@@ -49,6 +50,7 @@ interface NavbarProps {
   onOpenQuickLinkModal?: () => void;
   onOpenSEOModal?: () => void;
   onOpenIconPicker?: () => void;
+  onOpenSqlDb?: () => void;
   onOpenNewProject: () => void;
   onExportZst: () => void;
   activeRoomId: string | null;
@@ -80,6 +82,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenQuickLinkModal,
   onOpenSEOModal,
   onOpenIconPicker,
+  onOpenSqlDb,
   onOpenNewProject,
   onExportZst,
   activeRoomId,
@@ -263,6 +266,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Action Tools & Integration Buttons */}
       <div className="flex items-center space-x-2">
+        {/* SQL Database Studio Trigger */}
+        {onOpenSqlDb && (
+          <button
+            onClick={onOpenSqlDb}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 rounded-lg text-xs font-semibold shadow-xs shadow-cyan-500/20 transition-all cursor-pointer"
+            title="Inspect MySQL / PostgreSQL schemas, query database tables, and view charts"
+          >
+            <Database className="w-3.5 h-3.5 text-cyan-400" />
+            <span>SQL Studio</span>
+          </button>
+        )}
+
         {/* Icon Picker Modal Trigger */}
         {onOpenIconPicker && (
           <button

@@ -17,7 +17,16 @@ import {
   Wrench,
   CheckCircle2,
   Filter,
-  Info
+  Info,
+  AlignLeft,
+  Code,
+  Tag,
+  ChevronRight,
+  FileJson,
+  Layers,
+  FileCheck,
+  FolderTree,
+  Database
 } from 'lucide-react';
 import { runGroovyScript, GroovyExecutionResult } from '../utils/groovyEngine';
 import { transpileTypeScript } from '../utils/tsTranspiler';
@@ -27,6 +36,19 @@ import { lintHtml, applyHtmlQuickFix, HtmlLintIssue } from '../utils/htmlLinter'
 import { lintJs, applyJsQuickFix, JsLintIssue } from '../utils/jsLinter';
 import { lintGroovy, applyGroovyQuickFix, GroovyLintIssue } from '../utils/groovyLinter';
 import { lintXml, applyXmlQuickFix, XmlLintIssue } from '../utils/xmlLinter';
+import { formatXml } from '../utils/xmlFormatter';
+import { convertXmlToJson } from '../utils/xmlToJson';
+import { validateXmlAgainstXsd, XsdValidationResult } from '../utils/xsdValidator';
+import { XsdValidationModal } from './XsdValidationModal';
+import { XmlStructureExplorer } from './XmlStructureExplorer';
+import { 
+  getXmlCompletionsAtCursor, 
+  extractDocumentXmlTags, 
+  getOpenParentTagsAtCursor,
+  getXmlBreadcrumbsAtCursor,
+  XmlTagSuggestion,
+  XmlBreadcrumbNode
+} from '../utils/xmlAutoCompleter';
 
 export type UnifiedLintIssue = (CssLintIssue | HtmlLintIssue | JsLintIssue | GroovyLintIssue | XmlLintIssue) & {
   id: string;
@@ -37,6 +59,7 @@ export type UnifiedLintIssue = (CssLintIssue | HtmlLintIssue | JsLintIssue | Gro
   rule: string;
   suggestion?: string;
   offendingText?: string;
+  expectedText?: string;
 };
 
 interface CodeEditorProps {
@@ -44,8 +67,9 @@ interface CodeEditorProps {
   activeFileId: string;
   onSelectFile: (fileId: string) => void;
   onFileContentChange: (fileId: string, newContent: string) => void;
-  onAddNewFile: (name: string, type: FileType) => void;
+  onAddNewFile: (name: string, type: FileType, initialContent?: string) => void;
   onDeleteFile: (fileId: string) => void;
+  onOpenSqlDb?: () => void;
   themeMode?: ThemeMode;
 }
 
@@ -56,6 +80,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   onFileContentChange,
   onAddNewFile,
   onDeleteFile,
+  onOpenSqlDb,
   themeMode = 'dark'
 }) => {
   const isDark = themeMode === 'dark';
@@ -64,6 +89,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const [newFileName, setNewFileName] = useState('');
   const [newFileType, setNewFileType] = useState<FileType>('html');
   const [copied, setCopied] = useState(false);
+  const [xmlFormattedSuccess, setXmlFormattedSuccess] = useState(false);
+  const [xmlToJsonStatus, setXmlToJsonStatus] = useState<{ text: string; isError: boolean } | null>(null);
 
   // Syntax highlighting toggle state
   const [syntaxHighlighting, setSyntaxHighlighting] = useState(true);
@@ -83,6 +110,25 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const [linterFilter, setLinterFilter] = useState<'all' | 'error' | 'warning' | 'info'>('all');
   const [hoveredIssueLine, setHoveredIssueLine] = useState<number | null>(null);
 
+  // XSD Validation Engine State
+  const [isXsdModalOpen, setIsXsdModalOpen] = useState<boolean>(false);
+  const [xsdSchemaText, setXsdSchemaText] = useState<string>(`<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="root" type="xs:string"/>
+</xs:schema>`);
+  const [isXsdLiveValidationEnabled, setIsXsdLiveValidationEnabled] = useState<boolean>(true);
+
+  // XML Structure Explorer Tree Side Panel State
+  const [isXmlTreeOpen, setIsXmlTreeOpen] = useState<boolean>(false);
+
+  // Compute XSD validation result for active XML file
+  const xsdValidationResult = useMemo<XsdValidationResult | null>(() => {
+    if (!activeFile || activeFile.type !== 'xml' || !xsdSchemaText || !xsdSchemaText.trim()) {
+      return null;
+    }
+    return validateXmlAgainstXsd(activeFile.content, xsdSchemaText);
+  }, [activeFile?.content, activeFile?.type, xsdSchemaText]);
+
   // Real-time Multi-language Linting Analysis
   const activeLintIssues = useMemo<UnifiedLintIssue[]>(() => {
     if (!activeFile) return [];
@@ -90,9 +136,27 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     if (activeFile.type === 'html') return lintHtml(activeFile.content) as UnifiedLintIssue[];
     if (activeFile.type === 'js' || activeFile.type === 'ts') return lintJs(activeFile.content) as UnifiedLintIssue[];
     if (activeFile.type === 'groovy') return lintGroovy(activeFile.content) as UnifiedLintIssue[];
-    if (activeFile.type === 'xml') return lintXml(activeFile.content) as UnifiedLintIssue[];
+    if (activeFile.type === 'xml') {
+      const xmlIssues = lintXml(activeFile.content) as UnifiedLintIssue[];
+      if (isXsdLiveValidationEnabled && xsdValidationResult && !xsdValidationResult.valid) {
+        const xsdIssues: UnifiedLintIssue[] = xsdValidationResult.errors.map((err) => ({
+          id: err.id,
+          line: err.line,
+          column: err.column,
+          message: err.message,
+          severity: err.severity,
+          rule: err.rule as any,
+          offendingText: err.offendingText,
+          tagName: err.elementName,
+          expectedText: err.expectedText,
+          suggestion: err.suggestion
+        }));
+        return [...xmlIssues, ...xsdIssues];
+      }
+      return xmlIssues;
+    }
     return [];
-  }, [activeFile?.content, activeFile?.type]);
+  }, [activeFile?.content, activeFile?.type, isXsdLiveValidationEnabled, xsdValidationResult]);
 
   const activeErrors = useMemo(() => activeLintIssues.filter(i => i.severity === 'error'), [activeLintIssues]);
   const activeWarnings = useMemo(() => activeLintIssues.filter(i => i.severity === 'warning'), [activeLintIssues]);
@@ -115,6 +179,52 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     }
     return map;
   }, [activeLintIssues]);
+
+  // XML Tag Auto-Completion & Structure Inspection State
+  const [xmlCursorPos, setXmlCursorPos] = useState<number>(0);
+  const [isXmlAutoCompleteOpen, setIsXmlAutoCompleteOpen] = useState<boolean>(false);
+  const [selectedXmlSuggestionIndex, setSelectedXmlSuggestionIndex] = useState<number>(0);
+
+  // Extract all XML tag names across project XML files for cross-file completion context
+  const otherXmlContents = useMemo(() => {
+    return files.filter(f => f.type === 'xml' && f.id !== activeFile?.id).map(f => f.content);
+  }, [files, activeFile?.id]);
+
+  // Active XML completions at cursor position
+  const xmlCompletionsData = useMemo(() => {
+    if (!activeFile || activeFile.type !== 'xml') {
+      return { query: '', prefixStart: 0, suggestions: [] as XmlTagSuggestion[] };
+    }
+    return getXmlCompletionsAtCursor(activeFile.content, xmlCursorPos, otherXmlContents);
+  }, [activeFile?.content, activeFile?.type, xmlCursorPos, otherXmlContents]);
+
+  // Unique XML tag names discovered in current document & project
+  const documentXmlTags = useMemo(() => {
+    if (!activeFile || activeFile.type !== 'xml') return [];
+    const set = new Set<string>(extractDocumentXmlTags(activeFile.content));
+    otherXmlContents.forEach(c => extractDocumentXmlTags(c).forEach(t => set.add(t)));
+    return Array.from(set);
+  }, [activeFile?.content, activeFile?.type, otherXmlContents]);
+
+  // Currently open parent tags at caret
+  const openParentXmlTags = useMemo(() => {
+    if (!activeFile || activeFile.type !== 'xml') return [];
+    return getOpenParentTagsAtCursor(activeFile.content, xmlCursorPos);
+  }, [activeFile?.content, activeFile?.type, xmlCursorPos]);
+
+  // Hierarchical XML breadcrumb nodes at cursor position
+  const xmlBreadcrumbs = useMemo(() => {
+    if (!activeFile || activeFile.type !== 'xml') return [];
+    return getXmlBreadcrumbsAtCursor(activeFile.content, xmlCursorPos);
+  }, [activeFile?.content, activeFile?.type, xmlCursorPos]);
+
+  const handleJumpToXmlTag = (startOffset: number) => {
+    setXmlCursorPos(startOffset);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(startOffset, startOffset);
+    }
+  };
 
   const handleCopyCode = () => {
     if (activeFile) {
@@ -148,6 +258,133 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     setTsError(res.error || null);
     setIsConsoleOpen(true);
     setIsLinterOpen(false);
+  };
+
+  const handleFormatXml = () => {
+    if (!activeFile || activeFile.type !== 'xml') return;
+    const formatted = formatXml(activeFile.content, 2);
+    onFileContentChange(activeFile.id, formatted);
+    setXmlFormattedSuccess(true);
+    setTimeout(() => setXmlFormattedSuccess(false), 2000);
+  };
+
+  const handleConvertXmlToJson = () => {
+    if (!activeFile || activeFile.type !== 'xml') return;
+
+    const result = convertXmlToJson(activeFile.content);
+    if (!result.success || !result.jsonString) {
+      setXmlToJsonStatus({ text: result.error || 'Invalid XML content', isError: true });
+      setTimeout(() => setXmlToJsonStatus(null), 4000);
+      return;
+    }
+
+    // Determine unique target JSON filename based on active XML filename
+    const baseName = activeFile.name.replace(/\.xml$/i, '');
+    let targetFileName = `${baseName}.json`;
+    let counter = 1;
+    while (files.some(f => f.name.toLowerCase() === targetFileName.toLowerCase())) {
+      targetFileName = `${baseName}-${counter}.json`;
+      counter++;
+    }
+
+    // Export JSON file to project and select it
+    onAddNewFile(targetFileName, 'json', result.jsonString);
+    setXmlToJsonStatus({ text: `Exported ${targetFileName}`, isError: false });
+    setTimeout(() => setXmlToJsonStatus(null), 3500);
+  };
+
+  const handleApplyXmlSuggestion = (suggestion: XmlTagSuggestion) => {
+    if (!activeFile || activeFile.type !== 'xml') return;
+
+    const { prefixStart } = xmlCompletionsData;
+    const currentText = activeFile.content;
+
+    const beforePrefix = currentText.substring(0, prefixStart);
+    const afterCursor = currentText.substring(xmlCursorPos);
+
+    const newContent = beforePrefix + suggestion.insertText + afterCursor;
+
+    let newCaretPos = prefixStart + suggestion.insertText.length;
+    if (suggestion.cursorOffsetIndex !== undefined) {
+      newCaretPos = prefixStart + suggestion.cursorOffsetIndex;
+    }
+
+    onFileContentChange(activeFile.id, newContent);
+    setIsXmlAutoCompleteOpen(false);
+    setXmlCursorPos(newCaretPos);
+
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(newCaretPos, newCaretPos);
+      }
+    }, 0);
+  };
+
+  const handleInsertXmlTagPill = (tagName: string, mode: 'paired' | 'closing' | 'opening' = 'paired') => {
+    if (!activeFile || activeFile.type !== 'xml') return;
+
+    const caret = xmlCursorPos;
+    const currentText = activeFile.content;
+    const before = currentText.substring(0, caret);
+    const after = currentText.substring(caret);
+
+    let insertString = `<${tagName}></${tagName}>`;
+    let newCaret = caret + tagName.length + 2;
+
+    if (mode === 'closing') {
+      insertString = `</${tagName}>`;
+      newCaret = caret + insertString.length;
+    } else if (mode === 'opening') {
+      insertString = `<${tagName}>`;
+      newCaret = caret + insertString.length;
+    }
+
+    const updated = before + insertString + after;
+    onFileContentChange(activeFile.id, updated);
+    setXmlCursorPos(newCaret);
+
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(newCaret, newCaret);
+      }
+    }, 0);
+  };
+
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (activeFile?.type === 'xml' && isXmlAutoCompleteOpen && xmlCompletionsData.suggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedXmlSuggestionIndex(prev => (prev + 1) % xmlCompletionsData.suggestions.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedXmlSuggestionIndex(prev => (prev - 1 + xmlCompletionsData.suggestions.length) % xmlCompletionsData.suggestions.length);
+        return;
+      }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        const currentSuggestion = xmlCompletionsData.suggestions[selectedXmlSuggestionIndex] || xmlCompletionsData.suggestions[0];
+        if (currentSuggestion) {
+          handleApplyXmlSuggestion(currentSuggestion);
+        }
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setIsXmlAutoCompleteOpen(false);
+        return;
+      }
+    }
+
+    // Ctrl + Space shortcut triggers XML tag autocomplete
+    if (activeFile?.type === 'xml' && e.ctrlKey && e.key === ' ') {
+      e.preventDefault();
+      setIsXmlAutoCompleteOpen(prev => !prev);
+      setSelectedXmlSuggestionIndex(0);
+    }
   };
 
   const handleFixIssue = (issue: UnifiedLintIssue) => {
@@ -350,6 +587,103 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             </button>
           )}
 
+          {activeFile?.type === 'xml' && (
+            <>
+              <button
+                onClick={() => setIsXmlAutoCompleteOpen(!isXmlAutoCompleteOpen)}
+                className={`flex items-center space-x-1.5 px-3 py-1 rounded text-[11px] font-bold shadow-sm transition-all cursor-pointer ${
+                  isXmlAutoCompleteOpen
+                    ? 'bg-amber-500 text-slate-950 font-extrabold'
+                    : 'bg-amber-900/40 hover:bg-amber-900/60 text-amber-300 border border-amber-700/60'
+                }`}
+                title="Toggle XML Tag Auto-Completion Popover (Ctrl+Space)"
+              >
+                <Tag className="w-3.5 h-3.5" />
+                <span>Tag Helper ({documentXmlTags.length})</span>
+              </button>
+
+              <button
+                onClick={handleFormatXml}
+                className="flex items-center space-x-1.5 px-3 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] shadow-sm transition-all cursor-pointer"
+                title="Pretty-print and auto-indent XML document"
+              >
+                {xmlFormattedSuccess ? (
+                  <Check className="w-3.5 h-3.5 text-white" />
+                ) : (
+                  <AlignLeft className="w-3.5 h-3.5 text-white" />
+                )}
+                <span>{xmlFormattedSuccess ? 'Formatted!' : 'Format XML'}</span>
+              </button>
+
+              <button
+                onClick={handleConvertXmlToJson}
+                className="flex items-center space-x-1.5 px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-sm transition-all cursor-pointer"
+                title="Convert XML markup to structured JSON and export as a new file"
+              >
+                <FileJson className="w-3.5 h-3.5 text-white" />
+                <span>Convert XML to JSON</span>
+              </button>
+
+              <button
+                onClick={() => setIsXsdModalOpen(true)}
+                className={`flex items-center space-x-1.5 px-3 py-1 rounded text-[11px] font-bold shadow-sm transition-all cursor-pointer ${
+                  xsdValidationResult
+                    ? xsdValidationResult.valid
+                      ? 'bg-emerald-900/40 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-700/60'
+                      : 'bg-red-900/40 hover:bg-red-900/60 text-red-300 border border-red-700/60'
+                    : 'bg-amber-900/40 hover:bg-amber-900/60 text-amber-300 border border-amber-700/60'
+                }`}
+                title="Validate current XML document against W3C XSD Schema definition"
+              >
+                <FileCheck className="w-3.5 h-3.5 text-amber-400" />
+                <span>XSD Validation</span>
+                {xsdValidationResult && (
+                  <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono ${
+                    xsdValidationResult.valid
+                      ? 'bg-emerald-500/30 text-emerald-200 border border-emerald-500/40'
+                      : 'bg-red-500/30 text-red-200 border border-red-500/40'
+                  }`}>
+                    {xsdValidationResult.valid ? '✓ Valid' : `✕ ${xsdValidationResult.errors.length}`}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setIsXmlTreeOpen(!isXmlTreeOpen)}
+                className={`flex items-center space-x-1.5 px-3 py-1 rounded text-[11px] font-bold shadow-sm transition-all cursor-pointer ${
+                  isXmlTreeOpen
+                    ? 'bg-amber-500 text-slate-950 border border-amber-400'
+                    : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700'
+                }`}
+                title="Toggle XML Structure Explorer Tree side panel"
+              >
+                <FolderTree className="w-3.5 h-3.5 text-amber-400" />
+                <span>XML Tree Explorer</span>
+              </button>
+
+              {onOpenSqlDb && (
+                <button
+                  onClick={onOpenSqlDb}
+                  className="flex items-center space-x-1.5 px-3 py-1 bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/60 rounded text-[11px] font-bold shadow-sm transition-all cursor-pointer"
+                  title="Open SQL Database Studio (PostgreSQL, MySQL, SQLite)"
+                >
+                  <Database className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>SQL Studio</span>
+                </button>
+              )}
+
+              {xmlToJsonStatus && (
+                <span className={`px-2.5 py-1 rounded text-[10px] font-bold animate-fade-in ${
+                  xmlToJsonStatus.isError
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                    : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                }`}>
+                  {xmlToJsonStatus.text}
+                </span>
+              )}
+            </>
+          )}
+
           <button
             onClick={handleCopyCode}
             className={`flex items-center space-x-1 px-2 py-1 rounded text-[11px] transition-colors ${
@@ -363,6 +697,51 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           </button>
         </div>
       </div>
+
+      {/* XML Structure Tag Quick-Pill Bar */}
+      {activeFile?.type === 'xml' && (
+        <div className={`px-3 py-1.5 border-b flex items-center justify-between text-xs overflow-x-auto ${
+          isDark ? 'bg-slate-900/80 border-slate-800 text-slate-300' : 'bg-amber-50/60 border-amber-200/80 text-amber-900'
+        }`}>
+          <div className="flex items-center space-x-2 shrink-0">
+            <Code className="w-3.5 h-3.5 text-amber-500" />
+            <span className="font-semibold text-[11px] tracking-wide">XML Structure Tags:</span>
+          </div>
+
+          <div className="flex items-center space-x-1.5 overflow-x-auto scrollbar-none py-0.5 ml-2">
+            {/* Open Parent Tag Closing Suggestion Pill */}
+            {openParentXmlTags.length > 0 && (
+              <button
+                onClick={() => handleInsertXmlTagPill(openParentXmlTags[openParentXmlTags.length - 1], 'closing')}
+                className="flex items-center space-x-1 px-2 py-0.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-[10px] shadow-sm transition-all animate-pulse shrink-0 cursor-pointer"
+                title={`Close parent tag </${openParentXmlTags[openParentXmlTags.length - 1]}>`}
+              >
+                <span>Close &lt;/{openParentXmlTags[openParentXmlTags.length - 1]}&gt;</span>
+              </button>
+            )}
+
+            {/* Document Discovered Tags Pills */}
+            {documentXmlTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => handleInsertXmlTagPill(tag, 'paired')}
+                className={`flex items-center space-x-0.5 px-2 py-0.5 rounded text-[10px] font-mono transition-all shrink-0 cursor-pointer ${
+                  isDark
+                    ? 'bg-slate-800 hover:bg-amber-900/60 text-amber-300 border border-slate-700 hover:border-amber-500/50'
+                    : 'bg-white hover:bg-amber-100 text-amber-800 border border-amber-200'
+                }`}
+                title={`Insert <${tag}></${tag}>`}
+              >
+                <span>&lt;{tag}&gt;</span>
+              </button>
+            ))}
+
+            {documentXmlTags.length === 0 && (
+              <span className="text-[10px] italic text-slate-500">Type &lt; to trigger auto-complete</span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Main Code Editor Body */}
       {activeFile ? (
@@ -448,7 +827,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               })}
             </div>
 
-            {/* Editor Canvas Area with Overlay */}
+            {/* Editor Canvas Area with Overlay & Auto-Complete Floating Menu */}
             <div className="flex-1 relative overflow-hidden">
               {/* Highlighted Code Overlay */}
               {syntaxHighlighting && (
@@ -464,7 +843,22 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               <textarea
                 ref={textareaRef}
                 value={activeFile.content}
-                onChange={(e) => onFileContentChange(activeFile.id, e.target.value)}
+                onChange={(e) => {
+                  onFileContentChange(activeFile.id, e.target.value);
+                  const pos = e.target.selectionStart;
+                  setXmlCursorPos(pos);
+                  if (activeFile.type === 'xml') {
+                    const charBefore = e.target.value[pos - 1];
+                    if (charBefore === '<' || charBefore === '/') {
+                      setIsXmlAutoCompleteOpen(true);
+                      setSelectedXmlSuggestionIndex(0);
+                    }
+                  }
+                }}
+                onKeyDown={handleTextareaKeyDown}
+                onClick={(e) => setXmlCursorPos((e.target as HTMLTextAreaElement).selectionStart)}
+                onKeyUp={(e) => setXmlCursorPos((e.target as HTMLTextAreaElement).selectionStart)}
+                onSelect={(e) => setXmlCursorPos((e.target as HTMLTextAreaElement).selectionStart)}
                 onScroll={handleScroll}
                 spellCheck={false}
                 className={`absolute inset-0 p-3 bg-transparent font-mono text-xs leading-5 resize-none outline-none focus:outline-none focus:ring-0 border-none whitespace-pre overflow-auto z-10 ${
@@ -477,8 +871,134 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                       : 'text-slate-800 caret-indigo-600 scrollbar-thumb-slate-300'
                 }`}
               />
+
+              {/* Floating XML Auto-Completion Suggestion Menu */}
+              {activeFile?.type === 'xml' && isXmlAutoCompleteOpen && xmlCompletionsData.suggestions.length > 0 && (
+                <div className="absolute right-4 top-4 z-40 w-80 max-h-72 overflow-y-auto rounded-xl bg-slate-900/95 backdrop-blur text-slate-100 shadow-2xl border border-amber-500/40 p-2 font-sans text-xs space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-1.5 px-2">
+                    <div className="flex items-center space-x-1.5 text-amber-400 font-bold text-[11px]">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>XML Tag Completions</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <span className="text-[9px] text-slate-400 font-mono">
+                        {xmlCompletionsData.query ? `"${xmlCompletionsData.query}"` : 'Structure'}
+                      </span>
+                      <button
+                        onClick={() => setIsXmlAutoCompleteOpen(false)}
+                        className="p-0.5 rounded hover:bg-slate-800 text-slate-400 hover:text-white"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-0.5 pt-1">
+                    {xmlCompletionsData.suggestions.map((sug, idx) => {
+                      const isSelected = idx === selectedXmlSuggestionIndex;
+                      return (
+                        <div
+                          key={sug.label + idx}
+                          onClick={() => handleApplyXmlSuggestion(sug)}
+                          onMouseEnter={() => setSelectedXmlSuggestionIndex(idx)}
+                          className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-amber-500 text-slate-950 font-semibold shadow'
+                              : 'hover:bg-slate-800/80 text-slate-200'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2 truncate">
+                            <Tag className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-slate-950' : 'text-amber-400'}`} />
+                            <span className="font-mono text-xs truncate">{sug.label}</span>
+                          </div>
+                          <div className="flex items-center space-x-1 shrink-0 ml-2">
+                            <span className={`text-[9px] px-1 py-0.5 rounded font-mono ${
+                              isSelected ? 'bg-slate-900/40 text-slate-950' : 'bg-slate-800 text-slate-400'
+                            }`}>
+                              {sug.type}
+                            </span>
+                            <ChevronRight className="w-3 h-3 opacity-60" />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="border-t border-slate-800/80 pt-1 px-2 text-[10px] text-slate-400 flex items-center justify-between font-mono">
+                    <span>↑↓ Navigate</span>
+                    <span>Enter/Tab Insert</span>
+                    <span>Esc Close</span>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* XML Structure Explorer Side Panel */}
+            {activeFile?.type === 'xml' && isXmlTreeOpen && (
+              <XmlStructureExplorer
+                xmlContent={activeFile.content}
+                cursorOffset={xmlCursorPos}
+                onSelectNode={(offset) => {
+                  setXmlCursorPos(offset);
+                  if (textareaRef.current) {
+                    textareaRef.current.focus();
+                    textareaRef.current.setSelectionRange(offset, offset);
+                  }
+                }}
+                onClose={() => setIsXmlTreeOpen(false)}
+                isDark={isDark}
+              />
+            )}
           </div>
+
+          {/* Breadcrumb-Style Navigation Bar for Current XML Tag Hierarchy */}
+          {activeFile?.type === 'xml' && (
+            <div className={`px-3 py-1.5 border-t flex items-center space-x-1.5 text-xs font-mono select-none overflow-x-auto shrink-0 z-20 ${
+              isDark 
+                ? 'bg-slate-950/95 border-slate-800 text-slate-300' 
+                : 'bg-slate-100/90 border-slate-200 text-slate-800'
+            }`}>
+              <div className="flex items-center space-x-1.5 shrink-0 pr-2 border-r border-slate-700/40 text-[11px] font-sans font-semibold text-amber-500">
+                <Layers className="w-3.5 h-3.5" />
+                <span>XML Path:</span>
+              </div>
+
+              {xmlBreadcrumbs.length > 0 ? (
+                <div className="flex items-center space-x-1 overflow-x-auto py-0.5 scrollbar-none">
+                  {xmlBreadcrumbs.map((node, index) => {
+                    const isLast = index === xmlBreadcrumbs.length - 1;
+                    return (
+                      <div key={`${node.tagName}-${node.startOffset}-${index}`} className="flex items-center space-x-1 shrink-0">
+                        {index > 0 && (
+                          <ChevronRight className="w-3 h-3 text-slate-500 shrink-0 opacity-70" />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleJumpToXmlTag(node.startOffset)}
+                          className={`flex items-center space-x-1 px-2 py-0.5 rounded text-[11px] font-mono transition-all shrink-0 cursor-pointer ${
+                            isLast
+                              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50 font-bold shadow-xs'
+                              : isDark
+                                ? 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
+                                : 'hover:bg-slate-200 text-slate-600 hover:text-slate-900'
+                          }`}
+                          title={`Click to jump to <${node.tagName}> in editor`}
+                        >
+                          <Tag className={`w-3 h-3 ${isLast ? 'text-amber-400' : 'text-slate-400'}`} />
+                          <span>{node.tagName}</span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex items-center space-x-1.5 text-[11px] text-slate-500 italic">
+                  <Tag className="w-3 h-3 opacity-50" />
+                  <span>&lt;document-root&gt;</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Real-Time Multi-Language Diagnostics / Linter Drawer */}
           {['html', 'css', 'js', 'ts', 'groovy', 'xml'].includes(activeFile?.type || '') && isLinterOpen && (
@@ -583,6 +1103,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                           <p className="text-xs font-sans text-slate-200">
                             {issue.message}
                           </p>
+                          {issue.suggestion && (
+                            <div className="text-[10px] text-emerald-400 font-mono bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded w-fit mt-1">
+                              💡 {issue.suggestion}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -760,6 +1285,33 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
         </div>
       )}
+      {/* XSD Schema Validation Modal */}
+      <XsdValidationModal
+        isOpen={isXsdModalOpen}
+        onClose={() => setIsXsdModalOpen(false)}
+        xmlContent={activeFile?.content || ''}
+        xmlFileName={activeFile?.name || 'document.xml'}
+        xsdSchemaText={xsdSchemaText}
+        onSaveSchema={(newSchema, liveVal) => {
+          setXsdSchemaText(newSchema);
+          setIsXsdLiveValidationEnabled(liveVal);
+        }}
+        isLiveValidationEnabled={isXsdLiveValidationEnabled}
+        projectFiles={files}
+        validationResult={xsdValidationResult}
+        onValidateNow={() => {
+          if (activeFile && activeFile.type === 'xml') {
+            const res = validateXmlAgainstXsd(activeFile.content, xsdSchemaText);
+            if (!res.valid) {
+              setIsLinterOpen(true);
+            }
+          }
+        }}
+        onSaveAsProjectFile={(name, content) => {
+          onAddNewFile(name, 'xml', content);
+        }}
+        isDark={isDark}
+      />
     </div>
   );
 };

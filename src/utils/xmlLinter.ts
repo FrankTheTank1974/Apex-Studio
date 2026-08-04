@@ -21,10 +21,19 @@ export interface XmlLintIssue {
     | 'duplicate-attribute'
     | 'invalid-tag-name'
     | 'missing-xml-declaration'
-    | 'multiple-root-elements';
+    | 'multiple-root-elements'
+    | 'xsd-root-mismatch'
+    | 'xsd-unknown-element'
+    | 'xsd-missing-attribute'
+    | 'xsd-invalid-attribute'
+    | 'xsd-type-mismatch'
+    | 'xsd-cardinality-violation'
+    | 'xsd-enum-violation'
+    | 'xsd-schema-syntax';
   suggestion?: string;
   offendingText?: string;
   tagName?: string;
+  expectedText?: string;
 }
 
 export function lintXml(content: string): XmlLintIssue[] {
@@ -375,6 +384,62 @@ export function applyXmlQuickFix(content: string, issue: XmlLintIssue): string {
         return lines.join('\n');
       }
       return content;
+
+    case 'xsd-root-mismatch': {
+      const oldRoot = (issue.tagName || issue.offendingText || '').replace(/^</, '').replace(/>$/, '');
+      const newRoot = (issue.expectedText || '').replace(/^</, '').replace(/>$/, '');
+      if (oldRoot && newRoot) {
+        const openRegex = new RegExp(`<${oldRoot}(\\s|>|/)`, 'g');
+        const closeRegex = new RegExp(`</${oldRoot}>`, 'g');
+        let updated = content.replace(openRegex, (match, p1) => `<${newRoot}${p1}`);
+        updated = updated.replace(closeRegex, `</${newRoot}>`);
+        return updated;
+      }
+      return content;
+    }
+
+    case 'xsd-missing-attribute': {
+      const tag = (issue.tagName || '').replace(/^</, '').replace(/>$/, '');
+      const attrName = issue.offendingText;
+      if (tag && attrName && targetLineIdx >= 0 && targetLineIdx < lines.length) {
+        const tagRegex = new RegExp(`<${tag}(\\s|>|/)`);
+        lines[targetLineIdx] = lines[targetLineIdx].replace(tagRegex, `<${tag} ${attrName}=""$1`);
+        return lines.join('\n');
+      }
+      return content;
+    }
+
+    case 'xsd-invalid-attribute': {
+      const attrName = issue.offendingText;
+      if (attrName && targetLineIdx >= 0 && targetLineIdx < lines.length) {
+        const attrRegex = new RegExp(`\\b${attrName}\\s*=\\s*("[^"]*"|'[^']*'|[^\\s>]+)\\s*`, 'g');
+        lines[targetLineIdx] = lines[targetLineIdx].replace(attrRegex, '');
+        return lines.join('\n');
+      }
+      return content;
+    }
+
+    case 'xsd-enum-violation':
+    case 'xsd-type-mismatch': {
+      const tag = (issue.tagName || '').replace(/^</, '').replace(/>$/, '');
+      const newVal = issue.expectedText || '0';
+      if (tag && targetLineIdx >= 0 && targetLineIdx < lines.length) {
+        const tagContentRegex = new RegExp(`<${tag}([^>]*)>([^<]*)</${tag}>`, 'g');
+        lines[targetLineIdx] = lines[targetLineIdx].replace(tagContentRegex, `<${tag}$1>${newVal}</${tag}>`);
+        return lines.join('\n');
+      }
+      return content;
+    }
+
+    case 'xsd-unknown-element': {
+      const tag = (issue.tagName || issue.offendingText || '').replace(/^</, '').replace(/>$/, '');
+      if (tag && targetLineIdx >= 0 && targetLineIdx < lines.length) {
+        const fullTagRegex = new RegExp(`<${tag}[^>]*>.*?</${tag}>|<${tag}[^>]*/>`, 'g');
+        lines[targetLineIdx] = lines[targetLineIdx].replace(fullTagRegex, '');
+        return lines.join('\n');
+      }
+      return content;
+    }
 
     default:
       return content;

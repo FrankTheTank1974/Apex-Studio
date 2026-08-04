@@ -160,6 +160,27 @@ export function highlightCodeToHTML(code: string, type: string, isDark: boolean 
       return saveToken(`<span class="${colors.operator}">${match}</span>`);
     });
 
+  } else if (type === 'json') {
+    // 1. JSON Keys ("key":)
+    safe = safe.replace(/("[^"\\]*(?:\\.[^"\\]*)*")\s*:/g, (match, keyName) => {
+      return `${saveToken(`<span class="${colors.attrName}">${keyName}</span>`)}:`;
+    });
+
+    // 2. JSON Strings
+    safe = safe.replace(/("[^"\\]*(?:\\.[^"\\]*)*")/g, (match) => {
+      return saveToken(`<span class="${colors.string}">${match}</span>`);
+    });
+
+    // 3. Numbers
+    safe = safe.replace(/\b(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b/g, (match) => {
+      return saveToken(`<span class="${colors.number}">${match}</span>`);
+    });
+
+    // 4. Booleans and null
+    safe = safe.replace(/\b(true|false|null)\b/g, (match) => {
+      return saveToken(`<span class="${colors.keyword}">${match}</span>`);
+    });
+
   } else {
     // JS & TS
 

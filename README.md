@@ -16,7 +16,8 @@
 - **Multi-File Tab Bar**: Edit raw `index.html`, `styles.css`, `script.js`, `GroovyScript (.groovy)`, and `XML (.xml)`, or create custom files on the fly.
 - **GroovyScript Syntax Highlighting & Execution Engine**: Dedicated Groovy syntax highlighter for annotations (`@CompileStatic`), keywords (`def`, `trait`, `as`), GStrings, and Groovy operators with an in-browser execution runner (`runGroovyScript`).
 - **Real-Time Groovy Linter**: Detects unclosed quotes/brackets, Java-style `System.out.println` anti-patterns, redundant `def` keywords with explicit types, malformed Elvis operators `?:`, conditional assignments `if (a = b)`, and unnecessary semicolons with automated quick fixes.
-- **XML Syntax Highlighting & Linter Engine**: Highlights XML processing instructions (`<?xml ?>`), namespaces (`xmlns:xs`), CDATA blocks (`<![CDATA[ ]]>`), DOCTYPE declarations, and tags with strict case-sensitive well-formedness validation. Detects unclosed CDATA/comments, duplicate XML attributes, unclosed quotes, and multi-root element violations with instant quick fixes.
+- **XML Syntax Highlighting, Structure Explorer, XSD Validation, Breadcrumbs, Auto-Completion & Linter Engine**: Highlights XML processing instructions (`<?xml ?>`), namespaces (`xmlns:xs`), CDATA blocks (`<![CDATA[ ]]>`), DOCTYPE declarations, and tags with strict case-sensitive well-formedness validation. Features an interactive **XML Structure Explorer** side panel with collapsible node tree view, tag/attribute search filter, expand/collapse toggles, and 1-click jump-to-node editor targeting; W3C **XSD Schema Validation Engine** with live schema error highlighting; interactive **XML Breadcrumb Navigation Bar** showing active tag hierarchy for cursor position; intelligent **XML Tag Auto-Completion** derived from document structure with auto-close detection; quick-pill structure bar; keyboard navigation (`Ctrl+Space`); 1-click **Format XML** auto-indentation pretty-printing; and instant **Convert XML to JSON** export pipeline.
+- **SQL Database Studio Component**: Access and query common SQL databases including **PostgreSQL**, **MySQL**, **MariaDB**, and **SQLite**. Features schema table inspection, primary/foreign key field detection, interactive data grid with sorting and multi-field filtering, automated **Data Visualizer** (recharts bar/pie/line charts for numeric and categorical distributions), SQL query editor with preset snippets, custom database connection test manager, and 1-click **Export to CSV / Export SQL Schema to Project**.
 - **Split & Full View Modes**: Switch between **Visual Canvas**, **Split View**, **Code Editor**, and **Live Preview**.
 - **Instant Code Reflection**: Changes in code immediately re-render on the visual canvas, and visual canvas edits synchronize back to source files.
 
@@ -103,6 +104,7 @@ npm start
 │   │   ├── ShadowBorderControlPanel.tsx # Visual shadow, border & glow studio
 │   │   ├── VersionHistoryPanel.tsx # Granular revision history timeline
 │   │   ├── CodeEditor.tsx       # Raw multi-file code editor with syntax tabs
+│   │   ├── XsdValidationModal.tsx # W3C XSD Schema validation modal dialog
 │   │   ├── DrawIoEditor.tsx     # Embedded Draw.io iframe modal
 │   │   ├── CollaborationBar.tsx # Real-time WebSocket room & chat drawer
 │   │   ├── ExportDeployModal.tsx# Cloud release & .tar.zst export hub
@@ -110,6 +112,10 @@ npm start
 │   ├── data/
 │   │   └── componentsData.ts    # Pre-built component templates & starter files
 │   ├── utils/
+│   │   ├── xsdValidator.ts      # W3C XML Schema (XSD) parser & validation engine
+│   │   ├── xmlToJson.ts         # XML markup parser & structured JSON conversion engine
+│   │   ├── xmlAutoCompleter.ts  # XML tag auto-completer & structure suggestion engine
+│   │   ├── xmlFormatter.ts      # XML auto-indentation pretty-printing utility
 │   │   ├── xmlLinter.ts         # Real-time XML linter & well-formedness quick-fix engine
 │   │   ├── groovyLinter.ts      # Real-time GroovyScript linter & quick-fix engine
 │   │   ├── groovyEngine.ts      # GroovyScript transpiler & execution runtime
