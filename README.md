@@ -92,14 +92,22 @@ When running `npm install`, you may notice standard non-critical npm diagnostic 
 3. **Security Audit**: 
    - The project maintains **0 vulnerabilities** across all audited packages.
 
-### 2. Development Mode
-Run the Express + Vite server locally:
+### 2. Quick One-Click Launcher (`start.sh`)
+You can build, start the server, and automatically launch your default browser with a single command using the included `start.sh` script:
+
+```bash
+chmod +x start.sh
+./start.sh
+```
+
+### 3. Manual Development & Build Commands
+Run the Express + Vite server locally in dev mode:
 ```bash
 npm run dev
 ```
 Open `http://localhost:3000` in your browser.
 
-### 3. Build & Production Start
+Or build and run the production bundle:
 ```bash
 npm run build
 npm start
