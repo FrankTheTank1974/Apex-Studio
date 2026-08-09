@@ -93,7 +93,11 @@ When running `npm install`, you may notice standard non-critical npm diagnostic 
    - The project maintains **0 vulnerabilities** across all audited packages.
 
 ### 2. Quick One-Click Launcher (`start.sh`)
-You can build, start the server, and automatically launch your default browser with a single command using the included `start.sh` script:
+The included `start.sh` script automates the full deployment workflow:
+- 🔍 **GitHub Auto-Update**: Automatically checks remote repository status and pulls the latest code updates before building.
+- 📦 **Dependency Checks**: Runs `npm install` if `node_modules` or `package.json` changed.
+- 🔨 **Build & Start**: Builds client assets and launches the production Express server on port 3000.
+- 🌐 **Browser Launch**: Automatically detects and opens your default OS browser once the server is live.
 
 ```bash
 chmod +x start.sh
