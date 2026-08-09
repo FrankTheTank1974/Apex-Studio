@@ -181,6 +181,27 @@ export function highlightCodeToHTML(code: string, type: string, isDark: boolean 
       return saveToken(`<span class="${colors.keyword}">${match}</span>`);
     });
 
+  } else if (type === 'txt') {
+    // 1. Comments starting with # or //
+    safe = safe.replace(/(#[^\n]*|\/\/[^\n]*)/g, (match) => {
+      return saveToken(`<span class="${colors.comment}">${match}</span>`);
+    });
+
+    // 2. Directives, Keys, and Parameters (User-agent:, Contact:, Allow:, Disallow:, contact=, vendor=, etc.)
+    safe = safe.replace(/\b([a-zA-Z0-9_\-]+:|=)/g, (match) => {
+      return saveToken(`<span class="${colors.attrName}">${match}</span>`);
+    });
+
+    // 3. URLs
+    safe = safe.replace(/(https?:\/\/[^\s]+)/gi, (match) => {
+      return saveToken(`<span class="${colors.string}">${match}</span>`);
+    });
+
+    // 4. Emails
+    safe = safe.replace(/(mailto:[^\s]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi, (match) => {
+      return saveToken(`<span class="${colors.type}">${match}</span>`);
+    });
+
   } else {
     // JS & TS
 

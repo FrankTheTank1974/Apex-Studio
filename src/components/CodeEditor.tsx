@@ -26,13 +26,20 @@ import {
   Layers,
   FileCheck,
   FolderTree,
-  Database
+  Database,
+  Globe,
+  Shield,
+  Bot,
+  DollarSign,
+  ChevronDown,
+  FileText
 } from 'lucide-react';
+import { WEB_POLICY_PRESETS, getWebPolicyDefaultContent } from '../data/webPolicyTemplates';
 import { runGroovyScript, GroovyExecutionResult } from '../utils/groovyEngine';
 import { transpileTypeScript } from '../utils/tsTranspiler';
 import { highlightCodeToHTML } from '../utils/syntaxHighlighter';
 import { lintCss, applyCssQuickFix, CssLintIssue } from '../utils/cssLinter';
-import { lintHtml, applyHtmlQuickFix, HtmlLintIssue } from '../utils/htmlLinter';
+import { lintHtml, applyHtmlQuickFix, repairHtmlWithDOMParser, HtmlLintIssue } from '../utils/htmlLinter';
 import { lintJs, applyJsQuickFix, JsLintIssue } from '../utils/jsLinter';
 import { lintGroovy, applyGroovyQuickFix, GroovyLintIssue } from '../utils/groovyLinter';
 import { lintXml, applyXmlQuickFix, XmlLintIssue } from '../utils/xmlLinter';
@@ -41,6 +48,8 @@ import { convertXmlToJson } from '../utils/xmlToJson';
 import { validateXmlAgainstXsd, XsdValidationResult } from '../utils/xsdValidator';
 import { XsdValidationModal } from './XsdValidationModal';
 import { XmlStructureExplorer } from './XmlStructureExplorer';
+import { A11yAuditorPanel } from './A11yAuditorPanel';
+import { auditHtmlAccessibility } from '../utils/a11yAuditor';
 import { 
   getXmlCompletionsAtCursor, 
   extractDocumentXmlTags, 
@@ -84,12 +93,29 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   themeMode = 'dark'
 }) => {
   const isDark = themeMode === 'dark';
-  const activeFile = files.find((f) => f.id === activeFileId) || files[0];
+
+  // Conditionally hide config.xml if no other XML file exists in the project
+  const hasUserXmlFiles = useMemo(() => {
+    return files.some((f) => f.type === 'xml' && f.name.toLowerCase() !== 'config.xml');
+  }, [files]);
+
+  const visibleFiles = useMemo(() => {
+    return files.filter((f) => {
+      if (f.name.toLowerCase() === 'config.xml' && !hasUserXmlFiles) {
+        return false;
+      }
+      return true;
+    });
+  }, [files, hasUserXmlFiles]);
+
+  const activeFile = visibleFiles.find((f) => f.id === activeFileId) || visibleFiles[0] || files[0];
   const [showNewFileModal, setShowNewFileModal] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [newFileType, setNewFileType] = useState<FileType>('html');
+  const [isWebPolicyMenuOpen, setIsWebPolicyMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [xmlFormattedSuccess, setXmlFormattedSuccess] = useState(false);
+  const [htmlFixedSuccess, setHtmlFixedSuccess] = useState(false);
   const [xmlToJsonStatus, setXmlToJsonStatus] = useState<{ text: string; isError: boolean } | null>(null);
 
   // Syntax highlighting toggle state
@@ -109,6 +135,17 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const [isLinterOpen, setIsLinterOpen] = useState(false);
   const [linterFilter, setLinterFilter] = useState<'all' | 'error' | 'warning' | 'info'>('all');
   const [hoveredIssueLine, setHoveredIssueLine] = useState<number | null>(null);
+
+  // Accessibility Auditor Drawer State
+  const [isA11yAuditorOpen, setIsA11yAuditorOpen] = useState(false);
+
+  // Compute Accessibility Audit Report for active HTML file
+  const a11yReport = useMemo(() => {
+    if (activeFile && activeFile.type === 'html') {
+      return auditHtmlAccessibility(activeFile.content);
+    }
+    return null;
+  }, [activeFile?.content, activeFile?.type]);
 
   // XSD Validation Engine State
   const [isXsdModalOpen, setIsXsdModalOpen] = useState<boolean>(false);
@@ -249,6 +286,14 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     setGroovyOutput(res);
     setIsConsoleOpen(true);
     setIsLinterOpen(false);
+  };
+
+  const handleFixHtmlErrors = () => {
+    if (!activeFile || activeFile.type !== 'html') return;
+    const repaired = repairHtmlWithDOMParser(activeFile.content);
+    onFileContentChange(activeFile.id, repaired);
+    setHtmlFixedSuccess(true);
+    setTimeout(() => setHtmlFixedSuccess(false), 2000);
   };
 
   const handleTranspileTs = () => {
@@ -448,6 +493,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       case 'ts': return 'text-sky-400';
       case 'groovy': return 'text-emerald-400';
       case 'xml': return 'text-orange-400';
+      case 'txt': return 'text-purple-400';
       default: return 'text-slate-400';
     }
   };
@@ -456,12 +502,12 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     <div className={`flex-1 flex flex-col h-full font-mono text-xs select-none border-r transition-colors ${
       isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
     }`}>
-      {/* File Tab Bar */}
-      <div className={`border-b flex items-center justify-between px-2 overflow-x-auto ${
+      {/* File Tab Bar (Row 1) */}
+      <div className={`border-b flex items-center px-2 overflow-x-auto whitespace-nowrap custom-scrollbar shrink-0 ${
         isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
       }`}>
         <div className="flex items-center space-x-1 py-1">
-          {files.map((file) => (
+          {visibleFiles.map((file) => (
             <div
               key={file.id}
               onClick={() => onSelectFile(file.id)}
@@ -491,6 +537,12 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               {file.type === 'groovy' && (
                 <span className="text-[9px] px-1 bg-emerald-500/20 text-emerald-400 rounded font-bold">Groovy</span>
               )}
+              {file.type === 'xml' && (
+                <span className="text-[9px] px-1 bg-orange-500/20 text-orange-400 rounded font-bold">XML</span>
+              )}
+              {file.type === 'txt' && (
+                <span className="text-[9px] px-1 bg-purple-500/20 text-purple-400 rounded font-bold">TXT</span>
+              )}
               {!file.isMain && (
                 <button
                   onClick={(e) => {
@@ -510,14 +562,88 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             className={`p-1.5 rounded transition-colors ml-1 ${
               isDark ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
             }`}
-            title="Create New Project File (.html, .css, .js, .ts, .groovy, .xml)"
+            title="Create New Project File (.html, .css, .js, .ts, .groovy, .xml, .txt)"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
-        </div>
 
-        {/* Toolbar Controls */}
-        <div className="flex items-center space-x-2 py-1">
+          {/* Web Policy Quick Presets Dropdown */}
+          <div className="relative border-l border-slate-700/50 pl-1.5 ml-1.5 flex items-center">
+            <button
+              onClick={() => setIsWebPolicyMenuOpen(!isWebPolicyMenuOpen)}
+              className={`flex items-center space-x-1.5 px-2 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-indigo-950/80 hover:bg-indigo-900/90 text-indigo-300 border border-indigo-700/50 shadow-sm'
+                  : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm'
+              }`}
+              title="Create or view Web Standard Policy files (robots.txt, security.txt, ads.txt, trust.txt)"
+            >
+              <Globe className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Web Policy Files</span>
+              <ChevronDown className={`w-3 h-3 transition-transform ${isWebPolicyMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isWebPolicyMenuOpen && (
+              <div className={`absolute top-full right-0 mt-1.5 w-64 rounded-xl border shadow-2xl z-50 p-2 space-y-1 ${
+                isDark ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
+              }`}>
+                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-400 flex items-center justify-between border-b border-slate-800/60 pb-1.5 mb-1">
+                  <span>Standard Web Policies</span>
+                  <Shield className="w-3 h-3 text-indigo-400" />
+                </div>
+                {WEB_POLICY_PRESETS.map((preset) => {
+                  const exists = files.some((f) => f.name.toLowerCase() === preset.filename.toLowerCase());
+                  return (
+                    <button
+                      key={preset.id}
+                      onClick={() => {
+                        if (exists) {
+                          const f = files.find((item) => item.name.toLowerCase() === preset.filename.toLowerCase());
+                          if (f) onSelectFile(f.id);
+                        } else {
+                          onAddNewFile(preset.filename, 'txt', preset.defaultContent);
+                        }
+                        setIsWebPolicyMenuOpen(false);
+                      }}
+                      className={`w-full text-left px-2.5 py-1.5 rounded-lg flex items-center justify-between text-xs transition-all cursor-pointer ${
+                        isDark ? 'hover:bg-slate-800/80 text-slate-200' : 'hover:bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <FileText className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                        <div>
+                          <div className="font-bold font-mono text-[11px] flex items-center space-x-1">
+                            <span>{preset.filename}</span>
+                            {preset.filename === 'trust.txt' && (
+                              <span className="text-[9px] text-slate-400 font-normal">/ Trust.txt</span>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-slate-400 truncate max-w-[150px]">{preset.category}</div>
+                        </div>
+                      </div>
+                      {exists ? (
+                        <span className="text-[10px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full font-semibold">
+                          Open
+                        </span>
+                      ) : (
+                        <span className="text-[10px] px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 rounded-full font-semibold">
+                          + Add
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Editor Action Toolbar (Row 2) */}
+      <div className={`border-b flex flex-wrap items-center justify-between gap-2 px-3 py-1 text-xs overflow-x-auto whitespace-nowrap custom-scrollbar shrink-0 ${
+        isDark ? 'bg-slate-950/90 border-slate-800/80' : 'bg-slate-100/80 border-slate-200'
+      }`}>
+        <div className="flex items-center space-x-2">
           {/* Real-time Multi-language Linter Indicator Toggle */}
           {['html', 'css', 'js', 'ts', 'groovy', 'xml'].includes(activeFile?.type || '') && (
             <button
@@ -564,6 +690,56 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             <Sparkles className={`w-3.5 h-3.5 ${syntaxHighlighting ? 'text-indigo-400' : 'text-slate-400'}`} />
             <span>Syntax {syntaxHighlighting ? 'ON' : 'OFF'}</span>
           </button>
+        </div>
+
+        <div className="flex items-center space-x-2">
+
+          {activeFile?.type === 'html' && (
+            <>
+              <button
+                onClick={() => {
+                  setIsA11yAuditorOpen(!isA11yAuditorOpen);
+                  if (isLinterOpen) setIsLinterOpen(false);
+                  if (isConsoleOpen) setIsConsoleOpen(false);
+                }}
+                className={`flex items-center space-x-1.5 px-2.5 py-1 rounded font-bold text-[11px] shadow-sm transition-all cursor-pointer ${
+                  isA11yAuditorOpen
+                    ? 'bg-emerald-600 text-white border border-emerald-400 shadow-md'
+                    : a11yReport && a11yReport.issues.length > 0
+                    ? 'bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-700/60'
+                    : 'bg-emerald-900/40 hover:bg-emerald-800/60 text-emerald-300 border border-emerald-800/40'
+                }`}
+                title="Scan current HTML structure for missing ARIA labels, alt text, and color contrast violations"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Accessibility Audit</span>
+                {a11yReport && (
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-extrabold ${
+                    a11yReport.score >= 90
+                      ? 'bg-emerald-500/30 text-emerald-300'
+                      : a11yReport.score >= 70
+                      ? 'bg-amber-500/30 text-amber-300'
+                      : 'bg-rose-500/30 text-rose-300'
+                  }`}>
+                    {a11yReport.score}% ({a11yReport.issues.length})
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={handleFixHtmlErrors}
+                className="flex items-center space-x-1.5 px-3 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] shadow-sm transition-all cursor-pointer"
+                title="Programmatically repair malformed HTML elements, unclosed quotes, and missing closing tags using DOMParser"
+              >
+                {htmlFixedSuccess ? (
+                  <Check className="w-3.5 h-3.5 text-white" />
+                ) : (
+                  <Wrench className="w-3.5 h-3.5 text-white" />
+                )}
+                <span>{htmlFixedSuccess ? 'HTML Repaired!' : 'Fix Common HTML Errors'}</span>
+              </button>
+            </>
+          )}
 
           {activeFile?.type === 'groovy' && (
             <button
@@ -1207,6 +1383,38 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               </div>
             </div>
           )}
+
+          {/* Accessibility Auditor Bottom Panel Drawer */}
+          {isA11yAuditorOpen && activeFile?.type === 'html' && (
+            <div className={`border-t h-80 flex flex-col z-20 shadow-2xl transition-all ${
+              isDark ? 'bg-slate-950 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+            }`}>
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-800 bg-slate-900/90 shrink-0">
+                <div className="flex items-center space-x-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="font-bold text-xs tracking-tight text-slate-200">HTML Accessibility & WCAG 2.1 Auditor</span>
+                  <span className="text-[10px] text-slate-400 font-mono font-bold">({activeFile.name})</span>
+                </div>
+                <button
+                  onClick={() => setIsA11yAuditorOpen(false)}
+                  className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
+                  title="Close Accessibility Auditor Panel"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <A11yAuditorPanel
+                  files={files}
+                  activeHtmlContent={activeFile.content}
+                  onUpdateHtmlContent={(newHtml) => {
+                    onFileContentChange(activeFile.id, newHtml);
+                  }}
+                  themeMode={themeMode}
+                />
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className={`flex-1 flex items-center justify-center ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -1219,22 +1427,77 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         <div className={`fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4 ${
           isDark ? 'bg-slate-950/80' : 'bg-slate-900/40'
         }`}>
-          <div className={`border rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4 ${
+          <div className={`border rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4 ${
             isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
           }`}>
-            <h3 className="text-base font-bold flex items-center space-x-2">
-              <Plus className="w-4 h-4 text-indigo-500" />
-              <span>Create New Project File</span>
+            <h3 className="text-base font-bold flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Plus className="w-4 h-4 text-indigo-500" />
+                <span>Create New Project File</span>
+              </div>
+              <button
+                onClick={() => setShowNewFileModal(false)}
+                className={`text-slate-400 hover:text-white p-1 rounded-lg ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'}`}
+              >
+                <X className="w-4 h-4" />
+              </button>
             </h3>
 
-            <form onSubmit={handleCreateFile} className="space-y-4">
+            {/* Quick Web Policy Presets Banner */}
+            <div className={`p-3 rounded-xl border space-y-2 ${
+              isDark ? 'bg-indigo-950/40 border-indigo-900/60' : 'bg-indigo-50/80 border-indigo-200'
+            }`}>
+              <div className="flex items-center justify-between text-xs font-bold text-indigo-400">
+                <span className="flex items-center space-x-1.5">
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>Quick Web Policy Presets</span>
+                </span>
+                <span className="text-[10px] text-slate-400 font-normal">1-Click Auto Creation</span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {WEB_POLICY_PRESETS.map((preset) => {
+                  const exists = files.some((f) => f.name.toLowerCase() === preset.filename.toLowerCase());
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => {
+                        if (exists) {
+                          const f = files.find((item) => item.name.toLowerCase() === preset.filename.toLowerCase());
+                          if (f) onSelectFile(f.id);
+                        } else {
+                          onAddNewFile(preset.filename, 'txt', preset.defaultContent);
+                        }
+                        setShowNewFileModal(false);
+                      }}
+                      className={`px-2.5 py-1.5 rounded-lg border text-left flex items-center justify-between text-xs transition-all cursor-pointer ${
+                        exists
+                          ? isDark ? 'bg-slate-800/80 border-emerald-500/40 text-emerald-300' : 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                          : isDark ? 'bg-slate-900/80 border-indigo-800/60 hover:bg-slate-800 text-indigo-200' : 'bg-white border-indigo-200 hover:bg-indigo-100 text-indigo-900'
+                      }`}
+                    >
+                      <div className="truncate font-mono text-[11px] font-bold">
+                        {preset.filename}
+                      </div>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
+                        exists ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-500/20 text-indigo-400'
+                      }`}>
+                        {exists ? 'Open' : '+ Create'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateFile} className="space-y-4 pt-1">
               <div>
                 <label className={`block text-xs font-semibold mb-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                  File Name
+                  Custom File Name
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. main.ts, script.groovy, app.js"
+                  placeholder="e.g. main.ts, script.groovy, app.js, trust.txt"
                   value={newFileName}
                   onChange={(e) => setNewFileName(e.target.value)}
                   className={`w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500 ${
@@ -1261,6 +1524,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                   <option value="ts">TypeScript (.ts)</option>
                   <option value="groovy">GroovyScript (.groovy)</option>
                   <option value="xml">XML Document (.xml)</option>
+                  <option value="txt">Plain Text / Policy (.txt)</option>
                 </select>
               </div>
 
@@ -1276,7 +1540,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium shadow"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium shadow cursor-pointer"
                 >
                   Create File
                 </button>

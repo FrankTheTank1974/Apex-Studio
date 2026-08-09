@@ -554,21 +554,21 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
     : 'p-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-[10px] text-center text-slate-700';
 
   return (
-    <div className={`w-80 border-l flex flex-col h-full text-xs select-none transition-colors ${
+    <div className={`w-80 shrink-0 border-l flex flex-col h-full text-xs select-none z-10 relative transition-colors ${
       isDark ? 'bg-slate-900 border-slate-800 text-slate-300' : 'bg-white border-slate-200 text-slate-700'
     }`}>
       {/* Top Tab Bar Switcher */}
-      <div className={`flex items-center border-b p-1.5 space-x-1 shrink-0 ${
+      <div className={`flex items-center border-b p-1.5 space-x-1 shrink-0 overflow-x-auto whitespace-nowrap custom-scrollbar ${
         isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
       }`}>
         <button
           type="button"
           onClick={() => setActiveTab('element')}
-          className={`flex-1 py-1.5 px-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer ${
+          className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer shrink-0 ${
             activeTab === 'element'
               ? isDark
-                ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                : 'bg-white text-slate-900 shadow-xs border border-slate-200'
+                ? 'bg-slate-800 text-white shadow-2xs border border-slate-700'
+                : 'bg-white text-slate-900 shadow-2xs border border-slate-200'
               : isDark
                 ? 'text-slate-400 hover:text-slate-200'
                 : 'text-slate-600 hover:text-slate-900'
@@ -581,9 +581,9 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('animations')}
-          className={`flex-1 py-1.5 px-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer ${
+          className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer shrink-0 ${
             activeTab === 'animations'
-              ? 'bg-indigo-600 text-white shadow-xs'
+              ? 'bg-indigo-600 text-white shadow-2xs'
               : isDark
                 ? 'text-slate-400 hover:text-slate-200'
                 : 'text-slate-600 hover:text-slate-900'
@@ -596,11 +596,11 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('theme')}
-          className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer ${
+          className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer shrink-0 ${
             activeTab === 'theme'
               ? isDark
-                ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                : 'bg-white text-slate-900 shadow-xs border border-slate-200'
+                ? 'bg-slate-800 text-white shadow-2xs border border-slate-700'
+                : 'bg-white text-slate-900 shadow-2xs border border-slate-200'
               : isDark
                 ? 'text-slate-400 hover:text-slate-200'
                 : 'text-slate-600 hover:text-slate-900'
@@ -613,16 +613,16 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('a11y')}
-          className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer ${
+          className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer shrink-0 ${
             activeTab === 'a11y'
               ? isDark
-                ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                : 'bg-white text-slate-900 shadow-xs border border-slate-200'
+                ? 'bg-slate-800 text-white shadow-2xs border border-slate-700'
+                : 'bg-white text-slate-900 shadow-2xs border border-slate-200'
               : isDark
                 ? 'text-slate-400 hover:text-slate-200'
                 : 'text-slate-600 hover:text-slate-900'
           }`}
-          title="Accessibility Auditor & WCAG WCAG Compliance"
+          title="Accessibility Auditor & WCAG Compliance"
         >
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
           <span>A11y</span>
@@ -631,11 +631,11 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('history')}
-          className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer ${
+          className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all cursor-pointer shrink-0 ${
             activeTab === 'history'
               ? isDark
-                ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                : 'bg-white text-slate-900 shadow-xs border border-slate-200'
+                ? 'bg-slate-800 text-white shadow-2xs border border-slate-700'
+                : 'bg-white text-slate-900 shadow-2xs border border-slate-200'
               : isDark
                 ? 'text-slate-400 hover:text-slate-200'
                 : 'text-slate-600 hover:text-slate-900'

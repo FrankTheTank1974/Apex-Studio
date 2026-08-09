@@ -1775,6 +1775,1179 @@ export const COMPONENT_TEMPLATES: ComponentTemplate[] = [
   </script>
 </div>`
   },
+  {
+    id: 'audio-player-studio',
+    name: 'Universal Audio Player & Playlist Studio',
+    category: 'media',
+    icon: 'Music',
+    description: 'Full-featured audio player with format support (MP3, WAV, OGG, AAC, FLAC, M4A, WEBM) and playlist importer (M3U, M3U8, PLS, JSON), equalizer presets, frequency spectrum visualizer, embedded cover extraction, and drag-and-drop local audio loader.',
+    html: `<div class="max-w-2xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xl font-sans text-slate-900 dark:text-white my-6 apex-audio-player-card relative overflow-hidden">
+  <!-- Background Glow -->
+  <div class="absolute -top-20 -right-20 w-56 h-56 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute -bottom-20 -left-20 w-56 h-56 bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+  <!-- Header & Format Badges Bar -->
+  <div class="flex flex-wrap items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 gap-2 relative z-10">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-500/20 text-lg">
+        🎵
+      </div>
+      <div>
+        <h3 class="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <span>Universal Audio Studio</span>
+          <span class="active-format-badge px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
+            MP3 / FLAC / WAV / OGG
+          </span>
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Supports MP3, WAV, OGG, AAC, FLAC, M4A, WEBM & M3U / PLS / JSON Playlists</p>
+      </div>
+    </div>
+
+    <!-- Supported Format Pill Tags -->
+    <div class="flex items-center space-x-1 text-[10px] font-mono font-semibold">
+      <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">M3U</span>
+      <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">PLS</span>
+      <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">JSON</span>
+      <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">ID3 Cover Art</span>
+    </div>
+  </div>
+
+  <!-- Main Player Display Area (Vinyl / Cover + Track Meta + Visualizer) -->
+  <div class="my-6 p-5 bg-gradient-to-br from-slate-50 via-indigo-50/20 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border border-slate-200 dark:border-slate-800/80 rounded-2xl relative z-10 shadow-inner">
+    <div class="flex flex-col sm:flex-row items-center gap-5">
+      <!-- Vinyl Disc / Embedded Cover Container -->
+      <div class="relative shrink-0 flex flex-col items-center gap-2">
+        <div class="cover-wrapper relative w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center">
+          <div class="vinyl-disc w-full h-full rounded-full bg-slate-900 border-4 border-slate-800 shadow-xl flex items-center justify-center relative overflow-hidden transition-all duration-500">
+            <div class="vinyl-overlay absolute inset-0 bg-[radial-gradient(circle,_transparent_30%,_rgba(255,255,255,0.08)_31%,_transparent_32%)] pointer-events-none z-10"></div>
+            <!-- Album Cover Image -->
+            <img class="track-cover-img w-full h-full object-cover rounded-full transition-all duration-300" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80" alt="Album Cover" />
+            <!-- Vinyl Center Hole -->
+            <div class="vinyl-hole absolute w-6 h-6 rounded-full bg-slate-950 border-2 border-indigo-500/50 flex items-center justify-center z-20">
+              <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Cover Art Style Toggle -->
+        <button type="button" class="btn-toggle-cover-style px-2 py-0.5 text-[9px] font-mono font-bold rounded-md bg-slate-200 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white text-slate-700 dark:text-slate-300 transition-all cursor-pointer shadow-xs" title="Toggle Vinyl Disc vs Resized Cover Art Mode">
+          🖼️ Resized Artwork
+        </button>
+      </div>
+
+      <!-- Current Track Details & Spectrum Visualizer -->
+      <div class="flex-1 w-full text-center sm:text-left min-w-0">
+        <div class="flex items-center justify-between gap-2 mb-1">
+          <span class="track-artist text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 truncate">Apex Soundscapes</span>
+          <span class="track-format-tag text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-300">OGG</span>
+        </div>
+        <h4 class="track-title text-xl font-black text-slate-900 dark:text-white truncate">Ambient Synth Horizon</h4>
+        <p class="track-album text-xs text-slate-500 dark:text-slate-400 mb-3 truncate">Album: Cybernetic Waves Vol. 1</p>
+
+        <!-- Frequency Spectrum Waveform (16 Bars) -->
+        <div class="w-full h-10 bg-slate-950 rounded-xl overflow-hidden border border-slate-800 p-1.5 flex items-end justify-between gap-1 spectrum-container">
+          <span class="spectrum-bar flex-1 bg-indigo-500 rounded-xs h-2 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-indigo-400 rounded-xs h-3 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-purple-500 rounded-xs h-1 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-indigo-500 rounded-xs h-4 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-pink-500 rounded-xs h-2 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-indigo-400 rounded-xs h-5 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-purple-400 rounded-xs h-3 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-indigo-500 rounded-xs h-6 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-cyan-400 rounded-xs h-2 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-indigo-500 rounded-xs h-4 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-purple-500 rounded-xs h-3 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-indigo-400 rounded-xs h-5 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-pink-500 rounded-xs h-2 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-cyan-400 rounded-xs h-4 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-indigo-500 rounded-xs h-3 transition-all duration-75"></span>
+          <span class="spectrum-bar flex-1 bg-purple-400 rounded-xs h-1 transition-all duration-75"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seek Bar & Time Displays -->
+    <div class="mt-5 space-y-1">
+      <div class="relative flex items-center">
+        <input type="range" class="audio-seek-bar w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600" min="0" max="100" value="0" step="0.1" />
+      </div>
+      <div class="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400 px-0.5">
+        <span class="time-current">00:00</span>
+        <span class="time-duration">00:00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Primary Controls Toolbar (Prev, Play, Next, Volume, Loop, Shuffle, EQ, Speed) -->
+  <div class="space-y-4 relative z-10">
+    <div class="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <!-- Main Playback Buttons -->
+      <div class="flex items-center space-x-2 mx-auto sm:mx-0">
+        <!-- Shuffle Button -->
+        <button type="button" class="btn-shuffle p-2 text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer" title="Toggle Shuffle">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H4m0 0l3-3m-3 3l3 3m13-3h-4m0 0l3-3m-3 3l3 3M4 8h4m0 0l-3-3m3 3L5 5m15 3h-4m0 0l3-3m-3 3l3 3"></path></svg>
+        </button>
+
+        <!-- Previous Track Button -->
+        <button type="button" class="btn-prev p-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white text-slate-700 dark:text-slate-200 rounded-xl transition-all active:scale-95 cursor-pointer" title="Previous Track">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+
+        <!-- Play / Pause Main Button -->
+        <button type="button" class="btn-play-main p-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all active:scale-95 cursor-pointer flex items-center justify-center">
+          <svg class="play-icon w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg class="pause-icon w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+
+        <!-- Next Track Button -->
+        <button type="button" class="btn-next p-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white text-slate-700 dark:text-slate-200 rounded-xl transition-all active:scale-95 cursor-pointer" title="Next Track">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+        </button>
+
+        <!-- Loop Mode Button -->
+        <button type="button" class="btn-loop p-2 text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer" title="Loop Mode: Off">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        </button>
+      </div>
+
+      <!-- Volume & Mute Control -->
+      <div class="flex items-center space-x-2 mx-auto sm:mx-0 text-xs">
+        <button type="button" class="btn-mute text-slate-500 hover:text-indigo-500 dark:text-slate-400 cursor-pointer" title="Mute/Unmute">
+          <svg class="vol-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"></path></svg>
+        </button>
+        <input type="range" class="audio-volume-bar w-20 sm:w-24 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600" min="0" max="1" step="0.05" value="0.8" />
+      </div>
+
+      <!-- Equalizer & Playback Speed Controls -->
+      <div class="flex items-center space-x-2 mx-auto sm:mx-0 text-xs">
+        <select class="eq-preset-select px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+          <option value="flat">🎛️ EQ: Flat</option>
+          <option value="bass">🔊 Bass Boost</option>
+          <option value="treble">✨ Treble Boost</option>
+          <option value="vocal">🎙️ Vocal Clarity</option>
+          <option value="rock">🎸 Rock / Punch</option>
+          <option value="electronic">⚡ Electronic</option>
+        </select>
+
+        <select class="playback-speed-select px-2 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 text-xs font-mono font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+          <option value="0.5">0.5x</option>
+          <option value="0.75">0.75x</option>
+          <option value="1.0" selected>1.0x</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2.0">2.0x</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Playlist Queue Header & Actions -->
+    <div class="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+        <div class="flex items-center space-x-2">
+          <span class="font-extrabold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+            <span>📋 Playlist Queue</span>
+            <span class="playlist-count-badge px-2 py-0.5 rounded-full text-[10px] font-mono bg-indigo-600 text-white font-bold">3 tracks</span>
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <input type="file" class="audio-file-input hidden" accept=".mp3,.wav,.ogg,.aac,.flac,.m4a,.webm,.opus,.m3u,.m3u8,.pls,.json,.csv,.txt" multiple />
+          
+          <button type="button" class="btn-trigger-upload px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center space-x-1.5 cursor-pointer">
+            <span>📂 Open Audio / Playlist</span>
+          </button>
+
+          <button type="button" class="btn-export-m3u px-3 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs rounded-xl transition-all flex items-center space-x-1 cursor-pointer" title="Export current playlist to .m3u file">
+            <span>💾 Export M3U</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Drag & Drop Dropzone Box -->
+      <div class="playlist-dropzone border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-indigo-500 rounded-xl p-3 text-center transition-colors cursor-pointer mb-3 bg-white/50 dark:bg-slate-900/50">
+        <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
+          <span class="text-indigo-500 font-bold">Drag & Drop</span> audio files (<code class="text-indigo-400">.mp3, .wav, .flac, .m4a</code>) or playlists (<code class="text-indigo-400">.m3u, .pls, .json</code>) here
+        </p>
+      </div>
+
+      <!-- Track Filter / Search Field -->
+      <div class="mb-3">
+        <input type="text" class="playlist-search-input w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="🔍 Search track or artist in playlist..." />
+      </div>
+
+      <!-- Playlist Queue Items List Container -->
+      <div class="playlist-items-container max-h-56 overflow-y-auto space-y-1.5 pr-1 text-xs">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Native Audio Element -->
+  <audio class="apex-native-audio" crossorigin="anonymous" preload="metadata"></audio>
+
+  <!-- Embedded JS Engine -->
+  <script>
+    (function initAudioStudio() {
+      const getCard = function() {
+        if (document.currentScript && document.currentScript.closest) {
+          return document.currentScript.closest('.apex-audio-player-card');
+        }
+        const cards = document.querySelectorAll('.apex-audio-player-card');
+        return cards.length > 0 ? cards[cards.length - 1] : null;
+      };
+
+      const card = getCard();
+      if (!card) return;
+      if (card.dataset.studioInitialized === 'true') return;
+      card.dataset.studioInitialized = 'true';
+
+      const audio = card.querySelector('.apex-native-audio');
+      if (!audio) return;
+
+      let playlist = [
+        {
+          id: '1',
+          title: 'Ambient Synth Horizon',
+          artist: 'Apex Soundscapes',
+          album: 'Cybernetic Waves Vol. 1',
+          url: 'https://actions.google.com/sounds/v1/science_fiction/space_engine_large.ogg',
+          format: 'OGG',
+          duration: '01:00',
+          cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80'
+        },
+        {
+          id: '2',
+          title: 'Chill Lofi Rain Beats',
+          artist: 'Lofi Producer',
+          album: 'Nighttime Coding Sessions',
+          url: 'https://actions.google.com/sounds/v1/ambiences/rain_heavy.ogg',
+          format: 'OGG',
+          duration: '01:00',
+          cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80'
+        },
+        {
+          id: '3',
+          title: 'Soft Piano Melodies',
+          artist: 'Acoustic Project',
+          album: 'Unplugged Resonance',
+          url: 'https://actions.google.com/sounds/v1/music/soft_piano.ogg',
+          format: 'OGG',
+          duration: '01:00',
+          cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&auto=format&fit=crop&q=80'
+        }
+      ];
+
+      let currentIndex = 0;
+      let isPlaying = false;
+      let isSeeking = false;
+      let loopMode = 0;
+      let isShuffle = false;
+      let isCoverArtworkMode = false;
+
+      // Web Audio API Nodes
+      let audioCtx = null;
+      let sourceNode = null;
+      let analyserNode = null;
+      let bassFilter = null;
+      let midFilter = null;
+      let trebleFilter = null;
+      let animFrameId = null;
+
+      const playBtn = card.querySelector('.btn-play-main');
+      const playIcon = card.querySelector('.play-icon');
+      const pauseIcon = card.querySelector('.pause-icon');
+      const prevBtn = card.querySelector('.btn-prev');
+      const nextBtn = card.querySelector('.btn-next');
+      const loopBtn = card.querySelector('.btn-loop');
+      const shuffleBtn = card.querySelector('.btn-shuffle');
+      const seekBar = card.querySelector('.audio-seek-bar');
+      const timeCurrent = card.querySelector('.time-current');
+      const timeDuration = card.querySelector('.time-duration');
+      const volumeBar = card.querySelector('.audio-volume-bar');
+      const muteBtn = card.querySelector('.btn-mute');
+      const eqSelect = card.querySelector('.eq-preset-select');
+      const speedSelect = card.querySelector('.playback-speed-select');
+      const vinylDisc = card.querySelector('.vinyl-disc');
+      const vinylOverlay = card.querySelector('.vinyl-overlay');
+      const vinylHole = card.querySelector('.vinyl-hole');
+      const coverImg = card.querySelector('.track-cover-img');
+      const toggleCoverBtn = card.querySelector('.btn-toggle-cover-style');
+      const titleEl = card.querySelector('.track-title');
+      const artistEl = card.querySelector('.track-artist');
+      const albumEl = card.querySelector('.track-album');
+      const formatTag = card.querySelector('.track-format-tag');
+      const playlistContainer = card.querySelector('.playlist-items-container');
+      const countBadge = card.querySelector('.playlist-count-badge');
+      const searchInput = card.querySelector('.playlist-search-input');
+      const fileInput = card.querySelector('.audio-file-input');
+      const uploadBtn = card.querySelector('.btn-trigger-upload');
+      const exportBtn = card.querySelector('.btn-export-m3u');
+      const dropzone = card.querySelector('.playlist-dropzone');
+      const bars = card.querySelectorAll('.spectrum-bar');
+
+      function formatTime(sec) {
+        if (isNaN(sec) || sec < 0) return '00:00';
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+      }
+
+      function detectFormat(urlOrName) {
+        if (!urlOrName) return 'AUDIO';
+        const ext = urlOrName.split('.').pop().split('?')[0].toLowerCase();
+        if (['mp3'].includes(ext)) return 'MP3';
+        if (['wav'].includes(ext)) return 'WAV';
+        if (['flac'].includes(ext)) return 'FLAC';
+        if (['ogg', 'oga'].includes(ext)) return 'OGG';
+        if (['m4a', 'aac'].includes(ext)) return 'M4A';
+        if (['webm'].includes(ext)) return 'WEBM';
+        if (['opus'].includes(ext)) return 'OPUS';
+        return 'AUDIO';
+      }
+
+      function applyCoverStyle() {
+        if (!vinylDisc || !coverImg) return;
+        if (isCoverArtworkMode) {
+          vinylDisc.className = 'vinyl-disc w-full h-full rounded-2xl border-2 border-indigo-500/40 shadow-xl overflow-hidden transition-all duration-300';
+          coverImg.className = 'track-cover-img w-full h-full object-cover rounded-2xl transition-all duration-300';
+          if (vinylOverlay) vinylOverlay.style.display = 'none';
+          if (vinylHole) vinylHole.style.display = 'none';
+          if (toggleCoverBtn) toggleCoverBtn.textContent = '📀 Vinyl Mode';
+        } else {
+          vinylDisc.className = 'vinyl-disc w-full h-full rounded-full bg-slate-900 border-4 border-slate-800 shadow-xl flex items-center justify-center relative overflow-hidden transition-all duration-500 ' + (isPlaying ? 'animate-spin' : '');
+          coverImg.className = 'track-cover-img w-full h-full object-cover rounded-full transition-all duration-300';
+          if (vinylOverlay) vinylOverlay.style.display = 'block';
+          if (vinylHole) vinylHole.style.display = 'flex';
+          if (toggleCoverBtn) toggleCoverBtn.textContent = '🖼️ Resized Artwork';
+        }
+      }
+
+      if (toggleCoverBtn) {
+        toggleCoverBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          isCoverArtworkMode = !isCoverArtworkMode;
+          applyCoverStyle();
+        });
+      }
+
+      // Fast Uint8Array to Base64 String Converter
+      function uint8ToBase64(bytes) {
+        let binary = '';
+        const len = bytes.byteLength;
+        const chunkSize = 8192;
+        for (let i = 0; i < len; i += chunkSize) {
+          binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunkSize, len)));
+        }
+        return btoa(binary);
+      }
+
+      // FLAC Native METADATA_BLOCK_PICTURE & Vorbis Comment Parser
+      function parseFlacCover(buffer, startOffset) {
+        const view = new DataView(buffer);
+        const start = startOffset || 0;
+        if (start + 4 > buffer.byteLength) return null;
+
+        // Check 'fLaC' signature
+        if (view.getUint8(start) === 0x66 && view.getUint8(start + 1) === 0x4C && view.getUint8(start + 2) === 0x61 && view.getUint8(start + 3) === 0x43) {
+          let offset = start + 4;
+          while (offset + 4 <= buffer.byteLength) {
+            const header = view.getUint8(offset);
+            const isLast = (header & 0x80) !== 0;
+            const blockType = header & 0x7F;
+            const length = (view.getUint8(offset + 1) << 16) | (view.getUint8(offset + 2) << 8) | view.getUint8(offset + 3);
+            offset += 4;
+
+            if (offset + length > buffer.byteLength) break;
+
+            if (blockType === 6) { // METADATA_BLOCK_PICTURE
+              try {
+                let p = offset;
+                const picType = view.getUint32(p, false); p += 4;
+                const mimeLen = view.getUint32(p, false); p += 4;
+                let mimeType = 'image/jpeg';
+                if (mimeLen > 0 && p + mimeLen <= offset + length) {
+                  let mStr = '';
+                  for (let i = 0; i < mimeLen; i++) mStr += String.fromCharCode(view.getUint8(p + i));
+                  if (mStr) mimeType = mStr.trim();
+                  p += mimeLen;
+                }
+                const descLen = view.getUint32(p, false); p += 4;
+                p += descLen; // skip description
+                p += 16; // skip width (4), height (4), depth (4), colors (4)
+                const picLen = view.getUint32(p, false); p += 4;
+                if (picLen > 0 && p + picLen <= offset + length) {
+                  const picBytes = new Uint8Array(buffer, p, picLen);
+                  return 'data:' + mimeType + ';base64,' + uint8ToBase64(picBytes);
+                }
+              } catch(e) {
+                console.warn('FLAC picture block error:', e);
+              }
+            } else if (blockType === 4) { // VORBIS_COMMENT
+              try {
+                let p = offset;
+                const vendorLen = view.getUint32(p, true); p += 4 + vendorLen;
+                if (p + 4 <= offset + length) {
+                  const commentListLen = view.getUint32(p, true); p += 4;
+                  for (let c = 0; c < commentListLen && p < offset + length; c++) {
+                    const commentLen = view.getUint32(p, true); p += 4;
+                    if (commentLen > 0 && p + commentLen <= offset + length) {
+                      let commentStr = '';
+                      const commentBytes = new Uint8Array(buffer, p, commentLen);
+                      for (let i = 0; i < commentBytes.length; i++) commentStr += String.fromCharCode(commentBytes[i]);
+                      p += commentLen;
+                      if (commentStr.toUpperCase().startsWith('METADATA_BLOCK_PICTURE=')) {
+                        const b64 = commentStr.substring(commentStr.indexOf('=') + 1).trim();
+                        const rawBin = atob(b64);
+                        const picBuf = new Uint8Array(rawBin.length);
+                        for (let i = 0; i < rawBin.length; i++) picBuf[i] = rawBin.charCodeAt(i);
+                        const picView = new DataView(picBuf.buffer);
+                        let p2 = 0;
+                        const picType = picView.getUint32(p2, false); p2 += 4;
+                        const mimeLen = picView.getUint32(p2, false); p2 += 4;
+                        let mimeType = 'image/jpeg';
+                        let mStr = '';
+                        for (let i = 0; i < mimeLen; i++) mStr += String.fromCharCode(picView.getUint8(p2 + i));
+                        if (mStr) mimeType = mStr.trim();
+                        p2 += mimeLen;
+                        const descLen = picView.getUint32(p2, false); p2 += 4; p2 += descLen;
+                        p2 += 16;
+                        const picLen = picView.getUint32(p2, false); p2 += 4;
+                        if (picLen > 0 && p2 + picLen <= picBuf.length) {
+                          const imgData = picBuf.subarray(p2, p2 + picLen);
+                          return 'data:' + mimeType + ';base64,' + uint8ToBase64(imgData);
+                        }
+                      }
+                    }
+                  }
+                }
+              } catch(e) {
+                console.warn('Vorbis comment picture error:', e);
+              }
+            }
+
+            offset += length;
+            if (isLast) break;
+          }
+        }
+        return null;
+      }
+
+      // ID3v2 Tag APIC / PIC Frame Parser (MP3 / WAV / FLAC with ID3)
+      function parseId3Cover(buffer) {
+        const view = new DataView(buffer);
+        if (buffer.byteLength < 10) return null;
+
+        if (view.getUint8(0) === 0x49 && view.getUint8(1) === 0x44 && view.getUint8(2) === 0x33) {
+          const version = view.getUint8(3);
+          const tagSize = ((view.getUint8(6) & 0x7f) << 21) |
+                           ((view.getUint8(7) & 0x7f) << 14) |
+                           ((view.getUint8(8) & 0x7f) << 7) |
+                           (view.getUint8(9) & 0x7f);
+          let offset = 10;
+          while (offset < tagSize + 10 && offset < buffer.byteLength - 10) {
+            let frameId = '';
+            let frameSize = 0;
+            if (version === 2) {
+              frameId = String.fromCharCode(view.getUint8(offset), view.getUint8(offset+1), view.getUint8(offset+2));
+              frameSize = (view.getUint8(offset+3) << 16) | (view.getUint8(offset+4) << 8) | view.getUint8(offset+5);
+              offset += 6;
+            } else {
+              frameId = String.fromCharCode(view.getUint8(offset), view.getUint8(offset+1), view.getUint8(offset+2), view.getUint8(offset+3));
+              if (version === 4) {
+                frameSize = ((view.getUint8(offset+4) & 0x7f) << 21) | ((view.getUint8(offset+5) & 0x7f) << 14) | ((view.getUint8(offset+6) & 0x7f) << 7) | (view.getUint8(offset+7) & 0x7f);
+              } else {
+                frameSize = view.getUint32(offset+4, false);
+              }
+              offset += 10;
+            }
+
+            if (frameSize <= 0 || offset + frameSize > buffer.byteLength) break;
+
+            if (frameId === 'APIC' || frameId === 'PIC') {
+              try {
+                const frameStart = offset;
+                let mimeType = 'image/jpeg';
+                let pos = frameStart;
+                const encoding = view.getUint8(pos++);
+                if (frameId === 'APIC') {
+                  let mimeStr = '';
+                  while (pos < frameStart + frameSize && view.getUint8(pos) !== 0) {
+                    mimeStr += String.fromCharCode(view.getUint8(pos++));
+                  }
+                  pos++;
+                  if (mimeStr) mimeType = mimeStr.trim();
+                } else {
+                  const format = String.fromCharCode(view.getUint8(pos), view.getUint8(pos+1), view.getUint8(pos+2));
+                  pos += 3;
+                  mimeType = format.toLowerCase() === 'png' ? 'image/png' : 'image/jpeg';
+                }
+                pos++; // picture type byte
+                if (encoding === 0 || encoding === 3) {
+                  while (pos < frameStart + frameSize && view.getUint8(pos) !== 0) pos++;
+                  pos++;
+                } else if (encoding === 1 || encoding === 2) {
+                  while (pos < frameStart + frameSize - 1 && !(view.getUint8(pos) === 0 && view.getUint8(pos+1) === 0)) pos += 2;
+                  pos += 2;
+                }
+                if (pos < frameStart + frameSize) {
+                  const imgData = new Uint8Array(buffer, pos, (frameStart + frameSize) - pos);
+                  return 'data:' + mimeType + ';base64,' + uint8ToBase64(imgData);
+                }
+              } catch(e) {
+                console.warn('APIC frame parse notice:', e);
+              }
+            }
+            offset += frameSize;
+          }
+
+          // Check if FLAC header exists after ID3 tag header
+          const flacCoverAfterId3 = parseFlacCover(buffer, 10 + tagSize);
+          if (flacCoverAfterId3) return flacCoverAfterId3;
+        }
+        return null;
+      }
+
+      // M4A / MP4 covr atom parser
+      function parseM4aCover(buffer) {
+        const view = new DataView(buffer);
+        let pos = 0;
+        while (pos + 8 < buffer.byteLength) {
+          const atomSize = view.getUint32(pos, false);
+          if (atomSize < 8) break;
+          const atomType = String.fromCharCode(view.getUint8(pos+4), view.getUint8(pos+5), view.getUint8(pos+6), view.getUint8(pos+7));
+          if (atomType === 'covr') {
+            try {
+              let dPos = pos + 8;
+              while (dPos + 8 < pos + atomSize && dPos + 8 < buffer.byteLength) {
+                const dSize = view.getUint32(dPos, false);
+                const dType = String.fromCharCode(view.getUint8(dPos+4), view.getUint8(dPos+5), view.getUint8(dPos+6), view.getUint8(dPos+7));
+                if (dType === 'data' && dSize > 16) {
+                  const flags = view.getUint32(dPos + 8, false);
+                  const mimeType = (flags === 14) ? 'image/png' : 'image/jpeg';
+                  const imgData = new Uint8Array(buffer, dPos + 16, dSize - 16);
+                  return 'data:' + mimeType + ';base64,' + uint8ToBase64(imgData);
+                }
+                dPos += (dSize >= 8 ? dSize : 8);
+              }
+            } catch(e) {
+              console.warn('M4A covr atom parse notice:', e);
+            }
+          }
+          if (['moov', 'udta', 'meta', 'ilst'].includes(atomType)) {
+            pos += (atomType === 'meta' ? 12 : 8);
+          } else {
+            pos += atomSize;
+          }
+        }
+        return null;
+      }
+
+      // Comprehensive Multi-Format Embedded Cover Art Extractor
+      function extractEmbeddedCover(file, callback) {
+        if (!file) return callback(null);
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const buffer = e.target.result;
+
+            // 1. Try FLAC native or Vorbis Comment
+            const flacRes = parseFlacCover(buffer, 0);
+            if (flacRes) return callback(flacRes);
+
+            // 2. Try ID3v2 (MP3/WAV/FLAC-with-ID3)
+            const id3Res = parseId3Cover(buffer);
+            if (id3Res) return callback(id3Res);
+
+            // 3. Try M4A / MP4 covr atom
+            const m4aRes = parseM4aCover(buffer);
+            if (m4aRes) return callback(m4aRes);
+
+          } catch(err) {
+            console.warn('Embedded cover extraction notice:', err);
+          }
+          callback(null);
+        };
+        // Read up to 16MB of audio file to ensure full embedded image binary data is captured
+        reader.readAsArrayBuffer(file.slice(0, Math.min(file.size, 16 * 1024 * 1024)));
+      }
+
+      // Initialize Web Audio API & Equalizer Biquad Filters
+      function initWebAudio() {
+        if (audioCtx) return;
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return;
+          audioCtx = new AudioContextClass();
+
+          bassFilter = audioCtx.createBiquadFilter();
+          bassFilter.type = 'lowshelf';
+          bassFilter.frequency.value = 320;
+
+          midFilter = audioCtx.createBiquadFilter();
+          midFilter.type = 'peaking';
+          midFilter.frequency.value = 1000;
+          midFilter.Q.value = 0.5;
+
+          trebleFilter = audioCtx.createBiquadFilter();
+          trebleFilter.type = 'highshelf';
+          trebleFilter.frequency.value = 3200;
+
+          analyserNode = audioCtx.createAnalyser();
+          analyserNode.fftSize = 64;
+
+          sourceNode = audioCtx.createMediaElementSource(audio);
+          sourceNode.connect(bassFilter);
+          bassFilter.connect(midFilter);
+          midFilter.connect(trebleFilter);
+          trebleFilter.connect(analyserNode);
+          analyserNode.connect(audioCtx.destination);
+
+          applyEQPreset(eqSelect ? eqSelect.value : 'flat');
+        } catch(e) {
+          console.warn('Web Audio initialization notice:', e);
+        }
+      }
+
+      function applyEQPreset(preset) {
+        if (!bassFilter || !midFilter || !trebleFilter) return;
+        const presets = {
+          flat: { low: 0, mid: 0, high: 0 },
+          bass: { low: 9, mid: 0, high: -3 },
+          treble: { low: -3, mid: 1, high: 8 },
+          vocal: { low: -4, mid: 6, high: 3 },
+          rock: { low: 6, mid: -2, high: 5 },
+          electronic: { low: 8, mid: 2, high: 6 }
+        };
+        const settings = presets[preset] || presets.flat;
+        bassFilter.gain.value = settings.low;
+        midFilter.gain.value = settings.mid;
+        trebleFilter.gain.value = settings.high;
+      }
+
+      function updateSpectrum() {
+        if (analyserNode && isPlaying) {
+          const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+          analyserNode.getByteFrequencyData(dataArray);
+          const step = Math.floor(dataArray.length / bars.length) || 1;
+
+          bars.forEach((bar, idx) => {
+            const val = dataArray[idx * step] || 0;
+            const heightPx = Math.max(4, Math.min(36, Math.floor((val / 255) * 36)));
+            bar.style.height = heightPx + 'px';
+            bar.style.opacity = (0.4 + (val / 255) * 0.6).toFixed(2);
+          });
+          animFrameId = requestAnimationFrame(updateSpectrum);
+        } else if (isPlaying) {
+          // Fallback animated rhythm bars when playing
+          bars.forEach((bar, idx) => {
+            const pseudoVal = Math.floor(Math.random() * 28) + 6;
+            bar.style.height = pseudoVal + 'px';
+            bar.style.opacity = '0.9';
+          });
+          animFrameId = requestAnimationFrame(updateSpectrum);
+        } else {
+          bars.forEach(bar => { bar.style.height = '6px'; bar.style.opacity = '0.4'; });
+        }
+      }
+
+      function loadTrack(index, autoPlay) {
+        if (index < 0 || index >= playlist.length) return;
+        currentIndex = index;
+        const track = playlist[currentIndex];
+
+        audio.src = track.url;
+        if (speedSelect) audio.playbackRate = parseFloat(speedSelect.value);
+        if (volumeBar) audio.volume = parseFloat(volumeBar.value);
+
+        if (titleEl) titleEl.textContent = track.title;
+        if (artistEl) artistEl.textContent = track.artist || 'Unknown Artist';
+        if (albumEl) albumEl.textContent = track.album ? 'Album: ' + track.album : 'Single Track';
+        if (coverImg && track.cover) coverImg.src = track.cover;
+        if (formatTag) formatTag.textContent = track.format || detectFormat(track.url);
+
+        if (track.hasEmbeddedCover) {
+          isCoverArtworkMode = true;
+        }
+        applyCoverStyle();
+        renderPlaylist();
+
+        if (autoPlay) {
+          playAudio();
+        } else {
+          pauseAudio();
+        }
+      }
+
+      function playAudio() {
+        initWebAudio();
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        if (speedSelect) {
+          audio.playbackRate = parseFloat(speedSelect.value);
+        }
+
+        audio.play().then(function() {
+          isPlaying = true;
+          if (playIcon) playIcon.classList.add('hidden');
+          if (pauseIcon) pauseIcon.classList.remove('hidden');
+          applyCoverStyle();
+          updateSpectrum();
+        }).catch(function(err) {
+          console.warn('Playback error or gesture needed:', err);
+          isPlaying = false;
+        });
+      }
+
+      function pauseAudio() {
+        audio.pause();
+        isPlaying = false;
+        if (playIcon) playIcon.classList.remove('hidden');
+        if (pauseIcon) pauseIcon.classList.add('hidden');
+        applyCoverStyle();
+        if (animFrameId) cancelAnimationFrame(animFrameId);
+        updateSpectrum();
+      }
+
+      function togglePlay() {
+        if (isPlaying) {
+          pauseAudio();
+        } else {
+          playAudio();
+        }
+      }
+
+      function renderPlaylist(filterText) {
+        if (!playlistContainer) return;
+        playlistContainer.innerHTML = '';
+
+        const term = (filterText || '').toLowerCase();
+        const filtered = playlist.filter(function(t) {
+          return t.title.toLowerCase().includes(term) || (t.artist && t.artist.toLowerCase().includes(term));
+        });
+
+        // Always update exact track count badge dynamically
+        if (countBadge) {
+          countBadge.textContent = playlist.length + (playlist.length === 1 ? ' track' : ' tracks');
+        }
+
+        filtered.forEach(function(track) {
+          const originalIdx = playlist.findIndex(function(p) { return p.id === track.id; });
+          const isCurrent = originalIdx === currentIndex;
+
+          const item = document.createElement('div');
+          item.className = 'p-2.5 rounded-xl flex items-center justify-between gap-3 border transition-all cursor-pointer ' +
+            (isCurrent
+              ? 'bg-indigo-600 text-white border-indigo-500 shadow-md font-semibold'
+              : 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800/80 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200');
+
+          item.innerHTML = 
+            '<div class="flex items-center space-x-2.5 min-w-0 flex-1">' +
+              '<span class="w-5 text-center text-[10px] font-mono ' + (isCurrent ? 'text-white font-bold' : 'text-slate-400') + '">' + (isCurrent ? '▶' : originalIdx + 1) + '</span>' +
+              '<div class="min-w-0 flex-1">' +
+                '<div class="truncate text-xs ' + (isCurrent ? 'text-white font-bold' : 'font-medium') + '">' + track.title + '</div>' +
+                '<div class="truncate text-[10px] ' + (isCurrent ? 'text-indigo-100' : 'text-slate-400') + '">' + (track.artist || 'Unknown') + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="flex items-center space-x-2 shrink-0 text-[10px] font-mono">' +
+              '<span class="px-1.5 py-0.5 rounded ' + (isCurrent ? 'bg-indigo-800/60 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400') + '">' + (track.format || detectFormat(track.url)) + '</span>' +
+              '<button type="button" class="btn-remove-track p-1 hover:text-rose-400 transition-colors cursor-pointer" title="Remove track">✕</button>' +
+            '</div>';
+
+          item.addEventListener('click', function(e) {
+            if (e.target.closest('.btn-remove-track')) return;
+            loadTrack(originalIdx, true);
+          });
+
+          const removeBtn = item.querySelector('.btn-remove-track');
+          if (removeBtn) {
+            removeBtn.addEventListener('click', function(e) {
+              e.stopPropagation();
+              playlist.splice(originalIdx, 1);
+              if (playlist.length === 0) {
+                audio.src = '';
+                if (titleEl) titleEl.textContent = 'No tracks in playlist';
+                if (artistEl) artistEl.textContent = '-';
+                pauseAudio();
+                renderPlaylist(filterText);
+              } else if (currentIndex >= playlist.length) {
+                loadTrack(0, false);
+              } else if (originalIdx === currentIndex) {
+                loadTrack(currentIndex, false);
+              } else {
+                renderPlaylist(filterText);
+              }
+            });
+          }
+
+          playlistContainer.appendChild(item);
+        });
+      }
+
+      function parsePlaylistContent(content, filename) {
+        const newTracks = [];
+        const ext = (filename || '').split('.').pop().toLowerCase();
+
+        if (ext === 'json' || content.trim().startsWith('[') || content.trim().startsWith('{')) {
+          try {
+            const data = JSON.parse(content);
+            const list = Array.isArray(data) ? data : (data.playlist || data.tracks || []);
+            list.forEach(function(item, idx) {
+              if (item.url || item.src) {
+                newTracks.push({
+                  id: 'pl-' + Date.now() + '-' + idx,
+                  title: item.title || ('Track ' + (idx + 1)),
+                  artist: item.artist || 'Unknown Artist',
+                  album: item.album || 'JSON Playlist',
+                  url: item.url || item.src,
+                  format: detectFormat(item.url || item.src),
+                  cover: item.cover || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80'
+                });
+              }
+            });
+          } catch(e) { console.error('Invalid JSON playlist format', e); }
+        } else if (ext === 'pls' || content.includes('[playlist]')) {
+          const lines = content.split('\\n');
+          const entries = {};
+          lines.forEach(function(line) {
+            const parts = line.split('=');
+            if (parts.length >= 2) {
+              const key = parts[0].trim();
+              const val = parts.slice(1).join('=').trim();
+              if (key.startsWith('File')) {
+                const num = key.replace('File', '');
+                entries[num] = entries[num] || {};
+                entries[num].url = val;
+              } else if (key.startsWith('Title')) {
+                const num = key.replace('Title', '');
+                entries[num] = entries[num] || {};
+                entries[num].title = val;
+              }
+            }
+          });
+          Object.keys(entries).forEach(function(num) {
+            if (entries[num].url) {
+              newTracks.push({
+                id: 'pls-' + Date.now() + '-' + num,
+                title: entries[num].title || ('PLS Track ' + num),
+                artist: 'PLS Stream',
+                url: entries[num].url,
+                format: detectFormat(entries[num].url),
+                cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80'
+              });
+            }
+          });
+        } else { // M3U / M3U8
+          const lines = content.split('\\n');
+          let currentTitle = '';
+          let currentArtist = '';
+
+          lines.forEach(function(line, idx) {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+            if (trimmed.startsWith('#EXTINF:')) {
+              const info = trimmed.replace('#EXTINF:', '');
+              const commaIdx = info.indexOf(',');
+              if (commaIdx !== -1) {
+                const meta = info.substring(commaIdx + 1);
+                if (meta.includes('-')) {
+                  const parts = meta.split('-');
+                  currentArtist = parts[0].trim();
+                  currentTitle = parts.slice(1).join('-').trim();
+                } else {
+                  currentTitle = meta.trim();
+                }
+              }
+            } else if (!trimmed.startsWith('#')) {
+              newTracks.push({
+                id: 'm3u-' + Date.now() + '-' + idx,
+                title: currentTitle || ('M3U Track ' + (idx + 1)),
+                artist: currentArtist || 'M3U Playlist',
+                url: trimmed,
+                format: detectFormat(trimmed),
+                cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80'
+              });
+              currentTitle = '';
+              currentArtist = '';
+            }
+          });
+        }
+
+        if (newTracks.length > 0) {
+          playlist = playlist.concat(newTracks);
+          renderPlaylist();
+        }
+      }
+
+      function handleFiles(files) {
+        const audioFiles = [];
+        const fileList = Array.from(files);
+
+        fileList.forEach(function(file) {
+          const ext = file.name.split('.').pop().toLowerCase();
+          if (['m3u', 'm3u8', 'pls', 'json', 'csv', 'txt'].includes(ext)) {
+            const reader = new FileReader();
+            reader.onload = function(e) { parsePlaylistContent(e.target.result, file.name); };
+            reader.readAsText(file);
+          } else {
+            const blobUrl = URL.createObjectURL(file);
+            const trackObj = {
+              id: 'file-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+              title: file.name.replace(/\.[^/.]+$/, ""),
+              artist: 'Local Track',
+              album: 'Local Import',
+              url: blobUrl,
+              format: detectFormat(file.name),
+              cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80',
+              hasEmbeddedCover: false
+            };
+
+            // Attempt to extract embedded ID3 cover art graphic from local audio file
+            extractEmbeddedCover(file, function(coverDataUri) {
+              if (coverDataUri) {
+                trackObj.cover = coverDataUri;
+                trackObj.hasEmbeddedCover = true;
+                if (playlist[currentIndex] && playlist[currentIndex].id === trackObj.id) {
+                  if (coverImg) coverImg.src = coverDataUri;
+                  isCoverArtworkMode = true;
+                  applyCoverStyle();
+                }
+                renderPlaylist();
+              }
+            });
+
+            audioFiles.push(trackObj);
+          }
+        });
+
+        if (audioFiles.length > 0) {
+          playlist = playlist.concat(audioFiles);
+          // Update playlist queue & count badge cleanly without auto-playing or new tabs
+          renderPlaylist();
+        }
+      }
+
+      function exportPlaylistM3U() {
+        let m3u = '#EXTM3U\\n';
+        playlist.forEach(function(track) {
+          m3u += '#EXTINF:-1,' + (track.artist || 'Artist') + ' - ' + track.title + '\\n' + track.url + '\\n';
+        });
+        const blob = new Blob([m3u], { type: 'audio/x-mpegurl' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'playlist.m3u';
+        a.click();
+        setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
+      }
+
+      // Memoized Controls Controller to encapsulate playback logic and prevent unintended re-renders / navigation
+      const memoizedControls = (function() {
+        return {
+          play: function(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            togglePlay();
+          },
+          next: function(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            if (playlist.length === 0) return;
+            if (isShuffle) {
+              const rand = Math.floor(Math.random() * playlist.length);
+              loadTrack(rand, true);
+            } else {
+              const nextIdx = (currentIndex + 1) % playlist.length;
+              loadTrack(nextIdx, true);
+            }
+          },
+          prev: function(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            if (playlist.length === 0) return;
+            const prevIdx = (currentIndex - 1 + playlist.length) % playlist.length;
+            loadTrack(prevIdx, true);
+          },
+          loop: function(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            loopMode = (loopMode + 1) % 3;
+            if (loopBtn) {
+              loopBtn.className = 'btn-loop p-2 rounded-xl transition-colors cursor-pointer ' +
+                (loopMode > 0 ? 'text-indigo-500 font-bold bg-indigo-500/10' : 'text-slate-400');
+              loopBtn.title = loopMode === 1 ? 'Loop Playlist' : loopMode === 2 ? 'Loop Track' : 'Loop Off';
+            }
+          },
+          shuffle: function(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            isShuffle = !isShuffle;
+            if (shuffleBtn) {
+              shuffleBtn.className = 'btn-shuffle p-2 rounded-xl transition-colors cursor-pointer ' +
+                (isShuffle ? 'text-indigo-500 font-bold bg-indigo-500/10' : 'text-slate-400');
+            }
+          },
+          mute: function(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            audio.muted = !audio.muted;
+            if (volumeBar && audio.muted) volumeBar.value = 0;
+            else if (volumeBar) volumeBar.value = audio.volume || 0.8;
+            if (muteBtn) muteBtn.classList.toggle('text-rose-500', audio.muted);
+          },
+          toggleCoverStyle: function(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            isCoverArtworkMode = !isCoverArtworkMode;
+            applyCoverStyle();
+          }
+        };
+      })();
+
+      // Control Event Listeners using Memoized Controls Controller
+      if (playBtn) playBtn.addEventListener('click', memoizedControls.play);
+      if (nextBtn) nextBtn.addEventListener('click', memoizedControls.next);
+      if (prevBtn) prevBtn.addEventListener('click', memoizedControls.prev);
+      if (loopBtn) loopBtn.addEventListener('click', memoizedControls.loop);
+      if (shuffleBtn) shuffleBtn.addEventListener('click', memoizedControls.shuffle);
+      if (muteBtn) muteBtn.addEventListener('click', memoizedControls.mute);
+      if (toggleCoverBtn) toggleCoverBtn.addEventListener('click', memoizedControls.toggleCoverStyle);
+
+      // Audio position & duration updates
+      audio.addEventListener('timeupdate', function() {
+        if (!isSeeking && !isNaN(audio.duration) && audio.duration > 0) {
+          const pct = (audio.currentTime / audio.duration) * 100;
+          if (seekBar) seekBar.value = pct;
+          if (timeCurrent) timeCurrent.textContent = formatTime(audio.currentTime);
+          if (timeDuration) timeDuration.textContent = formatTime(audio.duration);
+        }
+      });
+
+      audio.addEventListener('loadedmetadata', function() {
+        if (timeDuration) timeDuration.textContent = formatTime(audio.duration);
+        if (speedSelect) audio.playbackRate = parseFloat(speedSelect.value);
+      });
+
+      audio.addEventListener('ended', function() {
+        if (loopMode === 2) {
+          audio.currentTime = 0;
+          playAudio();
+        } else if (loopMode === 1 || currentIndex < playlist.length - 1) {
+          const nextIdx = (currentIndex + 1) % playlist.length;
+          loadTrack(nextIdx, true);
+        } else {
+          pauseAudio();
+        }
+      });
+
+      // Interactive Seekbar Event Listeners
+      if (seekBar) {
+        seekBar.addEventListener('mousedown', function() { isSeeking = true; });
+        seekBar.addEventListener('touchstart', function() { isSeeking = true; });
+
+        seekBar.addEventListener('input', function() {
+          if (!isNaN(audio.duration) && audio.duration > 0) {
+            const targetTime = (parseFloat(seekBar.value) / 100) * audio.duration;
+            if (timeCurrent) timeCurrent.textContent = formatTime(targetTime);
+          }
+        });
+
+        seekBar.addEventListener('change', function() {
+          if (!isNaN(audio.duration) && audio.duration > 0) {
+            audio.currentTime = (parseFloat(seekBar.value) / 100) * audio.duration;
+          }
+          isSeeking = false;
+        });
+      }
+
+      // Volume slider listeners (input + change)
+      if (volumeBar) {
+        const updateVol = function() {
+          const v = parseFloat(volumeBar.value);
+          audio.volume = v;
+          audio.muted = (v === 0);
+          if (muteBtn) muteBtn.classList.toggle('text-rose-500', v === 0);
+        };
+        volumeBar.addEventListener('input', updateVol);
+        volumeBar.addEventListener('change', updateVol);
+      }
+
+      if (muteBtn) {
+        muteBtn.addEventListener('click', function() {
+          audio.muted = !audio.muted;
+          if (volumeBar && audio.muted) volumeBar.value = 0;
+          else if (volumeBar) volumeBar.value = audio.volume || 0.8;
+          muteBtn.classList.toggle('text-rose-500', audio.muted);
+        });
+      }
+
+      if (eqSelect) {
+        eqSelect.addEventListener('change', function() {
+          applyEQPreset(eqSelect.value);
+        });
+      }
+
+      if (speedSelect) {
+        speedSelect.addEventListener('change', function() {
+          audio.playbackRate = parseFloat(speedSelect.value);
+        });
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener('input', function() {
+          renderPlaylist(searchInput.value);
+        });
+      }
+
+      if (uploadBtn && fileInput) {
+        uploadBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          fileInput.click();
+        });
+        fileInput.addEventListener('change', function(e) {
+          e.stopPropagation();
+          if (e.target.files && e.target.files.length > 0) {
+            handleFiles(e.target.files);
+            fileInput.value = ''; // Reset input selection
+          }
+        });
+      }
+
+      if (exportBtn) {
+        exportBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          exportPlaylistM3U();
+        });
+      }
+
+      if (dropzone) {
+        dropzone.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (fileInput) fileInput.click();
+        });
+        dropzone.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.add('border-indigo-500', 'bg-indigo-50/50');
+        });
+        dropzone.addEventListener('dragleave', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+        });
+        dropzone.addEventListener('drop', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFiles(e.dataTransfer.files);
+          }
+        });
+      }
+
+      // Initial track load
+      loadTrack(0, false);
+    })();
+  </script>
+</div>`
+  },
 
   // FORMS
   {
@@ -2050,25 +3223,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });`
-  },
-  {
-    id: 'config-xml',
-    name: 'config.xml',
-    type: 'xml' as const,
-    path: '/config.xml',
-    content: `<?xml version="1.0" encoding="UTF-8"?>
-<!-- ApexStudio Project Configuration -->
-<app-config xmlns:xs="http://www.w3.org/2001/XMLSchema-instance">
-  <metadata>
-    <title>ApexStudio Engine</title>
-    <version>3.6.0</version>
-    <environment>production</environment>
-  </metadata>
-  <features>
-    <feature name="GroovyEngine" enabled="true" />
-    <feature name="XmlLinter" enabled="true" />
-    <feature name="DrawIoEmbed" enabled="true" />
-  </features>
-</app-config>`
   }
 ];

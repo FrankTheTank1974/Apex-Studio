@@ -72,6 +72,26 @@
 npm install
 ```
 
+#### 💡 Understanding `npm install` Warnings & Notes
+When running `npm install`, you may notice standard non-critical npm diagnostic warnings:
+
+1. **`npm warn install-scripts ... blocked`**: 
+   - **Cause**: Recent npm versions or sandboxed package managers enforce `allowScripts` security policies that pause package lifecycle scripts (`preinstall`, `postinstall`).
+   - **Resolution**: If your environment blocks binary downloads for packages like `esbuild` or `protobufjs`, you can review and approve them using npm's CLI:
+     ```bash
+     npm install-scripts ls
+     npm install-scripts approve esbuild
+     ```
+     Or explicitly permit lifecycle scripts during installation:
+     ```bash
+     npm install --ignore-scripts=false
+     ```
+2. **`npm warn deprecated node-domexception`**: 
+   - **Cause**: A transitive sub-dependency references the legacy `node-domexception` polyfill package.
+   - **Status**: Harmless. Modern Node.js (v18+) includes native `DOMException` built directly into the runtime.
+3. **Security Audit**: 
+   - The project maintains **0 vulnerabilities** across all audited packages.
+
 ### 2. Development Mode
 Run the Express + Vite server locally:
 ```bash

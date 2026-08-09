@@ -37,6 +37,7 @@ import { QuickLinkModal } from './components/QuickLinkModal';
 import { HeadTagsSEOModal } from './components/HeadTagsSEOModal';
 import { IconPickerModal } from './components/IconPickerModal';
 import { SqlDatabaseExplorerModal } from './components/SqlDatabaseExplorerModal';
+import { getWebPolicyDefaultContent } from './data/webPolicyTemplates';
 import { downloadTarZstd } from './utils/tarZstd';
 import { normalizeSvgContent, serializeDocumentOrBody } from './utils/svgUtils';
 
@@ -493,12 +494,15 @@ export default function App() {
 
   // Add Custom File to project
   const handleAddNewFile = (name: string, type: FileType, initialContent?: string) => {
-    const rawTitle = name.replace(/\.(html|css|js|ts|groovy|xml|json)$/i, '').split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+    const rawTitle = name.replace(/\.(html|css|js|ts|groovy|xml|json|txt)$/i, '').split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
     const pageTitle = rawTitle || 'New File';
 
     let defaultContent = initialContent || '';
     if (!initialContent) {
-      if (type === 'html') {
+      const webPolicyContent = getWebPolicyDefaultContent(name);
+      if (webPolicyContent) {
+        defaultContent = webPolicyContent;
+      } else if (type === 'html') {
         defaultContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -554,6 +558,8 @@ export default function App() {
         defaultContent = `<?xml version="1.0" encoding="UTF-8"?>\n<config>\n  <name>${pageTitle}</name>\n</config>`;
       } else if (type === 'json') {
         defaultContent = `{\n  "title": "${pageTitle}",\n  "status": "active"\n}`;
+      } else if (type === 'txt') {
+        defaultContent = `# Plain Text File: ${name}\n\n`;
       }
     }
 

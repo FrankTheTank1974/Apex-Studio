@@ -32,7 +32,13 @@ import {
   Link2,
   Pencil,
   Workflow,
-  Save
+  Save,
+  Activity,
+  HardDrive,
+  Hash,
+  Percent,
+  TrendingUp,
+  Calculator
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -50,7 +56,7 @@ import {
   Legend 
 } from 'recharts';
 
-export type SqlEngine = 'postgresql' | 'mysql' | 'sqlite' | 'mariadb';
+export type SqlEngine = 'postgresql' | 'mysql' | 'sqlite' | 'mariadb' | 'mssql' | 'msaccess';
 
 export interface SqlColumn {
   name: string;
@@ -81,7 +87,7 @@ export interface SqlDatabase {
   connected: boolean;
 }
 
-// Sample Mock Databases for MySQL & PostgreSQL
+// Sample Mock Databases including MySQL, PostgreSQL, MS SQL Server, & MS Access
 const SAMPLE_DATABASES: SqlDatabase[] = [
   {
     id: 'pg-ecommerce',
@@ -163,6 +169,113 @@ const SAMPLE_DATABASES: SqlDatabase[] = [
     ]
   },
   {
+    id: 'mssql-finance',
+    name: 'Enterprise Financial Ledger DB',
+    engine: 'mssql',
+    version: 'Microsoft SQL Server 2022 (v16.0)',
+    host: 'sqlserver-prod.corp.internal',
+    port: 1433,
+    databaseName: 'FinanceLedgerDB',
+    connected: true,
+    tables: [
+      {
+        name: 'financial_ledgers',
+        rowCount: 7,
+        description: 'T-SQL General ledger postings, debit/credit audit logs & fiscal period balances',
+        columns: [
+          { name: 'ledger_id', type: 'INT IDENTITY(1,1)', isPrimary: true },
+          { name: 'account_code', type: 'NVARCHAR(50)', nullable: false },
+          { name: 'account_name', type: 'NVARCHAR(200)' },
+          { name: 'debit_amount', type: 'DECIMAL(18,2)' },
+          { name: 'credit_amount', type: 'DECIMAL(18,2)' },
+          { name: 'posting_date', type: 'DATETIME2' },
+          { name: 'is_reconciled', type: 'BIT' }
+        ],
+        rows: [
+          { ledger_id: 10001, account_code: '1010-CASH', account_name: 'Operating Cash Account', debit_amount: 145000.00, credit_amount: 0.00, posting_date: '2026-03-01 08:30:00', is_reconciled: 1 },
+          { ledger_id: 10002, account_code: '4000-REV', account_name: 'Software Subscription Sales', debit_amount: 0.00, credit_amount: 85200.00, posting_date: '2026-03-01 10:15:00', is_reconciled: 1 },
+          { ledger_id: 10003, account_code: '5200-SERVERS', account_name: 'Cloud Compute Host Charges', debit_amount: 12400.50, credit_amount: 0.00, posting_date: '2026-03-02 11:45:00', is_reconciled: 1 },
+          { ledger_id: 10004, account_code: '1200-AR', account_name: 'Accounts Receivable Client Invoices', debit_amount: 38900.00, credit_amount: 0.00, posting_date: '2026-03-03 09:00:00', is_reconciled: 0 },
+          { ledger_id: 10005, account_code: '2100-AP', account_name: 'Accounts Payable Vendor Invoices', debit_amount: 0.00, credit_amount: 19450.00, posting_date: '2026-03-03 16:20:00', is_reconciled: 1 },
+          { ledger_id: 10006, account_code: '6100-PAYROLL', account_name: 'Engineering Staff Wages', debit_amount: 98000.00, credit_amount: 0.00, posting_date: '2026-03-04 14:00:00', is_reconciled: 1 },
+          { ledger_id: 10007, account_code: '1010-CASH', account_name: 'Operating Cash Account', debit_amount: 25000.00, credit_amount: 0.00, posting_date: '2026-03-05 17:10:00', is_reconciled: 0 }
+        ]
+      },
+      {
+        name: 'vendors',
+        rowCount: 5,
+        description: 'Vendor directory, tax identifiers, payment terms & credit limits',
+        columns: [
+          { name: 'vendor_id', type: 'INT IDENTITY(1,1)', isPrimary: true },
+          { name: 'vendor_name', type: 'NVARCHAR(200)', nullable: false },
+          { name: 'tax_id', type: 'NVARCHAR(50)' },
+          { name: 'credit_limit_usd', type: 'DECIMAL(18,2)' },
+          { name: 'status', type: 'NVARCHAR(30)' }
+        ],
+        rows: [
+          { vendor_id: 201, vendor_name: 'Azure Compute Global', tax_id: 'XX-9871234', credit_limit_usd: 250000.00, status: 'Approved' },
+          { vendor_id: 202, vendor_name: 'Redmond Hardware Corp', tax_id: 'XX-4567891', credit_limit_usd: 100000.00, status: 'Approved' },
+          { vendor_id: 203, vendor_name: 'Apex Network Solutions', tax_id: 'XX-1122334', credit_limit_usd: 50000.00, status: 'Pending Audit' },
+          { vendor_id: 204, vendor_name: 'Office Space Real Estate', tax_id: 'XX-9988776', credit_limit_usd: 500000.00, status: 'Approved' },
+          { vendor_id: 205, vendor_name: 'DevTools Licensing Inc', tax_id: 'XX-3344556', credit_limit_usd: 75000.00, status: 'Approved' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'msaccess-inventory',
+    name: 'Small Business Operations (.accdb)',
+    engine: 'msaccess',
+    version: 'Microsoft Access 365 (Jet/ACE Engine)',
+    host: 'local-file://C:/Data/Operations.accdb',
+    port: 0,
+    databaseName: 'Operations.accdb',
+    connected: true,
+    tables: [
+      {
+        name: 'client_contacts',
+        rowCount: 6,
+        description: 'MS Access client address book, company ties & subscription statuses',
+        columns: [
+          { name: 'ContactID', type: 'AUTOINCREMENT', isPrimary: true },
+          { name: 'ContactName', type: 'TEXT(255)', nullable: false },
+          { name: 'CompanyName', type: 'TEXT(255)' },
+          { name: 'EmailAddress', type: 'TEXT(255)' },
+          { name: 'Phone', type: 'TEXT(50)' },
+          { name: 'IsActiveClient', type: 'YESNO' }
+        ],
+        rows: [
+          { ContactID: 1, ContactName: 'Robert Vance', CompanyName: 'Vance Refrigeration', EmailAddress: 'rvance@vancerefrig.com', Phone: '(555) 019-2834', IsActiveClient: true },
+          { ContactID: 2, ContactName: 'Pam Beesly', CompanyName: 'Dunder Mifflin Paper', EmailAddress: 'pbeesly@dundermifflin.com', Phone: '(555) 012-9845', IsActiveClient: true },
+          { ContactID: 3, ContactName: 'Dwight Schrute', CompanyName: 'Schrute Farms LLC', EmailAddress: 'dwight@schrutefarms.org', Phone: '(555) 018-4422', IsActiveClient: true },
+          { ContactID: 4, ContactName: 'Jim Halpert', CompanyName: 'Athleap Sports Media', EmailAddress: 'jhalpert@athleap.io', Phone: '(555) 016-7788', IsActiveClient: true },
+          { ContactID: 5, ContactName: 'Angela Martin', CompanyName: 'Accounting Solutions', EmailAddress: 'amartin@accountingsolutions.com', Phone: '(555) 014-3321', IsActiveClient: false },
+          { ContactID: 6, ContactName: 'Stanley Hudson', CompanyName: 'Crossword Publishing', EmailAddress: 'stanley@crosswords.net', Phone: '(555) 011-6677', IsActiveClient: true }
+        ]
+      },
+      {
+        name: 'service_tickets',
+        rowCount: 5,
+        description: 'Support requests, assigned contacts, estimated costs & priorities',
+        columns: [
+          { name: 'TicketID', type: 'AUTOINCREMENT', isPrimary: true },
+          { name: 'ContactID', type: 'LONG', isForeign: true },
+          { name: 'IssueTitle', type: 'TEXT(255)', nullable: false },
+          { name: 'Priority', type: 'TEXT(50)' },
+          { name: 'EstimatedCost', type: 'CURRENCY' },
+          { name: 'CreatedDate', type: 'DATETIME' }
+        ],
+        rows: [
+          { TicketID: 801, ContactID: 1, IssueTitle: 'HVAC Server Room Cooling Malfunction', Priority: 'High', EstimatedCost: 1250.00, CreatedDate: '2026-03-01' },
+          { TicketID: 802, ContactID: 2, IssueTitle: 'Paper Copier Network Driver Setup', Priority: 'Medium', EstimatedCost: 180.00, CreatedDate: '2026-03-02' },
+          { TicketID: 803, ContactID: 3, IssueTitle: 'Irrigation Sensor Access Database Backup', Priority: 'Low', EstimatedCost: 95.00, CreatedDate: '2026-03-03' },
+          { TicketID: 804, ContactID: 4, IssueTitle: 'Live Streaming Video Equipment Install', Priority: 'High', EstimatedCost: 3400.00, CreatedDate: '2026-03-04' },
+          { TicketID: 805, ContactID: 6, IssueTitle: 'Office Workstation RAM Upgrade', Priority: 'Low', EstimatedCost: 220.00, CreatedDate: '2026-03-05' }
+        ]
+      }
+    ]
+  },
+  {
     id: 'mysql-analytics',
     name: 'Web Analytics & Events DB',
     engine: 'mysql',
@@ -211,6 +324,59 @@ const SAMPLE_DATABASES: SqlDatabase[] = [
           { event_id: 504, event_type: 'Open XML Structure Tree', browser: 'Safari', os_platform: 'iOS', event_count: 410 },
           { event_id: 505, event_type: 'Format Document', browser: 'Edge', os_platform: 'Windows', event_count: 890 },
           { event_id: 506, event_type: 'Convert XML to JSON', browser: 'Chrome', os_platform: 'Linux', event_count: 730 }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'mariadb-galera-inventory',
+    name: 'MariaDB Galera Cluster DB',
+    engine: 'mariadb',
+    version: 'MariaDB 11.3.2 (Galera 4 Multi-Master)',
+    host: 'mariadb-galera.prod.internal',
+    port: 3306,
+    databaseName: 'supply_chain_db',
+    connected: true,
+    tables: [
+      {
+        name: 'inventory_warehouses',
+        rowCount: 6,
+        description: 'MariaDB Galera cluster warehouse hubs, stock quotas & logistics status',
+        columns: [
+          { name: 'warehouse_id', type: 'INT AUTO_INCREMENT', isPrimary: true },
+          { name: 'hub_code', type: 'VARCHAR(50)', nullable: false },
+          { name: 'city_location', type: 'VARCHAR(100)' },
+          { name: 'total_pallets', type: 'INT' },
+          { name: 'occupied_pallets', type: 'INT' },
+          { name: 'is_active', type: 'TINYINT(1)' }
+        ],
+        rows: [
+          { warehouse_id: 101, hub_code: 'WH-AMS-01', city_location: 'Amsterdam, NL', total_pallets: 15000, occupied_pallets: 12400, is_active: 1 },
+          { warehouse_id: 102, hub_code: 'WH-FRA-02', city_location: 'Frankfurt, DE', total_pallets: 22000, occupied_pallets: 18900, is_active: 1 },
+          { warehouse_id: 103, hub_code: 'WH-LND-01', city_location: 'London, UK', total_pallets: 18000, occupied_pallets: 14200, is_active: 1 },
+          { warehouse_id: 104, hub_code: 'WH-CDG-03', city_location: 'Paris, FR', total_pallets: 12500, occupied_pallets: 9800, is_active: 1 },
+          { warehouse_id: 105, hub_code: 'WH-ZRH-01', city_location: 'Zurich, CH', total_pallets: 8000, occupied_pallets: 7100, is_active: 1 },
+          { warehouse_id: 106, hub_code: 'WH-MAD-02', city_location: 'Madrid, ES', total_pallets: 14000, occupied_pallets: 10500, is_active: 0 }
+        ]
+      },
+      {
+        name: 'shipments',
+        rowCount: 5,
+        description: 'Multi-node replicated shipment dispatches, carriers & transit status',
+        columns: [
+          { name: 'shipment_id', type: 'BIGINT AUTO_INCREMENT', isPrimary: true },
+          { name: 'warehouse_id', type: 'INT', isForeign: true },
+          { name: 'tracking_code', type: 'VARCHAR(100)', nullable: false },
+          { name: 'carrier', type: 'VARCHAR(100)' },
+          { name: 'freight_cost_eur', type: 'DECIMAL(10,2)' },
+          { name: 'status', type: 'VARCHAR(50)' }
+        ],
+        rows: [
+          { shipment_id: 9001, warehouse_id: 101, tracking_code: 'TRK-EU-99210', carrier: 'DHL Express Global', freight_cost_eur: 420.50, status: 'In Transit' },
+          { shipment_id: 9002, warehouse_id: 102, tracking_code: 'TRK-EU-99211', carrier: 'FedEx International', freight_cost_eur: 890.00, status: 'Delivered' },
+          { shipment_id: 9003, warehouse_id: 103, tracking_code: 'TRK-EU-99212', carrier: 'UPS Supply Chain', freight_cost_eur: 310.20, status: 'Customs Clearance' },
+          { shipment_id: 9004, warehouse_id: 101, tracking_code: 'TRK-EU-99213', carrier: 'DB Schenker Logistics', freight_cost_eur: 1150.00, status: 'In Transit' },
+          { shipment_id: 9005, warehouse_id: 104, tracking_code: 'TRK-EU-99214', carrier: 'Kuehne+Nagel Air', freight_cost_eur: 670.80, status: 'Out for Delivery' }
         ]
       }
     ]
@@ -381,6 +547,54 @@ const SQL_SNIPPETS_LIBRARY: SqlSnippetTemplate[] = [
     engineTag: 'PostgreSQL / MySQL',
     description: 'Atomically insert a record or update existing values if unique key conflicts',
     snippetSql: `INSERT INTO products (product_id, title, category, price, stock_quantity)\nVALUES (109, 'Pro Vertical Ergonomic Mouse', 'Peripherals', 89.99, 35)\nON CONFLICT (product_id) \nDO UPDATE SET \n  price = EXCLUDED.price,\n  stock_quantity = EXCLUDED.stock_quantity;`
+  },
+  {
+    id: 'snip-tsql-top-nolock',
+    title: 'T-SQL SELECT TOP with WITH(NOLOCK)',
+    category: 'Formatting',
+    engineTag: 'Microsoft SQL Server',
+    description: 'Fetch top records in MS SQL Server using non-blocking dirty read lock hint',
+    snippetSql: `SELECT TOP 20 \n  ledger_id,\n  account_code,\n  account_name,\n  debit_amount,\n  credit_amount,\n  posting_date\nFROM financial_ledgers WITH (NOLOCK)\nWHERE is_reconciled = 1\nORDER BY posting_date DESC;`
+  },
+  {
+    id: 'snip-tsql-cross-apply',
+    title: 'T-SQL CROSS APPLY / OUTER APPLY',
+    category: 'JOINs',
+    engineTag: 'Microsoft SQL Server',
+    description: 'Join table-valued functions or correlated subqueries per row in MS SQL Server',
+    snippetSql: `SELECT \n  v.vendor_name,\n  v.tax_id,\n  po.po_id,\n  po.total_usd\nFROM vendors v\nCROSS APPLY (\n  SELECT TOP 1 po_id, total_usd\n  FROM purchase_orders\n  WHERE vendor_id = v.vendor_id\n  ORDER BY created_date DESC\n) po;`
+  },
+  {
+    id: 'snip-msaccess-iif-nz',
+    title: 'MS Access IIF() & NZ() Null Handlers',
+    category: 'Formatting',
+    engineTag: 'Microsoft Access',
+    description: 'Jet SQL conditional logic and null substitution for Access databases',
+    snippetSql: `SELECT \n  ContactName,\n  CompanyName,\n  IIF([IsActiveClient] = True, 'Active Client', 'Inactive / Archived') AS ClientStatus,\n  NZ([Phone], 'No Phone On Record') AS DisplayPhone\nFROM client_contacts;`
+  },
+  {
+    id: 'snip-mariadb-system-versioning',
+    title: 'MariaDB Temporal System-Versioned Table',
+    category: 'DDL & Schema',
+    engineTag: 'MariaDB 10.3+',
+    description: 'Query point-in-time historical row revisions using FOR SYSTEM_TIME ALL in MariaDB',
+    snippetSql: `SELECT \n  warehouse_id,\n  hub_code,\n  occupied_pallets,\n  row_start,\n  row_end\nFROM inventory_warehouses FOR SYSTEM_TIME ALL\nORDER BY row_start DESC;`
+  },
+  {
+    id: 'snip-mariadb-sequence',
+    title: 'MariaDB NEXT VALUE FOR Sequence',
+    category: 'DDL & Schema',
+    engineTag: 'MariaDB 10.3+',
+    description: 'Atomic numeric sequence generator syntax native to MariaDB engines',
+    snippetSql: `SELECT \n  NEXT VALUE FOR shipment_seq AS new_shipment_id,\n  101 AS warehouse_id,\n  'DHL Express' AS carrier,\n  550.00 AS freight_cost_eur;`
+  },
+  {
+    id: 'snip-mariadb-wsrep-cluster',
+    title: 'MariaDB Galera WSREP Multi-Master Status',
+    category: 'Aggregations',
+    engineTag: 'MariaDB Galera',
+    description: 'Inspect multi-master node cluster size, replication state & local node status',
+    snippetSql: `SHOW STATUS LIKE 'wsrep_cluster_size';\nSHOW STATUS LIKE 'wsrep_local_state_comment';\nSHOW STATUS LIKE 'wsrep_incoming_addresses';`
   }
 ];
 
@@ -414,7 +628,14 @@ export function generateDdlSql(tables: DesignerTable[], dialect: SqlEngine): str
 
   tables.forEach((table) => {
     const tableName = table.name.trim() || 'unnamed_table';
-    sql += `CREATE TABLE IF NOT EXISTS ${tableName} (\n`;
+
+    if (dialect === 'mssql') {
+      sql += `IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = '${tableName}')\nCREATE TABLE [${tableName}] (\n`;
+    } else if (dialect === 'msaccess') {
+      sql += `CREATE TABLE [${tableName}] (\n`;
+    } else {
+      sql += `CREATE TABLE IF NOT EXISTS ${tableName} (\n`;
+    }
 
     const columnDefs: string[] = [];
     const pkColumns: string[] = [];
@@ -435,20 +656,42 @@ export function generateDdlSql(tables: DesignerTable[], dialect: SqlEngine): str
         } else if (col.type === 'TIMESTAMP') {
           typeStr = 'DATETIME';
         }
+      } else if (dialect === 'mariadb') {
+        if (col.type.startsWith('VARCHAR')) typeStr = `VARCHAR(${col.type.match(/\d+/)?.[0] || '255'})`;
+        else if (col.type === 'TEXT') typeStr = 'LONGTEXT';
+        else if (col.type === 'BOOLEAN') typeStr = 'TINYINT(1)';
+        else if (col.type === 'TIMESTAMP') typeStr = 'DATETIME';
+      } else if (dialect === 'mssql') {
+        if (col.type.startsWith('VARCHAR')) typeStr = `NVARCHAR(${col.type.match(/\d+/)?.[0] || '255'})`;
+        else if (col.type === 'TEXT') typeStr = 'NVARCHAR(MAX)';
+        else if (col.type === 'BOOLEAN') typeStr = 'BIT';
+        else if (col.type === 'TIMESTAMP') typeStr = 'DATETIME2';
+      } else if (dialect === 'msaccess') {
+        if (col.type.startsWith('VARCHAR')) typeStr = `TEXT(${col.type.match(/\d+/)?.[0] || '255'})`;
+        else if (col.type === 'TEXT') typeStr = 'MEMO';
+        else if (col.type.includes('INT')) typeStr = 'LONG';
+        else if (col.type.includes('DECIMAL') || col.type.includes('NUMERIC')) typeStr = 'CURRENCY';
+        else if (col.type === 'BOOLEAN') typeStr = 'YESNO';
+        else if (col.type === 'TIMESTAMP') typeStr = 'DATETIME';
       }
 
-      let line = `  ${colName} ${typeStr}`;
+      const formattedColName = (dialect === 'mssql' || dialect === 'msaccess') ? `[${colName}]` : colName;
+      let line = `  ${formattedColName} ${typeStr}`;
 
       if (col.isPrimary) {
-        pkColumns.push(colName);
+        pkColumns.push(formattedColName);
         if (dialect === 'sqlite' && col.isAutoIncrement) {
           line += ' PRIMARY KEY AUTOINCREMENT';
         } else if ((dialect === 'mysql' || dialect === 'mariadb') && col.isAutoIncrement) {
           line += ' AUTO_INCREMENT';
+        } else if (dialect === 'mssql' && col.isAutoIncrement) {
+          line += ' IDENTITY(1,1)';
+        } else if (dialect === 'msaccess' && col.isAutoIncrement) {
+          line = `  ${formattedColName} AUTOINCREMENT PRIMARY KEY`;
         }
       }
 
-      if (!col.nullable && !col.isPrimary) {
+      if (!col.nullable && !col.isPrimary && dialect !== 'msaccess') {
         line += ' NOT NULL';
       }
 
@@ -457,22 +700,30 @@ export function generateDdlSql(tables: DesignerTable[], dialect: SqlEngine): str
       }
 
       if (col.foreignKey && col.foreignKey.targetTable && col.foreignKey.targetColumn) {
+        const targetTab = (dialect === 'mssql' || dialect === 'msaccess') ? `[${col.foreignKey.targetTable}]` : col.foreignKey.targetTable;
+        const targetCol = (dialect === 'mssql' || dialect === 'msaccess') ? `[${col.foreignKey.targetColumn}]` : col.foreignKey.targetColumn;
         fkConstraints.push(
-          `  CONSTRAINT fk_${tableName}_${colName} FOREIGN KEY (${colName}) REFERENCES ${col.foreignKey.targetTable}(${col.foreignKey.targetColumn}) ON DELETE CASCADE`
+          `  CONSTRAINT fk_${tableName}_${colName} FOREIGN KEY (${formattedColName}) REFERENCES ${targetTab}(${targetCol}) ON DELETE CASCADE`
         );
       }
 
       columnDefs.push(line);
     });
 
-    if (pkColumns.length > 0 && dialect !== 'sqlite') {
-      columnDefs.push(`  PRIMARY KEY (${pkColumns.join(', ')})`);
+    if (pkColumns.length > 0 && dialect !== 'sqlite' && dialect !== 'msaccess') {
+      columnDefs.push(`  CONSTRAINT PK_${tableName} PRIMARY KEY (${pkColumns.join(', ')})`);
     }
 
     columnDefs.push(...fkConstraints);
 
     sql += columnDefs.join(',\n');
-    sql += `\n);\n\n`;
+    if (dialect === 'mariadb') {
+      sql += `\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n`;
+    } else if (dialect === 'mysql') {
+      sql += `\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;\n\n`;
+    } else {
+      sql += `\n);\n\n`;
+    }
   });
 
   return sql.trim();
@@ -703,7 +954,7 @@ export const SqlDatabaseExplorerModal: React.FC<SqlDatabaseExplorerModalProps> =
   // Selected Database & Table state
   const [selectedDbId, setSelectedDbId] = useState<string>(SAMPLE_DATABASES[0].id);
   const [selectedTableName, setSelectedTableName] = useState<string>(SAMPLE_DATABASES[0].tables[0].name);
-  const [activeTab, setActiveTab] = useState<'grid' | 'visualizer' | 'query' | 'snippets' | 'designer' | 'connection'>('grid');
+  const [activeTab, setActiveTab] = useState<'grid' | 'stats' | 'visualizer' | 'query' | 'snippets' | 'designer' | 'connection'>('grid');
 
   // Visual Schema Designer State
   const [designerDialect, setDesignerDialect] = useState<SqlEngine>('postgresql');
@@ -750,6 +1001,125 @@ export const SqlDatabaseExplorerModal: React.FC<SqlDatabaseExplorerModalProps> =
   const activeTable = useMemo(() => {
     return activeDb.tables.find(t => t.name === selectedTableName) || activeDb.tables[0];
   }, [activeDb, selectedTableName]);
+
+  // Database & Table Statistics Engine
+  const dbStatistics = useMemo(() => {
+    let totalRows = 0;
+    let totalCols = 0;
+    let totalFks = 0;
+    let totalPks = 0;
+    const typeCounts: Record<string, number> = {
+      'INTEGER / Numeric': 0,
+      'VARCHAR / Text': 0,
+      'DATE / Timestamp': 0,
+      'BOOLEAN / Bit / YesNo': 0,
+      'UUID / Other': 0
+    };
+
+    activeDb.tables.forEach(t => {
+      totalRows += t.rowCount;
+      t.columns.forEach(c => {
+        totalCols++;
+        if (c.isPrimary) totalPks++;
+        if (c.isForeign || c.name.endsWith('_id') || c.name.endsWith('ID')) totalFks++;
+
+        const typeUpper = c.type.toUpperCase();
+        if (typeUpper.includes('INT') || typeUpper.includes('DECIMAL') || typeUpper.includes('NUMERIC') || typeUpper.includes('FLOAT') || typeUpper.includes('LONG') || typeUpper.includes('CURRENCY')) {
+          typeCounts['INTEGER / Numeric']++;
+        } else if (typeUpper.includes('VARCHAR') || typeUpper.includes('TEXT') || typeUpper.includes('NVARCHAR') || typeUpper.includes('MEMO')) {
+          typeCounts['VARCHAR / Text']++;
+        } else if (typeUpper.includes('DATE') || typeUpper.includes('TIME')) {
+          typeCounts['DATE / Timestamp']++;
+        } else if (typeUpper.includes('BOOL') || typeUpper.includes('BIT') || typeUpper.includes('YESNO')) {
+          typeCounts['BOOLEAN / Bit / YesNo']++;
+        } else {
+          typeCounts['UUID / Other']++;
+        }
+      });
+    });
+
+    const estSizeKb = (totalRows * 0.12 + totalCols * 0.4).toFixed(1);
+
+    const typeDistributionData = Object.entries(typeCounts)
+      .filter(([_, count]) => count > 0)
+      .map(([name, value]) => ({ name, value }));
+
+    const tableDistributionData = activeDb.tables.map(t => ({
+      name: t.name,
+      rows: t.rowCount,
+      columns: t.columns.length
+    }));
+
+    // Active Table Column Stats
+    const colStats = activeTable.columns.map(col => {
+      const vals = activeTable.rows.map(r => r[col.name]);
+      const nonNullVals = vals.filter(v => v !== null && v !== undefined && String(v).trim() !== '');
+      const nullCount = vals.length - nonNullVals.length;
+      const fillRate = vals.length > 0 ? (nonNullVals.length / vals.length) * 100 : 100;
+
+      const uniqueSet = new Set(nonNullVals.map(v => String(v)));
+
+      // Numeric stats
+      const numVals = nonNullVals.map(v => Number(v)).filter(n => !isNaN(n));
+      let minVal: number | null = null;
+      let maxVal: number | null = null;
+      let avgVal: number | null = null;
+      let sumVal: number | null = null;
+
+      if (numVals.length > 0) {
+        minVal = Math.min(...numVals);
+        maxVal = Math.max(...numVals);
+        sumVal = numVals.reduce((a, b) => a + b, 0);
+        avgVal = Number((sumVal / numVals.length).toFixed(2));
+      }
+
+      // Mode / Most Frequent
+      const freqMap = new Map<string, number>();
+      nonNullVals.forEach(v => {
+        const s = String(v);
+        freqMap.set(s, (freqMap.get(s) || 0) + 1);
+      });
+      let topVal = '-';
+      let maxFreq = 0;
+      freqMap.forEach((count, val) => {
+        if (count > maxFreq) {
+          maxFreq = count;
+          topVal = val;
+        }
+      });
+
+      return {
+        colName: col.name,
+        colType: col.type,
+        isPrimary: col.isPrimary,
+        isForeign: col.isForeign || col.name.endsWith('_id') || col.name.endsWith('ID'),
+        nullCount,
+        fillRate,
+        uniqueCount: uniqueSet.size,
+        minVal,
+        maxVal,
+        avgVal,
+        sumVal,
+        topVal,
+        isNumeric: numVals.length > 0 && numVals.length === nonNullVals.length
+      };
+    });
+
+    const activeTableNullabilityAvg = colStats.reduce((acc, c) => acc + c.fillRate, 0) / (colStats.length || 1);
+
+    return {
+      totalTables: activeDb.tables.length,
+      totalRows,
+      totalCols,
+      totalPks,
+      totalFks,
+      estSizeKb,
+      typeDistributionData,
+      tableDistributionData,
+      colStats,
+      activeTableNullabilityAvg
+    };
+  }, [activeDb, activeTable]);
 
   // SQL Auto-Completion State & Logic
   const sqlTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -1271,6 +1641,14 @@ export const SqlDatabaseExplorerModal: React.FC<SqlDatabaseExplorerModalProps> =
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${
                   activeDb.engine === 'postgresql'
                     ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                    : activeDb.engine === 'mariadb'
+                    ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
+                    : activeDb.engine === 'mssql'
+                    ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                    : activeDb.engine === 'msaccess'
+                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                    : activeDb.engine === 'sqlite'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                     : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                 }`}>
                   {activeDb.engine}
@@ -1401,6 +1779,18 @@ export const SqlDatabaseExplorerModal: React.FC<SqlDatabaseExplorerModalProps> =
                 >
                   <TableIcon className="w-3.5 h-3.5" />
                   <span>Data Grid</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('stats')}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    activeTab === 'stats'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  <Activity className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>Common Statistics</span>
                 </button>
 
                 <button
@@ -1590,6 +1980,210 @@ export const SqlDatabaseExplorerModal: React.FC<SqlDatabaseExplorerModalProps> =
                       )}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: Common Statistics Dashboard */}
+            {activeTab === 'stats' && (
+              <div className="flex-1 p-5 overflow-y-auto custom-scrollbar space-y-5">
+                {/* Statistics Header Banner */}
+                <div className="bg-gradient-to-r from-blue-950/80 via-indigo-950/60 to-slate-950 border border-blue-900/50 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-lg">
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <Activity className="w-5 h-5 text-cyan-400" />
+                      <h4 className="font-bold text-sm text-slate-100">Database & Table Common Statistics</h4>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
+                        {activeDb.engine.toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Real-time schema health, row counts, memory footprint, data type breakdown, and column metrics for <strong className="text-white">{activeDb.name}</strong>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setActiveTab('grid')}
+                      className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-all cursor-pointer"
+                    >
+                      <TableIcon className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Inspect Active Table Grid</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Metric Cards Summary Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-xl space-y-1">
+                    <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider block">Total Tables</span>
+                    <div className="text-2xl font-black text-cyan-300 font-mono">{dbStatistics.totalTables}</div>
+                    <span className="text-[10px] text-slate-500 font-mono">In active schema</span>
+                  </div>
+
+                  <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-xl space-y-1">
+                    <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider block">Total Records</span>
+                    <div className="text-2xl font-black text-emerald-400 font-mono">{dbStatistics.totalRows}</div>
+                    <span className="text-[10px] text-slate-500 font-mono">Row entries across tables</span>
+                  </div>
+
+                  <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-xl space-y-1">
+                    <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider block">Total Fields</span>
+                    <div className="text-2xl font-black text-purple-400 font-mono">{dbStatistics.totalCols}</div>
+                    <span className="text-[10px] text-slate-500 font-mono">Schema columns</span>
+                  </div>
+
+                  <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-xl space-y-1">
+                    <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider block">Est. Size</span>
+                    <div className="text-2xl font-black text-amber-300 font-mono">{dbStatistics.estSizeKb} <span className="text-xs">KB</span></div>
+                    <span className="text-[10px] text-slate-500 font-mono">Memory allocation</span>
+                  </div>
+
+                  <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-xl space-y-1">
+                    <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider block">Foreign Keys</span>
+                    <div className="text-2xl font-black text-indigo-400 font-mono">{dbStatistics.totalFks}</div>
+                    <span className="text-[10px] text-slate-500 font-mono">Linked relations</span>
+                  </div>
+
+                  <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-xl space-y-1">
+                    <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider block">Fill Rate Avg</span>
+                    <div className="text-2xl font-black text-teal-300 font-mono">{dbStatistics.activeTableNullabilityAvg.toFixed(0)}%</div>
+                    <span className="text-[10px] text-slate-500 font-mono">Non-null ratio</span>
+                  </div>
+                </div>
+
+                {/* Charts Row: Data Type Distribution & Table Rows Comparison */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  {/* Chart 1: Table Row Volume Comparison */}
+                  <div className="lg:col-span-7 bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-900">
+                      <div className="flex items-center space-x-2">
+                        <BarChart3 className="w-4 h-4 text-cyan-400" />
+                        <h5 className="font-bold text-xs text-slate-200">Table Row Counts & Schema Volume</h5>
+                      </div>
+                      <span className="text-[10px] text-slate-500 font-mono">Records per table</span>
+                    </div>
+                    <div className="h-56 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={dbStatistics.tableDistributionData} margin={{ top: 10, right: 20, left: -10, bottom: 20 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                          <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 11 }} />
+                          <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: '#020617', borderColor: '#334155', borderRadius: '8px', fontSize: '12px' }} 
+                          />
+                          <Bar dataKey="rows" fill="#06b6d4" name="Row Count" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="columns" fill="#8b5cf6" name="Columns Count" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Chart 2: Data Types Breakdown Donut */}
+                  <div className="lg:col-span-5 bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-900">
+                      <div className="flex items-center space-x-2">
+                        <PieChartIcon className="w-4 h-4 text-emerald-400" />
+                        <h5 className="font-bold text-xs text-slate-200">Data Type Breakdown</h5>
+                      </div>
+                      <span className="text-[10px] text-slate-500 font-mono">Field categories</span>
+                    </div>
+                    <div className="h-56 w-full flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={dbStatistics.typeDistributionData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={45}
+                            outerRadius={70}
+                            paddingAngle={4}
+                            dataKey="value"
+                          >
+                            {dbStatistics.typeDistributionData.map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: '#020617', borderColor: '#334155', borderRadius: '8px', fontSize: '12px' }} 
+                          />
+                          <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '11px' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Column Statistical Breakdown Table */}
+                <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-900">
+                    <div className="flex items-center space-x-2">
+                      <TableIcon className="w-4 h-4 text-purple-400" />
+                      <h5 className="font-bold text-xs text-slate-200">
+                        Column Statistical Breakdown: <strong className="text-cyan-300">`{activeTable.name}`</strong>
+                      </h5>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {activeTable.columns.length} columns | {activeTable.rowCount} rows
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto rounded-lg border border-slate-800">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead className="bg-slate-900 text-slate-300 font-mono border-b border-slate-800">
+                        <tr>
+                          <th className="p-2.5">Column</th>
+                          <th className="p-2.5">Type</th>
+                          <th className="p-2.5">Constraints</th>
+                          <th className="p-2.5">Fill Rate</th>
+                          <th className="p-2.5">Unique Values</th>
+                          <th className="p-2.5">Summary Statistics / Min-Max-Avg</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/80 font-mono">
+                        {dbStatistics.colStats.map((col) => (
+                          <tr key={col.colName} className="hover:bg-slate-900/60 transition-colors">
+                            <td className="p-2.5 font-bold text-slate-200 flex items-center space-x-1.5">
+                              <span>{col.colName}</span>
+                              {col.isPrimary && <Key className="w-3 h-3 text-amber-400 shrink-0" />}
+                              {col.isForeign && <Link2 className="w-3 h-3 text-purple-400 shrink-0" />}
+                            </td>
+                            <td className="p-2.5 text-cyan-300">{col.colType}</td>
+                            <td className="p-2.5 text-slate-400">
+                              {col.isPrimary ? <span className="text-amber-400 font-bold">PRIMARY KEY</span> : col.isForeign ? <span className="text-purple-300 font-bold">FOREIGN KEY</span> : col.nullCount === 0 ? 'NOT NULL' : 'NULLABLE'}
+                            </td>
+                            <td className="p-2.5">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-16 h-2 bg-slate-800 rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full ${col.fillRate === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`} 
+                                    style={{ width: `${col.fillRate}%` }}
+                                  />
+                                </div>
+                                <span className="text-[11px] text-slate-300">{col.fillRate.toFixed(0)}%</span>
+                              </div>
+                            </td>
+                            <td className="p-2.5 text-slate-300">{col.uniqueCount} unique</td>
+                            <td className="p-2.5 text-slate-300 text-[11px]">
+                              {col.isNumeric ? (
+                                <div className="space-x-2">
+                                  <span className="text-emerald-400">Min: {col.minVal}</span>
+                                  <span className="text-cyan-400">Max: {col.maxVal}</span>
+                                  <span className="text-amber-300">Avg: {col.avgVal}</span>
+                                  <span className="text-purple-300">Sum: {col.sumVal}</span>
+                                </div>
+                              ) : (
+                                <div>
+                                  <span className="text-slate-400">Top Value: </span>
+                                  <span className="text-cyan-300">"{col.topVal}"</span>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -2488,7 +3082,10 @@ export const SqlDatabaseExplorerModal: React.FC<SqlDatabaseExplorerModalProps> =
                         className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 font-mono outline-none"
                       >
                         <option value="postgresql">PostgreSQL</option>
-                        <option value="mysql">MySQL / MariaDB</option>
+                        <option value="mysql">MySQL Engine</option>
+                        <option value="mariadb">MariaDB (Galera / ColumnStore)</option>
+                        <option value="mssql">Microsoft SQL Server (T-SQL)</option>
+                        <option value="msaccess">Microsoft Access (.accdb)</option>
                         <option value="sqlite">SQLite3</option>
                       </select>
                     </div>

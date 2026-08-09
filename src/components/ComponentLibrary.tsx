@@ -30,7 +30,10 @@ import {
   ChevronUp,
   Check,
   Eye,
-  Smile
+  Smile,
+  Music,
+  Headphones,
+  Volume2
 } from 'lucide-react';
 
 interface ComponentLibraryProps {
@@ -100,16 +103,19 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({
       case 'Globe': return <Globe className="w-4 h-4 text-cyan-400" />;
       case 'FileText': return <FileText className="w-4 h-4 text-indigo-400" />;
       case 'Table': return <Table className="w-4 h-4 text-emerald-400" />;
+      case 'Music': return <Music className="w-4 h-4 text-indigo-400" />;
+      case 'Headphones': return <Headphones className="w-4 h-4 text-purple-400" />;
+      case 'Volume2': return <Volume2 className="w-4 h-4 text-cyan-400" />;
       default: return <Code className="w-4 h-4 text-slate-400" />;
     }
   };
 
   return (
-    <div className={`w-80 border-r flex flex-col h-full select-none transition-colors ${
+    <div className={`w-80 shrink-0 border-r flex flex-col h-full select-none z-10 relative transition-colors ${
       isDark ? 'bg-slate-900 border-slate-800 text-slate-300' : 'bg-white border-slate-200 text-slate-700'
     }`}>
       {/* Header & Search */}
-      <div className={`p-3 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+      <div className={`p-3 border-b shrink-0 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-1.5">
             <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -155,17 +161,17 @@ export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({
         )}
       </div>
 
-      {/* Categories Horizontal Pills */}
-      <div className={`flex items-center space-x-1 p-2 overflow-x-auto border-b scrollbar-none text-xs ${
-        isDark ? 'border-slate-800' : 'border-slate-200'
+      {/* Categories Wrapped Pills */}
+      <div className={`flex flex-wrap gap-1 p-2 border-b text-xs shrink-0 ${
+        isDark ? 'border-slate-800 bg-slate-950/40' : 'border-slate-200 bg-slate-50/50'
       }`}>
         {CATEGORIES.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setSelectedCategory(cat.id)}
-            className={`px-2.5 py-1 rounded-md font-medium whitespace-nowrap transition-colors cursor-pointer ${
+            className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
               selectedCategory === cat.id
-                ? 'bg-indigo-600 text-white shadow-xs'
+                ? 'bg-indigo-600 text-white shadow-2xs'
                 : isDark
                   ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'

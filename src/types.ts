@@ -1,4 +1,4 @@
-export type FileType = 'html' | 'css' | 'js' | 'ts' | 'groovy' | 'xml' | 'json' | 'asset';
+export type FileType = 'html' | 'css' | 'js' | 'ts' | 'groovy' | 'xml' | 'json' | 'txt' | 'asset';
 
 export interface ProjectFile {
   id: string;

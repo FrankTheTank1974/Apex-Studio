@@ -34,6 +34,13 @@ const VOID_TAGS = new Set([
   'link', 'meta', 'param', 'source', 'track', 'wbr'
 ]);
 
+function sanitizeScriptAndStyleContents(html: string): string {
+  return html.replace(/(<(script|style)\b[^>]*>)([\s\S]*?)(<\/\2>)/gi, (_match, openTag, _tagName, body, closeTag) => {
+    const sanitizedBody = body.replace(/[^\r\n]/g, ' ');
+    return openTag + sanitizedBody + closeTag;
+  });
+}
+
 const DEPRECATED_TAGS: Record<string, string> = {
   center: 'Use CSS text-align: center or flexbox layout instead',
   font: 'Use CSS font-family, color, and font-size properties',
@@ -52,6 +59,8 @@ export function lintHtml(content: string): HtmlLintIssue[] {
   if (!content) return issues;
 
   const lines = content.split('\n');
+  const sanitizedContent = sanitizeScriptAndStyleContents(content);
+  const sanitizedLines = sanitizedContent.split('\n');
 
   // 1. Unclosed HTML comments check
   let inComment = false;
@@ -117,34 +126,37 @@ export function lintHtml(content: string): HtmlLintIssue[] {
   // 4. Line-by-line / Tag-by-Tag Parsing
   const tagRegex = /<(\/)?([a-zA-Z0-9:-]+)([^>]*?)(\/)?>/g;
 
-  lines.forEach((lineText, lineIdx) => {
+  sanitizedLines.forEach((lineText, lineIdx) => {
     const lineNum = lineIdx + 1;
 
-    // Check for unclosed attribute quotes on line
-    let quoteChar: string | null = null;
-    let quoteStartCol = 0;
-    for (let c = 0; c < lineText.length; c++) {
-      const char = lineText[c];
-      if (char === '"' || char === "'") {
-        if (!quoteChar) {
-          quoteChar = char;
-          quoteStartCol = c + 1;
-        } else if (quoteChar === char) {
-          quoteChar = null;
+    // Check for unclosed attribute quotes strictly inside HTML tags on line
+    const htmlTagMatches = lineText.match(/<[a-zA-Z0-9:-]+(\s+[^>]*)?/g);
+    if (htmlTagMatches) {
+      htmlTagMatches.forEach((tagSnippet) => {
+        let quoteChar: string | null = null;
+        let quoteStartCol = 0;
+        for (let c = 0; c < tagSnippet.length; c++) {
+          const char = tagSnippet[c];
+          if (char === '"' || char === "'") {
+            if (!quoteChar) {
+              quoteChar = char;
+              quoteStartCol = c + 1;
+            } else if (quoteChar === char) {
+              quoteChar = null;
+            }
+          }
         }
-      }
-    }
-
-    if (quoteChar && lineText.trim().endsWith('<') === false) {
-      // Unclosed quote on line warning
-      issues.push({
-        id: `html-unclosed-quote-${lineNum}`,
-        line: lineNum,
-        column: quoteStartCol,
-        message: `Unclosed string literal attribute quote (${quoteChar}) on line.`,
-        severity: 'error',
-        rule: 'unclosed-quote',
-        suggestion: `Close the attribute quote with ${quoteChar}`
+        if (quoteChar) {
+          issues.push({
+            id: `html-unclosed-quote-${lineNum}`,
+            line: lineNum,
+            column: quoteStartCol,
+            message: `Unclosed string literal attribute quote (${quoteChar}) on line.`,
+            severity: 'error',
+            rule: 'unclosed-quote',
+            suggestion: `Close the attribute quote with ${quoteChar}`
+          });
+        }
       });
     }
 
@@ -413,21 +425,68 @@ export function applyHtmlQuickFix(content: string, issue: HtmlLintIssue): string
     case 'unclosed-comment':
       return `${content}\n-->`;
 
+    case 'unclosed-quote':
     case 'unclosed-tag':
-      if (issue.tagName) {
-        return `${content}\n</${issue.tagName}>`;
-      }
-      return content;
-
     case 'unmatched-closing-tag':
-      if (issue.tagName) {
-        const removeRegex = new RegExp(`<\\/${issue.tagName}>`, 'i');
-        lines[targetLineIdx] = lineText.replace(removeRegex, '');
-        return lines.join('\n');
-      }
-      return content;
+      return repairHtmlWithDOMParser(content);
 
     default:
       return content;
+  }
+}
+
+/**
+ * Uses DOMParser to programmatically repair malformed HTML elements,
+ * specifically cleaning up unclosed attribute quotes, missing closing tags, or mismatched tags.
+ */
+export function repairHtmlWithDOMParser(htmlContent: string): string {
+  if (!htmlContent) return htmlContent;
+
+  // Step 1: Pre-fix unclosed attribute quotes inside HTML tags
+  let preFixedHtml = htmlContent.replace(/<[a-zA-Z0-9:-]+(\s+[^>]*)?/g, (tagMatch) => {
+    let doubleQuotes = 0;
+    let singleQuotes = 0;
+    for (let i = 0; i < tagMatch.length; i++) {
+      if (tagMatch[i] === '"') doubleQuotes++;
+      if (tagMatch[i] === "'") singleQuotes++;
+    }
+    let fixedTag = tagMatch;
+    if (doubleQuotes % 2 !== 0) {
+      fixedTag += '"';
+    }
+    if (singleQuotes % 2 !== 0) {
+      fixedTag += "'";
+    }
+    return fixedTag;
+  });
+
+  if (typeof window === 'undefined' || !window.DOMParser) {
+    return preFixedHtml;
+  }
+
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(preFixedHtml, 'text/html');
+
+    // Check if original content was a full document (with <!DOCTYPE or <html)
+    const isFullDoc = /^\s*<!DOCTYPE/i.test(htmlContent) || /^\s*<html/i.test(htmlContent);
+
+    if (isFullDoc) {
+      const doctypeStr = doc.doctype ? `<!DOCTYPE ${doc.doctype.name}>\n` : '<!DOCTYPE html>\n';
+      return doctypeStr + doc.documentElement.outerHTML;
+    } else {
+      // For fragments, if DOMParser placed <style> or <script> elements into doc.head,
+      // combine doc.head.innerHTML and doc.body.innerHTML so nothing is lost.
+      const headHtml = doc.head ? doc.head.innerHTML.trim() : '';
+      const bodyHtml = doc.body ? doc.body.innerHTML.trim() : '';
+
+      if (headHtml) {
+        return headHtml + '\n' + bodyHtml;
+      }
+      return bodyHtml || preFixedHtml;
+    }
+  } catch (err) {
+    console.error('DOMParser HTML repair error:', err);
+    return preFixedHtml;
   }
 }
