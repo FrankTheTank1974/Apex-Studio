@@ -65,6 +65,7 @@ export default function App() {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isDrawIoOpen, setIsDrawIoOpen] = useState(false);
   const [isAIOpen, setIsAIOpen] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState<boolean>(true);
   const [isCollabOpen, setIsCollabOpen] = useState(false);
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
   const [isFontsOpen, setIsFontsOpen] = useState(false);
@@ -332,6 +333,18 @@ export default function App() {
     }
   };
 
+  // Fetch server config (enterprise AI compliance policies)
+  useEffect(() => {
+    fetch('/api/config')
+      .then((res) => res.json())
+      .then((data) => {
+        if (typeof data.aiEnabled === 'boolean') {
+          setAiEnabled(data.aiEnabled);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Keyboard shortcut listener for Delete/Backspace key, Ctrl+Z / Cmd+Z Undo/Redo, and global hotkeys
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -358,7 +371,9 @@ export default function App() {
       // Global hotkey: Ctrl/Cmd + K for AI Copilot
       if (isCmdOrCtrl && key === 'k') {
         e.preventDefault();
-        setIsAIOpen((prev) => !prev);
+        if (aiEnabled) {
+          setIsAIOpen((prev) => !prev);
+        }
         return;
       }
 
@@ -643,6 +658,7 @@ export default function App() {
         onToggleTheme={handleToggleTheme}
         onOpenExport={() => setIsExportOpen(true)}
         onOpenAI={() => setIsAIOpen(true)}
+        aiEnabled={aiEnabled}
         onOpenDrawIo={() => setIsDrawIoOpen(true)}
         onOpenFonts={() => setIsFontsOpen(true)}
         onOpenShortcuts={() => setIsShortcutsOpen(true)}
@@ -799,6 +815,7 @@ export default function App() {
         isOpen={isAIOpen}
         onClose={() => setIsAIOpen(false)}
         onInsertGeneratedHtml={handleInsertComponentHtml}
+        aiEnabled={aiEnabled}
       />
 
       {/* New Project Starter Modal */}

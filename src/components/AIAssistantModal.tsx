@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { Sparkles, X, Loader2, Code2, Plus } from 'lucide-react';
+import { Sparkles, X, Loader2, Code2, Plus, ShieldAlert, Lock } from 'lucide-react';
 
 interface AIAssistantModalProps {
   isOpen: boolean;
   onClose: () => void;
   onInsertGeneratedHtml: (html: string) => void;
+  aiEnabled?: boolean;
 }
 
 export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   isOpen,
   onClose,
   onInsertGeneratedHtml,
+  aiEnabled = true,
 }) => {
   const [prompt, setPrompt] = useState('');
   const [generationType, setGenerationType] = useState<'component' | 'section'>('component');
@@ -19,6 +21,30 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
 
   if (!isOpen) return null;
+
+  if (!aiEnabled) {
+    return (
+      <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl p-6 text-center space-y-4 text-slate-300">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mx-auto">
+            <Lock className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-slate-100">AI Features Disabled</h3>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              AI Copilot has been disabled by corporate/enterprise policy (<code>--disable-ai</code> or <code>DISABLE_AI_COPILOT=true</code>).
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+          >
+            Close Window
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();

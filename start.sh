@@ -5,6 +5,40 @@
 
 set -e
 
+# Parse command line flags & environment variables
+SKIP_UPDATE=${SKIP_UPDATE:-0}
+DISABLE_AI_COPILOT=${DISABLE_AI_COPILOT:-${DISABLE_AI:-0}}
+
+for arg in "$@"; do
+  case $arg in
+    --skip-update|-s|--no-update|--offline)
+      SKIP_UPDATE=1
+      ;;
+    --disable-ai|--no-ai|--disable-copilot|--no-copilot|-da)
+      DISABLE_AI_COPILOT=1
+      ;;
+    --help|-h)
+      echo "Usage: ./start.sh [options]"
+      echo ""
+      echo "Options:"
+      echo "  --skip-update, -s, --no-update, --offline   Skip checking GitHub for automatic updates"
+      echo "  --disable-ai, -da, --no-ai, --no-copilot   Disable AI Copilot features (for enterprise/policy compliance)"
+      echo "  --help, -h                                 Show this help message"
+      echo ""
+      echo "Environment Variables:"
+      echo "  SKIP_UPDATE=1                              Skip GitHub updates"
+      echo "  DISABLE_AI_COPILOT=true                    Disable AI Copilot features"
+      echo "  PORT=3000                                  Set starting port (default: 3000)"
+      exit 0
+      ;;
+  esac
+done
+
+if [ "$DISABLE_AI_COPILOT" = "1" ] || [ "$DISABLE_AI_COPILOT" = "true" ]; then
+  export DISABLE_AI_COPILOT=true
+  echo "🔒 Enterprise Compliance: AI Copilot features are DISABLED."
+fi
+
 # Helper function to check if a port is currently occupied
 is_port_in_use() {
   local p=$1
@@ -53,6 +87,11 @@ echo "🚀 Starting ApexStudio setup on ${URL}..."
 
 # 1. Check for updates on GitHub
 check_github_updates() {
+  if [ "$SKIP_UPDATE" = "1" ] || [ "$SKIP_UPDATE" = "true" ]; then
+    echo "⏭️  Skipping GitHub update check (--skip-update requested or offline mode)."
+    return 0
+  fi
+
   if command -v git >/dev/null 2>&1 && [ -d ".git" ]; then
     echo "🔍 Checking for updates on GitHub..."
     

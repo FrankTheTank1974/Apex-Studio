@@ -235,9 +235,21 @@ ZstdCodec.run((zstd: any) => {
   zstdSimpleInstance = new zstd.Simple();
 });
 
+// Check if AI features are globally disabled by enterprise/company policy
+const isAiDisabled = 
+  process.env.DISABLE_AI_COPILOT === "true" || 
+  process.env.DISABLE_AI_COPILOT === "1" || 
+  process.env.DISABLE_AI === "true" || 
+  process.env.DISABLE_AI === "1" || 
+  process.env.DISABLE_COPILOT === "true" || 
+  process.env.DISABLE_COPILOT === "1";
+
 // Lazy initialization for Gemini AI SDK
 let aiClient: GoogleGenAI | null = null;
 function getGeminiClient() {
+  if (isAiDisabled) {
+    throw new Error("AI features are disabled by corporate policy.");
+  }
   if (!aiClient) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -250,11 +262,19 @@ function getGeminiClient() {
 
 // REST API ROUTES
 app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+  res.json({ status: "ok", aiEnabled: !isAiDisabled, timestamp: new Date().toISOString() });
+});
+
+app.get("/api/config", (_req, res) => {
+  res.json({ aiEnabled: !isAiDisabled, timestamp: new Date().toISOString() });
 });
 
 // AI Generation Endpoint (Gemini)
 app.post("/api/ai/generate", async (req, res) => {
+  if (isAiDisabled) {
+    return res.status(403).json({ error: "AI features have been disabled by enterprise policy." });
+  }
+
   try {
     const { prompt, type } = req.body;
     if (!prompt) {
@@ -290,6 +310,21 @@ app.post("/api/ai/analyze-image", async (req, res) => {
   try {
     const { imageData, imageName, currentAltText } = req.body;
     const name = imageName || "image.png";
+
+    if (isAiDisabled) {
+      return res.json({
+        success: true,
+        aiDisabled: true,
+        data: {
+          tags: ["Image Asset", "Web Graphics"],
+          suggestedAltText: currentAltText || `Illustration representing ${name.replace(/[-_.]/g, ' ')}`,
+          category: "UI Component",
+          accessibilityStatus: currentAltText ? "compliant" : "missing",
+          accessibilityTip: "Alt text generated via local rules (AI disabled by enterprise policy).",
+          analyzedAt: Date.now(),
+        },
+      });
+    }
 
     // Extract base64 if data URI
     let base64Data: string | null = null;

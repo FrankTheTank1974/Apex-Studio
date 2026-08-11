@@ -26,7 +26,8 @@ import {
   Link as LinkIcon,
   Search,
   Smile,
-  Database
+  Database,
+  ShieldAlert
 } from 'lucide-react';
 import { ViewMode, DeviceMode, ProjectFile, ThemeMode } from '../types';
 
@@ -41,6 +42,7 @@ interface NavbarProps {
   onToggleTheme: () => void;
   onOpenExport: () => void;
   onOpenAI: () => void;
+  aiEnabled?: boolean;
   onOpenDrawIo: () => void;
   onOpenFonts?: () => void;
   onOpenShortcuts?: () => void;
@@ -73,6 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleTheme,
   onOpenExport,
   onOpenAI,
+  aiEnabled = true,
   onOpenDrawIo,
   onOpenFonts,
   onOpenShortcuts,
@@ -269,14 +272,24 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Primary Action Buttons */}
         <div className="flex items-center space-x-1.5 shrink-0">
           {/* AI Assistant Trigger */}
-          <button
-            onClick={onOpenAI}
-            className="flex items-center space-x-1 px-2.5 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-md text-[11px] font-semibold transition-all cursor-pointer"
-            title="AI Design & Component Copilot"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span className="hidden sm:inline">AI Copilot</span>
-          </button>
+          {aiEnabled ? (
+            <button
+              onClick={onOpenAI}
+              className="flex items-center space-x-1 px-2.5 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-md text-[11px] font-semibold transition-all cursor-pointer"
+              title="AI Design & Component Copilot (Ctrl+K)"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+              <span className="hidden sm:inline">AI Copilot</span>
+            </button>
+          ) : (
+            <div
+              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-800/60 text-slate-400 border border-slate-700/60 rounded-md text-[11px] font-medium opacity-75 cursor-not-allowed select-none"
+              title="AI Copilot is disabled by corporate/enterprise policy (--disable-ai)"
+            >
+              <ShieldAlert className="w-3.5 h-3.5 text-slate-500" />
+              <span className="hidden sm:inline">AI Disabled</span>
+            </div>
+          )}
 
           {/* Theme Mode Switcher */}
           <button

@@ -95,6 +95,7 @@ When running `npm install`, you may notice standard non-critical npm diagnostic 
 ### 2. Quick One-Click Launcher (`start.sh`)
 The included `start.sh` script automates the full deployment workflow:
 - 🔌 **Auto Port Conflict Detection**: Checks if port 3000 is occupied and automatically picks the next available open port (3001, 3002, etc.).
+- 🔒 **Enterprise AI Compliance Mode**: Option to globally disable AI Copilot features for corporate environments where generative AI is prohibited.
 - 🔍 **GitHub Auto-Update**: Automatically checks remote repository status, pulls code updates, preserves `chmod +x` executable permissions, and hot-reloads the launcher script if updated.
 - 📦 **Dependency Checks**: Runs `npm install` if `node_modules` or `package.json` changed.
 - 🔨 **Build & Start**: Builds client assets and launches the production Express server on the selected port.
@@ -102,7 +103,20 @@ The included `start.sh` script automates the full deployment workflow:
 
 ```bash
 chmod +x start.sh
+
+# Standard launch with auto GitHub update check:
 ./start.sh
+
+# Disable AI Copilot (for enterprise/policy compliance):
+./start.sh --disable-ai
+# or using flags/env vars:
+./start.sh -da
+DISABLE_AI_COPILOT=true ./start.sh
+
+# Skip GitHub updates (for offline mode or fast launch):
+./start.sh --skip-update
+./start.sh -s
+SKIP_UPDATE=1 ./start.sh
 ```
 
 ### 3. Manual Development & Build Commands
