@@ -5,10 +5,51 @@
 
 set -e
 
-PORT=${PORT:-3000}
+# Helper function to check if a port is currently occupied
+is_port_in_use() {
+  local p=$1
+  if command -v node >/dev/null 2>&1; then
+    node -e "
+      const net = require('net');
+      const server = net.createServer();
+      server.once('error', () => {
+        process.exit(0); // Port in use
+      });
+      server.once('listening', () => {
+        server.close();
+        process.exit(1); // Port available
+      });
+      server.listen($p, '0.0.0.0');
+    " >/dev/null 2>&1
+    return $?
+  elif command -v nc >/dev/null 2>&1; then
+    nc -z 127.0.0.1 "$p" >/dev/null 2>&1 || nc -z localhost "$p" >/dev/null 2>&1
+    return $?
+  elif command -v lsof >/dev/null 2>&1; then
+    lsof -i ":$p" >/dev/null 2>&1
+    return $?
+  else
+    return 1
+  fi
+}
+
+# 1. Determine free port (defaults to 3000 or next available)
+DESIRED_PORT=${PORT:-3000}
+PORT=$DESIRED_PORT
+
+while is_port_in_use "$PORT"; do
+  echo "⚠️ Port $PORT is currently in use by another process."
+  PORT=$((PORT + 1))
+done
+
+if [ "$PORT" -ne "$DESIRED_PORT" ]; then
+  echo "💡 Automatically selected next open port: $PORT"
+fi
+
+export PORT
 URL="http://localhost:${PORT}"
 
-echo "🚀 Starting ApexStudio setup..."
+echo "🚀 Starting ApexStudio setup on ${URL}..."
 
 # 1. Check for updates on GitHub
 check_github_updates() {
@@ -27,6 +68,16 @@ check_github_updates() {
         if git pull --quiet 2>/dev/null || git pull --rebase --quiet 2>/dev/null; then
           echo "✨ Successfully updated to the latest GitHub release!"
           MUST_INSTALL_DEPS=1
+          
+          # Automatically restore executable permissions for all shell scripts
+          chmod +x "$0" *.sh 2>/dev/null || true
+          
+          # If start.sh itself was updated, re-execute the fresh script
+          UPDATED_HASH=$(git rev-parse HEAD 2>/dev/null || echo "")
+          if [ "$LOCAL_HASH" != "$UPDATED_HASH" ]; then
+            echo "🔄 Re-executing updated launcher script..."
+            exec "$0" "$@"
+          fi
         else
           echo "⚠️ Automatic update skipped (local changes detected or merge conflict)."
         fi

@@ -94,9 +94,10 @@ When running `npm install`, you may notice standard non-critical npm diagnostic 
 
 ### 2. Quick One-Click Launcher (`start.sh`)
 The included `start.sh` script automates the full deployment workflow:
-- 🔍 **GitHub Auto-Update**: Automatically checks remote repository status and pulls the latest code updates before building.
+- 🔌 **Auto Port Conflict Detection**: Checks if port 3000 is occupied and automatically picks the next available open port (3001, 3002, etc.).
+- 🔍 **GitHub Auto-Update**: Automatically checks remote repository status, pulls code updates, preserves `chmod +x` executable permissions, and hot-reloads the launcher script if updated.
 - 📦 **Dependency Checks**: Runs `npm install` if `node_modules` or `package.json` changed.
-- 🔨 **Build & Start**: Builds client assets and launches the production Express server on port 3000.
+- 🔨 **Build & Start**: Builds client assets and launches the production Express server on the selected port.
 - 🌐 **Browser Launch**: Automatically detects and opens your default OS browser once the server is live.
 
 ```bash
